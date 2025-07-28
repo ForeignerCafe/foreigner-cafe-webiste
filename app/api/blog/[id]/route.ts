@@ -3,16 +3,18 @@ import Blog from "@/models/Blog"
 import { type NextRequest, NextResponse } from "next/server"
 
 // GET /api/blog/[id] – Get blog by ID for admin access
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
+    
+    const { id } = await params
 
     // Try to find by ID first (admin access)
-    let blog = await Blog.findById(params.id)
+    let blog = await Blog.findById(id)
 
     // If not found by ID, try by slug (for backward compatibility)
     if (!blog) {
-      blog = await Blog.findOne({ slug: params.id })
+      blog = await Blog.findOne({ slug: id })
     }
 
     if (!blog) {
@@ -27,10 +29,12 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 }
 
 // DELETE /api/blog/[id] – Delete blog by ID
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
-    const deleted = await Blog.findByIdAndDelete(params.id)
+    
+    const { id } = await params
+    const deleted = await Blog.findByIdAndDelete(id)
 
     if (!deleted) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 })
@@ -44,13 +48,15 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
 }
 
 // PUT /api/blog/[id] – Update blog (edit)
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
+    
+    const { id } = await params
     const body = await req.json()
 
     const updated = await Blog.findByIdAndUpdate(
-      params.id,
+      id,
       {
         ...body,
         publishedAt: body.status === "published" ? new Date() : undefined,
@@ -70,7 +76,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // PATCH /api/blog/[id]?action=archive – Archive blog
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const action = req.nextUrl.searchParams.get("action")
 
   if (action !== "archive") {
@@ -79,7 +85,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   try {
     await connectDB()
-    const blog = await Blog.findById(params.id)
+    
+    const { id } = await params
+    const blog = await Blog.findById(id)
 
     if (!blog) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 })
