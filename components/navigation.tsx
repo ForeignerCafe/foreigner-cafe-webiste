@@ -55,10 +55,10 @@ export default function Navigation() {
     setIsReservationModalOpen(true)
   }
 
-  // Navigation items for desktop (original navItems)
+  // Navigation items for desktop - conditionally includes About Us based on topNavActiveItem
   const navItems = [
     {
-      label: "Home",
+      label: "HOME",
       id: "hero",
       action: () => {
         scrollToSection("home")
@@ -74,13 +74,17 @@ export default function Navigation() {
           "noopener,noreferrer",
         ),
     },
-    {
-      label: "ABOUT US",
-      id: "aboutUs",
-      action: () => {
-        scrollToSection("story")
-      },
-    },
+    ...(topNavActiveItem === "DINE"
+      ? [
+          {
+            label: "ABOUT US",
+            id: "aboutUs",
+            action: () => {
+              scrollToSection("story")
+            },
+          },
+        ]
+      : []),
     {
       label: "EXPERIENCES",
       id: "contact",
@@ -119,7 +123,7 @@ export default function Navigation() {
           "noopener,noreferrer",
         ),
     },
-    { label: "ABOUT US", action: () => scrollToSection("story") },
+    ...(topNavActiveItem === "DINE" ? [{ label: "ABOUT US", action: () => scrollToSection("story") }] : []),
     { label: "EXPERIENCES", action: () => router.push("/experiences") },
     { label: "FAQS", action: () => router.push("/faqs") },
     {
@@ -314,35 +318,34 @@ export default function Navigation() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[20rem] h-[30rem] bg-white p-8 overflow-y-auto">
-  {/* Add SheetHeader with visually hidden title */}
-  <SheetHeader className="sr-only">
-    <SheetTitle>Mobile Navigation Menu</SheetTitle>
-  </SheetHeader>
-  
-  <div className="flex flex-col space-y-8 pt-12">
-    {mobileNavItems.map((item, index) => (
-      <button
-        key={item.label}
-        onClick={() => {
-          item.action()
-          setIsOpen(false)
-        }}
-        className="block text-left text-sm font-semibold tracking-wide text-gray-800 hover:text-orange transition-colors hover:translate-x-2"
-      >
-        {item.label}
-      </button>
-    ))}
-    <Button
-      onClick={() => {
-        openReservationModal()
-        setIsOpen(false)
-      }}
-      className="bg-orange text-white text-sm rounded-xl tracking-wide mt-2 hover:bg-black transition-all duration-300 w-[130px]"
-    >
-      RESERVE
-    </Button>
-  </div>
-</SheetContent>
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Mobile Navigation Menu</SheetTitle>
+                  </SheetHeader>
+                  
+                  <div className="flex flex-col space-y-8 pt-12">
+                    {mobileNavItems.map((item) => (
+                      <button
+                        key={item.label}
+                        onClick={() => {
+                          item.action()
+                          setIsOpen(false)
+                        }}
+                        className="block text-left text-sm font-semibold tracking-wide text-gray-800 hover:text-orange transition-colors hover:translate-x-2"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                    <Button
+                      onClick={() => {
+                        openReservationModal()
+                        setIsOpen(false)
+                      }}
+                      className="bg-orange text-white text-sm rounded-xl tracking-wide mt-2 hover:bg-black transition-all duration-300 w-[130px]"
+                    >
+                      RESERVE
+                    </Button>
+                  </div>
+                </SheetContent>
               </Sheet>
             </div>
           </div>
