@@ -21,11 +21,11 @@ interface Blog {
 async function getBlogs(): Promise<Blog[]> {
   try {
     // Use absolute URL for production
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`
       : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-    const url = `${baseUrl}/api/blog/public`;
+    const url = `${baseUrl}/blog/public`;
 
     const res = await fetch(url, {
       cache: "no-store",
