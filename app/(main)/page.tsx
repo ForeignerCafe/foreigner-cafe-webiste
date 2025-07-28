@@ -11,20 +11,20 @@ import FAQsSection from "@/components/faqs-section";
 import Footer from "@/components/footer";
 import InstagramFeed from "@/components/instagram-feed";
 import DineDrinkSection from "@/components/dine-drink-section"; // New component import
-import KidsEventsSection from "@/components/kids-event-section";
 import EventsShowcaseSection from "@/components/events-showcase-section";
 import { HeroParallax } from "@/components/ui/hero-parallax";
 import { products } from "@/lib/data";
 import Events from "@/components/eventsSection";
+import LatestBlogsSection from "@/components/latest-blogs-section";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-white">
       <Hero />
       <HeroParallax products={products} />
-      <Events/>
+      <Events />
       {/* <EventsShowcaseSection /> */}
-      <KidsEventsSection />
+      <LatestBlogsSection />
       <DineDrinkSection />
       <BrandSection />
       {/* <MenuSection /> */}
