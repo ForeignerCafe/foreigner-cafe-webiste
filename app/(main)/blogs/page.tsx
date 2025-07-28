@@ -38,7 +38,6 @@ async function getBlogs(): Promise<Blog[]> {
     return [];
   }
 }
-
 export const metadata: Metadata = {
   title: "Blog | Foreigners Cafe - Stories, Updates & Community",
   description:
