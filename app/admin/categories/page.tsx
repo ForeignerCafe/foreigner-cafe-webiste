@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
+import { DeleteConfirmationModal } from "@/components/dashboard/delete-confirmation-modal" // Adjust the import path as needed
 
 interface Category {
   _id: string
@@ -35,6 +36,8 @@ export default function CategoriesPage() {
     description: "",
   })
   const [submitting, setSubmitting] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     fetchCategories()
@@ -92,17 +95,25 @@ export default function CategoriesPage() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this category?")) return
+  const handleDeleteClick = (id: string) => {
+    setCategoryToDelete(id)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!categoryToDelete) return
 
     try {
-      const response = await axiosInstance.delete(`/api/categories/${id}`)
+      const response = await axiosInstance.delete(`/api/categories/${categoryToDelete}`)
       if (response.data.success) {
         toast.success("Category deleted successfully")
         fetchCategories()
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to delete category")
+    } finally {
+      setIsDeleteModalOpen(false)
+      setCategoryToDelete(null)
     }
   }
 
@@ -122,10 +133,17 @@ export default function CategoriesPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Category"
+        description="Are you sure you want to delete this category? This action cannot be undone."
+      />
+
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Categories</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your product categories</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Categories Detail</h1>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -216,7 +234,7 @@ export default function CategoriesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleDelete(category._id)}
+                          onClick={() => handleDeleteClick(category._id)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />

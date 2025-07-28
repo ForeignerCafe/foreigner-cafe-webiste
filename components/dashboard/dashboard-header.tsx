@@ -27,6 +27,12 @@ export default function Header() {
         return "Contact Requests";
       case "/admin/subscribers":
         return "Subscribers";
+      case "/admin/categories":
+        return "Categories";
+      case "/admin/orders":
+        return "Orders Detail";
+      case "/admin/products":
+        return "Products Detail";
       default:
         return "Dashboard";
     }
