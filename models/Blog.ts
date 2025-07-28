@@ -1,5 +1,21 @@
-import mongoose from "mongoose";
-import slugify from "slugify";
+import mongoose from "mongoose"
+import slugify from "slugify"
+
+export type BlogStatus = "draft" | "published" | "archived"
+
+export interface Blog {
+  _id: string
+  title: string
+  slug: string
+  shortCaption: string
+  mainImage?: string
+  body: string
+  status: BlogStatus
+  tags: string[]
+  publishedAt: Date
+  createdAt: Date
+  updatedAt: Date
+}
 
 const BlogSchema = new mongoose.Schema(
   {
@@ -19,23 +35,23 @@ const BlogSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
-);
+  { timestamps: true },
+)
 
 // Auto-generate unique slug before save
 BlogSchema.pre("validate", async function (next) {
-  if (!this.isModified("title")) return next();
+  if (!this.isModified("title")) return next()
 
-  const baseSlug = slugify(this.title, { lower: true, strict: true });
-  let slug = baseSlug;
-  let counter = 1;
+  const baseSlug = slugify(this.title, { lower: true, strict: true })
+  let slug = baseSlug
+  let counter = 1
 
   while (await mongoose.models.Blog.exists({ slug })) {
-    slug = `${baseSlug}-${counter++}`;
+    slug = `${baseSlug}-${counter++}`
   }
 
-  this.slug = slug;
-  next();
-});
+  this.slug = slug
+  next()
+})
 
-export default mongoose.models.Blog || mongoose.model("Blog", BlogSchema);
+export default mongoose.models.Blog || mongoose.model("Blog", BlogSchema)
