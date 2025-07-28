@@ -72,7 +72,7 @@ export function DataTable<TData>({
       {/* Search Input */}
       {searchColumn && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-2 sm:p-4 bg-white dark:bg-black border">
-          <div className="relative w-full">
+          <div className="relative w-full md:w-1/3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-300 h-3 w-3 sm:h-4 sm:w-4" />
             <Input
               placeholder={`Search ${searchableColumnTitle}`}
