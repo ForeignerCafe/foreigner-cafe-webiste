@@ -1,7 +1,6 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type React from "react"
-
 import { Calendar, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -12,11 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DialogTitle } from "@radix-ui/react-dialog"
 import { toast } from "react-hot-toast"
 import axios from "axios"
+import { useLenis } from "lenis/react"
 
 interface ReservationModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   customerName?: string
+  isContactForm?: boolean // New prop to distinguish between contact and reservation
 }
 
 interface FormErrors {
@@ -29,8 +30,8 @@ interface FormErrors {
   phone?: string
 }
 
-export function ReservationModal({ open, onOpenChange, customerName }: ReservationModalProps) {
-  const [requestType, setRequestType] = useState<string>("")
+export function ReservationModal({ open, onOpenChange, customerName, isContactForm = false }: ReservationModalProps) {
+  const [requestType, setRequestType] = useState<string>(isContactForm ? "General" : "")
   const [date, setDate] = useState<string>("")
   const [time, setTime] = useState<string>("")
   const [numberOfPeople, setNumberOfPeople] = useState<string>("")
@@ -41,7 +42,7 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [customerNameState, setCustomerNameState] = useState<string>(customerName || "")
 
-  const isEventOrReservation = requestType === "Event" || requestType === "Reservation"
+  const isEventOrReservation = !isContactForm && (requestType === "Event" || requestType === "Reservation")
 
   const validateField = (name: string, value: string): string | undefined => {
     switch (name) {
@@ -50,7 +51,7 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
         if (value.length < 2) return "Name must be at least 2 characters"
         return
       case "requestType":
-        if (!value) return "Please select a request type"
+        if (!isContactForm && !value) return "Please select a request type"
         return
       case "numberOfPeople":
         if (isEventOrReservation && !value) return "Number of people is required"
@@ -80,8 +81,6 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-
-    // Update state based on field name
     switch (name) {
       case "numberOfPeople":
         setNumberOfPeople(value)
@@ -96,8 +95,6 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
         setSpecialRequests(value)
         break
     }
-
-    // Validate field in real-time if there's already an error
     if (errors[name as keyof FormErrors]) {
       const error = validateField(name, value)
       setErrors((prev) => ({ ...prev, [name]: error }))
@@ -105,7 +102,7 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
   }
 
   const resetForm = () => {
-    setRequestType("")
+    setRequestType(isContactForm ? "General" : "")
     setDate("")
     setTime("")
     setNumberOfPeople("")
@@ -117,14 +114,12 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("🚀 handleSubmit called!") // Add this debug log
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Validate all fields
     const formData = {
-      customerName: customerNameState, // Use state instead of prop
-      requestType,
+      customerName: customerNameState,
+      requestType: isContactForm ? "General" : requestType,
       numberOfPeople,
       date,
       time,
@@ -134,49 +129,41 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
 
     const newErrors: FormErrors = {}
     Object.entries(formData).forEach(([key, value]) => {
+      if (key === "requestType" && isContactForm) return // Skip validation for hidden field
       const error = validateField(key, value)
       if (error) newErrors[key as keyof FormErrors] = error
     })
 
     setErrors(newErrors)
 
-    console.log("🔍 Form validation errors:", newErrors) // Add this debug log
-    console.log("🔍 Form data:", formData) // Add this debug log
-
     if (Object.keys(newErrors).length === 0) {
-      const toastId = toast.loading("Submitting reservation...")
-
+      const toastId = toast.loading("Submitting request...")
       try {
-        // Match your API's expected payload structure
         const payload = {
           name: formData.customerName,
           email,
           phone,
           message:
             specialRequests ||
-            `${requestType} request${isEventOrReservation ? ` for ${numberOfPeople} people on ${date} at ${time}` : ""}`,
-          type: requestType.toLowerCase(),
+            (isEventOrReservation
+              ? `${requestType} request for ${numberOfPeople} people on ${date} at ${time}`
+              : "General inquiry"),
+          type: isContactForm ? "general" : requestType.toLowerCase(),
           date: isEventOrReservation ? date : null,
           people: isEventOrReservation ? Number.parseInt(numberOfPeople) : null,
         }
-
-        console.log("Sending payload:", payload) // Debug log
 
         const response = await axios.post("/api/contact", payload, {
           headers: {
             "Content-Type": "application/json",
           },
         })
-        console.log("API Response:", response.data) // Debug log
 
-        toast.success("Reservation submitted successfully!", { id: toastId })
+        toast.success("Request submitted successfully!", { id: toastId })
         resetForm()
-        onOpenChange(false) // Close modal on success
+        onOpenChange(false)
       } catch (error: any) {
-        console.error("Submission error:", error)
-        console.error("Error response:", error.response?.data) // Debug log
-
-        const errorMessage = error.response?.data?.message || error.response?.data || "Failed to submit reservation."
+        const errorMessage = error.response?.data?.message || error.response?.data || "Failed to submit request."
         toast.error(errorMessage, { id: toastId })
       } finally {
         setIsSubmitting(false)
@@ -186,40 +173,53 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
     }
   }
 
+  const lenis = useLenis()
+  useEffect(() => {
+    if (open) {
+      lenis?.stop()
+      document.body.style.overflow = "hidden"
+    } else {
+      lenis?.start()
+      document.body.style.overflow = ""
+    }
+    return () => {
+      lenis?.start()
+      document.body.style.overflow = ""
+    }
+  }, [open, lenis])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] rounded-3xl bg-background p-0 shadow-lg md:max-w-lg lg:max-w-xl overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        <DialogTitle className="sr-only">Make a Reservation</DialogTitle>
+        <DialogTitle className="sr-only">{isContactForm ? "Contact Us" : "Make a Reservation"}</DialogTitle>
         <style jsx global>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-            height: 2px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-            margin: 8px 0;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 10px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-          }
-        `}</style>
-
+					.custom-scrollbar::-webkit-scrollbar {
+						width: 4px;
+						height: 2px;
+					}
+					.custom-scrollbar::-webkit-scrollbar-track {
+						background: transparent;
+						margin: 8px 0;
+					}
+					.custom-scrollbar::-webkit-scrollbar-thumb {
+						background: #d1d5db;
+						border-radius: 10px;
+					}
+					.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+						background: #9ca3af;
+					}
+				`}</style>
         <div className="relative p-6 sm:p-8 h-full flex flex-col">
           <div className="custom-scrollbar overflow-y-auto h-full pr-2 -mr-2">
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl text-[#EC4E20]">
-                  {requestType ? `${requestType} Request` : "Make a Reservation"}
+                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl uppercase text-[#EC4E20]">
+                  {isContactForm ? "Contact Us" : requestType ? `${requestType} Request` : "Make a Reservation"}
                 </h2>
                 <p className="text-muted-foreground mt-2 text-[12px]">
                   Please fill out the form below to submit your request
                 </p>
               </div>
-
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Customer Name */}
                 <div>
@@ -239,30 +239,35 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
                   {errors.customerName && <p className="mt-1 text-sm text-red-600">{errors.customerName}</p>}
                 </div>
 
-                {/* Request Type */}
-                <div>
-                  <Label htmlFor="requestType">Request Type *</Label>
-                  <Select
-                    onValueChange={(value) => {
-                      setRequestType(value)
-                      setErrors((prev) => ({ ...prev, requestType: undefined }))
-                    }}
-                    required
-                    value={requestType}
-                  >
-                    <SelectTrigger className="rounded-[0.5rem] mt-2" id="requestType">
-                      <SelectValue placeholder="Select request type" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-[0.5rem]">
-                      <SelectItem value="Event">Event</SelectItem>
-                      <SelectItem value="Reservation">Reservation</SelectItem>
-                      <SelectItem value="General">General</SelectItem>
-                      <SelectItem value="Feedback">Feedback</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.requestType && <p className="mt-1 text-sm text-red-600">{errors.requestType}</p>}
-                </div>
+                {/* Request Type - hidden for contact form */}
+                {!isContactForm && (
+                  <div>
+                    <Label htmlFor="requestType">Request Type *</Label>
+                    <Select
+                      onValueChange={(value) => {
+                        setRequestType(value)
+                        setErrors((prev) => ({
+                          ...prev,
+                          requestType: undefined,
+                        }))
+                      }}
+                      required
+                      value={requestType}
+                    >
+                      <SelectTrigger className="rounded-[0.5rem] mt-2" id="requestType">
+                        <SelectValue placeholder="Select request type" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-[0.5rem]">
+                        <SelectItem value="Event">Event</SelectItem>
+                        <SelectItem value="Reservation">Reservation</SelectItem>
+                        <SelectItem value="General">General</SelectItem>
+                        <SelectItem value="Feedback">Feedback</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.requestType && <p className="mt-1 text-sm text-red-600">{errors.requestType}</p>}
+                  </div>
+                )}
 
                 {/* Number of People - only shown for Event or Reservation */}
                 {isEventOrReservation && (
@@ -278,7 +283,10 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
                       onChange={handleChange}
                       onBlur={(e) => {
                         const error = validateField("numberOfPeople", e.target.value)
-                        setErrors((prev) => ({ ...prev, numberOfPeople: error }))
+                        setErrors((prev) => ({
+                          ...prev,
+                          numberOfPeople: error,
+                        }))
                       }}
                       placeholder="How many people?"
                     />
@@ -338,7 +346,7 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
 
                 {/* Special Requests */}
                 <div>
-                  <Label htmlFor="specialRequests">Special Requests</Label>
+                  <Label htmlFor="specialRequests">{isContactForm ? "Your Message" : "Special Requests"}</Label>
                   <Textarea
                     name="specialRequests"
                     id="specialRequests"
@@ -346,7 +354,9 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
                     rows={3}
                     value={specialRequests}
                     onChange={handleChange}
-                    placeholder="Any special requests or dietary restrictions?"
+                    placeholder={
+                      isContactForm ? "How can we help you?" : "Any special requests or dietary restrictions?"
+                    }
                   />
                 </div>
 
@@ -393,7 +403,6 @@ export function ReservationModal({ open, onOpenChange, customerName }: Reservati
                   type="submit"
                   className="w-full bg-[#EC4E20] rounded-[0.5rem] hover:bg-[#f97316] mt-4"
                   disabled={isSubmitting}
-                   onClick={() => console.log("✅ Button clicked")}
                 >
                   {isSubmitting ? "Submitting..." : "Submit Request"}
                 </Button>
