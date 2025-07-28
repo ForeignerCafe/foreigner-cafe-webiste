@@ -224,7 +224,8 @@ export default function AddBlogPage() {
         </div>
 
         {/* Buttons */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4">
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 w-full">
           <Button
             type="button"
             onClick={handleCancel}
@@ -233,7 +234,7 @@ export default function AddBlogPage() {
             Cancel
           </Button>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <Button
               type="button"
               onClick={() => onSubmit("draft")}

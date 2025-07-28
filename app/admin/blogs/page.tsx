@@ -3,7 +3,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { PlusCircle, FileText, FileCheck2, FileX2, Archive } from "lucide-react";
+import {
+  PlusCircle,
+  FileText,
+  FileCheck2,
+  FileX2,
+  Archive,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable } from "@/components/dashboard/table";
@@ -16,7 +22,7 @@ export default function BlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    blogs: { total: 0, published: 0, draft: 0, archive: 0 },
+    blogs: { total: 0, published: 0, draft: 0, archived: 0 },
   });
 
   // Fetch blogs
@@ -93,7 +99,7 @@ export default function BlogsPage() {
     {
       icon: <Archive className="text-white" size={20} />,
       bgColor: "bg-gray-600",
-      value: stats.blogs.archive || 0,
+      value: stats.blogs.archived || 0,
       label: "Archived Blogs",
     },
   ];
