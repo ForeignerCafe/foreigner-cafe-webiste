@@ -1,3 +1,7 @@
+// Add these exports at the top of your blogs page
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,11 +20,14 @@ interface Blog {
 
 async function getBlogs(): Promise<Blog[]> {
   try {
-    const baseUrl =
-      process.env.API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/blog/public`, {
+    // Use absolute URL for production
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+    const url = `${baseUrl}/api/blog/public`;
+
+    const res = await fetch(url, {
       cache: "no-store",
       headers: {
         "Content-Type": "application/json",
@@ -38,6 +45,7 @@ async function getBlogs(): Promise<Blog[]> {
     return [];
   }
 }
+
 export const metadata: Metadata = {
   title: "Blog | Foreigners Cafe - Stories, Updates & Community",
   description:
