@@ -1,23 +1,18 @@
 // @ts-nocheck
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { Users, FileText, Mail, Eye, PlusCircle, ArrowRight } from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-
-import axiosInstance from "@/lib/axios";
-import { DataTable } from "@/components/dashboard/table";
-import StatsCard from "@/components/dashboard/statsCard";
-import MonthlyBlogStatsChart from "@/components/dashboard/left-chart";
-import RatioOfDevicesChart from "@/components/dashboard/right-chart";
-import { getBlogColumns } from "@/components/dashboard/blog-colums";
-import type { Blog } from "@/models/Blog";
+"use client"
+import { useState, useEffect, useCallback } from "react"
+import Link from "next/link"
+import { Users, FileText, Mail, Eye, PlusCircle, ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import axiosInstance from "@/lib/axios"
+import { DataTable } from "@/components/dashboard/table"
+import StatsCard from "@/components/dashboard/statsCard"
+import MonthlyBlogStatsChart from "@/components/dashboard/left-chart"
+import RatioOfDevicesChart from "@/components/dashboard/right-chart"
+import { getBlogColumns } from "@/components/dashboard/blog-colums"
+import type { Blog } from "@/models/Blog"
 
 // Skeleton loader
 const TableSkeleton = () => (
@@ -35,48 +30,48 @@ const TableSkeleton = () => (
       </div>
     ))}
   </div>
-);
+)
 
 export default function DashboardPage() {
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [blogs, setBlogs] = useState<Blog[]>([])
+  const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     subscribers: 0,
     blogs: { total: 0, published: 0, draft: 0 },
     contactRequests: {},
-  });
+  })
 
   const fetchBlogs = useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const res = await axiosInstance.get("/api/blog");
-      setBlogs(res.data.blogs || []);
+      const res = await axiosInstance.get("/api/blog")
+      setBlogs(res.data.blogs || [])
     } catch (err) {
-      console.error("Failed to fetch blogs:", err);
-      toast.error("Failed to fetch blogs");
+      console.error("Failed to fetch blogs:", err)
+      toast.error("Failed to fetch blogs")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await axiosInstance.get("/api/stats");
-      setStats(res.data.stats);
+      const res = await axiosInstance.get("/api/stats")
+      setStats(res.data.stats)
     } catch (err) {
-      console.error("Failed to fetch stats:", err);
-      toast.error("Failed to fetch dashboard stats");
+      console.error("Failed to fetch stats:", err)
+      toast.error("Failed to fetch dashboard stats")
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    fetchBlogs();
-    fetchStats();
-  }, [fetchBlogs, fetchStats]);
+    fetchBlogs()
+    fetchStats()
+  }, [fetchBlogs, fetchStats])
 
   const recentBlogs = [...blogs]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 7);
+    .slice(0, 7)
 
   const statsData = [
     {
@@ -94,19 +89,16 @@ export default function DashboardPage() {
     {
       icon: <Mail className="text-white" size={20} />,
       bgColor: "bg-[#00D492]",
-      value:
-        Object.values(stats.contactRequests).reduce((acc, cur) => {
-          return acc + Object.values(cur).reduce((sum, v) => sum + v, 0);
-        }, 0) || 0,
+      value: stats.contactRequests.total || 0,
       label: "Contact Requests",
     },
     {
       icon: <Eye className="text-white" size={20} />,
       bgColor: "bg-[#EF4D68]",
-      value: 3200, // Example static value
+      value: 3200, // Static or dynamic as needed
       label: "Unique Visitors",
     },
-  ];
+  ]
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -115,7 +107,6 @@ export default function DashboardPage() {
           <StatsCard key={index} {...item} />
         ))}
       </div>
-
       <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-6 rounded-lg overflow-hidden">
           <MonthlyBlogStatsChart />
@@ -129,13 +120,12 @@ export default function DashboardPage() {
           />
         </div>
       </div>
-
-      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
+      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800  p-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
           <h1 className="text-xl sm:text-2xl font-semibold">Recent Blogs</h1>
           <div className="flex gap-2 w-full sm:w-auto">
             <Link href="/admin/blogs" className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto bg-transparent">
                 View All <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -147,7 +137,6 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
-
         <div className="mt-4">
           {loading ? (
             <TableSkeleton />
@@ -163,5 +152,5 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

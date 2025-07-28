@@ -34,7 +34,7 @@ export default function MonthlyBlogStatsChart() {
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 pt-4 sm:px-6 sm:pt-6">
         <CardTitle className="text-base font-medium">Monthly Blog Stats</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 sm:px-6 overflow-x-auto">
+      <CardContent className="px-2 sm:px-6 overflow-x-auto !scrollbar-none">
         <div className="min-w-[300px] sm:min-w-full">
           <ChartContainer config={chartConfig}>
             <BarChart

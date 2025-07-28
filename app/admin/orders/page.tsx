@@ -10,6 +10,7 @@ import { createOrderColumns, type Order } from "@/components/dashboard/order-col
 import { OrderDetailModal } from "@/components/dashboard/order-detail-modal"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
+import StatsCard from "@/components/dashboard/statsCard"
 
 interface OrderStats {
   pending: number
@@ -19,6 +20,8 @@ interface OrderStats {
 }
 
 export default function OrdersPage() {
+ 
+
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -147,69 +150,48 @@ export default function OrdersPage() {
       </div>
     )
   }
+   const statsData = [
+  {
+    icon: <Clock className="text-white" size={20} />,
+    bgColor: "bg-yellow-500",
+    value: stats.pending,
+    label: "Pending Orders",
+  },
+  {
+    icon: <Package className="text-white" size={20} />,
+    bgColor: "bg-blue-500",
+    value: stats.inProgress,
+    label: "In Progress",
+  },
+  {
+    icon: <CheckCircle className="text-white" size={20} />,
+    bgColor: "bg-green-500",
+    value: stats.completed,
+    label: "Completed",
+  },
+  {
+    icon: <Package className="text-white" size={20} />,
+    bgColor: "bg-gray-600",
+    value: stats.total,
+    label: "Total Orders",
+  },
+]
 
   return (
     <div className="p-6 space-y-6">
-      <div>
+      {/* <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Orders</h1>
         <p className="text-gray-600 dark:text-gray-400">Manage customer orders and track their status</p>
-      </div>
+      </div> */}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
-            <Badge
-              variant="secondary"
-              className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-            >
-              Needs Attention
-            </Badge>
-          </CardContent>
-        </Card>
+    {/* Stats Cards (Refactored) */}
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+  {statsData.map((item, i) => (
+    <StatsCard key={i} {...item} />
+  ))}
+</div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgress}</div>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-              Processing
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completed}</div>
-            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-              Finished
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <Badge variant="secondary">All Time</Badge>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Orders Table */}
       <Card>

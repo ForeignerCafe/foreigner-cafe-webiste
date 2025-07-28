@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/custom-toaster";
 import type React from "react";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
@@ -6,7 +6,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { CartProvider } from "@/contexts/cart-context";
 import { CartIcon } from "@/components/cart/cart-icon";
-import { ThemeProvider } from "@/components/theme-provider";
+
 import LenisProvider from "@/components/LenisProvider";
 import Preloader from "@/components/preloader";
 import TawkToChat from "@/components/TawkToChat";
@@ -33,19 +33,14 @@ export default function RootLayout({
       <head></head>
       <body className={`${tradeGothic.className}`}>
         <CartProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
+         
             {/* <LenisProvider /> */}
             <Preloader />
             <TawkToChat />
             {children}
             <CartIcon />
             <Toaster />
-          </ThemeProvider>
+         
         </CartProvider>
       </body>
     </html>
