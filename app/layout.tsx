@@ -38,7 +38,7 @@ export default function RootLayout({
             <Preloader />
             <TawkToChat />
             {children}
-            <CartIcon />
+            {/* <CartIcon /> */}
             <Toaster />
          
         </CartProvider>
