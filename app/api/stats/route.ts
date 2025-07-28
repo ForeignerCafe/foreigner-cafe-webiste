@@ -7,19 +7,29 @@ export async function GET() {
   try {
     await connectDB();
 
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     const [
       subscriberCount,
       totalBlogs,
       publishedBlogs,
       draftBlogs,
-      contactRequests,
+      archivedBlogs,
+      contactRequestsGrouped,
+      totalContactRequests,
+      thisMonthContactRequests,
+      acknowledgedRequests,
+      pendingRequests,
     ] = await Promise.all([
       Subscriber.countDocuments(),
 
       Blog.countDocuments(),
       Blog.countDocuments({ status: "published" }),
       Blog.countDocuments({ status: "draft" }),
+      Blog.countDocuments({ status: "archived" }),
 
+      // Grouped by type and status
       ContactRequest.aggregate([
         {
           $group: {
@@ -28,11 +38,25 @@ export async function GET() {
           },
         },
       ]),
+
+      // Total contact requests
+      ContactRequest.countDocuments(),
+
+      // Contact requests this month
+      ContactRequest.countDocuments({
+        createdAt: { $gte: startOfMonth },
+      }),
+
+      // Acknowledged
+      ContactRequest.countDocuments({ status: "read" }),
+
+      // Pending
+      ContactRequest.countDocuments({ status: "pending" }),
     ]);
 
     // Organize contact stats
     const contactStats: Record<string, Record<string, number>> = {};
-    for (const { _id, count } of contactRequests) {
+    for (const { _id, count } of contactRequestsGrouped) {
       const type = _id.type || "unknown";
       const status = _id.status || "unknown";
       if (!contactStats[type]) contactStats[type] = {};
@@ -46,8 +70,15 @@ export async function GET() {
           total: totalBlogs,
           published: publishedBlogs,
           draft: draftBlogs,
+          archived: archivedBlogs,
         },
-        contactRequests: contactStats,
+        contactRequests: {
+          groupedByTypeAndStatus: contactStats,
+          total: totalContactRequests,
+          thisMonth: thisMonthContactRequests,
+          acknowledged: acknowledgedRequests,
+          pending: pendingRequests,
+        },
       },
     });
   } catch (error) {
