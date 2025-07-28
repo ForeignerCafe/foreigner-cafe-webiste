@@ -15,13 +15,15 @@ import KidsEventsSection from "@/components/kids-event-section";
 import EventsShowcaseSection from "@/components/events-showcase-section";
 import { HeroParallax } from "@/components/ui/hero-parallax";
 import { products } from "@/lib/data";
+import Events from "@/components/eventsSection";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-white">
       <Hero />
       <HeroParallax products={products} />
-      <EventsShowcaseSection />
+      <Events/>
+      {/* <EventsShowcaseSection /> */}
       <KidsEventsSection />
       <DineDrinkSection />
       <BrandSection />
