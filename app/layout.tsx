@@ -39,7 +39,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <LenisProvider />
+            {/* <LenisProvider /> */}
             <Preloader />
             <TawkToChat />
             {children}

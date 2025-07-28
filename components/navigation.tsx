@@ -4,7 +4,7 @@ import { Menu, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ReservationModal } from "./reserveModal"
 
 export default function Navigation() {
@@ -314,30 +314,35 @@ export default function Navigation() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[20rem] h-[30rem] bg-white p-8 overflow-y-auto">
-                  <div className="flex flex-col space-y-8 pt-12">
-                    {mobileNavItems.map((item, index) => (
-                      <button
-                        key={item.label}
-                        onClick={() => {
-                          item.action()
-                          setIsOpen(false) // Close sheet after action
-                        }}
-                        className="block text-left text-sm font-semibold tracking-wide text-gray-800 hover:text-orange transition-colors hover:translate-x-2"
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                    <Button
-                      onClick={() => {
-                        openReservationModal()
-                        setIsOpen(false) // Close mobile menu
-                      }}
-                      className="bg-orange text-white text-sm rounded-xl tracking-wide mt-2 hover:bg-black transition-all duration-300 w-[130px]"
-                    >
-                      RESERVE
-                    </Button>
-                  </div>
-                </SheetContent>
+  {/* Add SheetHeader with visually hidden title */}
+  <SheetHeader className="sr-only">
+    <SheetTitle>Mobile Navigation Menu</SheetTitle>
+  </SheetHeader>
+  
+  <div className="flex flex-col space-y-8 pt-12">
+    {mobileNavItems.map((item, index) => (
+      <button
+        key={item.label}
+        onClick={() => {
+          item.action()
+          setIsOpen(false)
+        }}
+        className="block text-left text-sm font-semibold tracking-wide text-gray-800 hover:text-orange transition-colors hover:translate-x-2"
+      >
+        {item.label}
+      </button>
+    ))}
+    <Button
+      onClick={() => {
+        openReservationModal()
+        setIsOpen(false)
+      }}
+      className="bg-orange text-white text-sm rounded-xl tracking-wide mt-2 hover:bg-black transition-all duration-300 w-[130px]"
+    >
+      RESERVE
+    </Button>
+  </div>
+</SheetContent>
               </Sheet>
             </div>
           </div>
