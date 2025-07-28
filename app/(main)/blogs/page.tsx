@@ -16,13 +16,23 @@ interface Blog {
 
 async function getBlogs(): Promise<Blog[]> {
   try {
-    const res = await axiosInstance.get("/api/blog/public", {
+    const baseUrl =
+      process.env.API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/blog/public`, {
+      cache: "no-store",
       headers: {
-        "Cache-Control": "no-store",
+        "Content-Type": "application/json",
       },
     });
 
-    return res.data.blogs || [];
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.blogs || [];
   } catch (error) {
     console.error("Error fetching blogs:", error);
     return [];
