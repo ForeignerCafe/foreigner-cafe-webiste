@@ -88,31 +88,35 @@ export default async function BlogDetailPage(props: {
   if (!blog) notFound();
 
   return (
-    <main className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 pt-8">
-        <Link
-          href="/blogs"
-          className="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium mb-8"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Blog
-        </Link>
-      </div>
-
+    <main className="min-h-screen bg-white ">
       {blog.mainImage && (
-        <div className="relative h-64 md:h-96 w-full mb-8">
+        <section className="relative h-[500px] md:h-[600px] w-full flex items-center justify-center mb-12">
+          {/* Background image */}
           <Image
-            src={blog.mainImage || "/placeholder.svg"}
+            src={blog.mainImage}
             alt={blog.title}
             fill
             className="object-cover"
             priority
           />
-        </div>
+
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/50 z-0" />
+
+          {/* Text Content */}
+          <div className="relative z-10 text-center text-white px-4">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">
+              {blog.title}
+            </h1>
+            <p className="text-lg md:text-xl max-w-3xl mx-auto drop-shadow-md">
+              {blog.shortCaption}
+            </p>
+          </div>
+        </section>
       )}
 
       <article className="container mx-auto px-4 pb-16">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <header className="mb-8">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               {blog.title}
@@ -147,7 +151,18 @@ export default async function BlogDetailPage(props: {
           </header>
 
           <div
-            className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-orange-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700"
+            className="prose max-w-6xl mx-auto prose-base md:prose-lg
+             prose-headings:font-semibold prose-headings:tracking-tight prose-headings:scroll-mt-24
+             prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+             prose-h1:mb-4 prose-h2:mt-10 prose-h2:mb-4 prose-h3:mt-8 prose-h3:mb-2
+             prose-p:leading-7 prose-p:my-4 text-gray-800
+             prose-a:text-orange-600 hover:prose-a:underline
+             prose-strong:text-gray-900
+             prose-img:rounded-xl prose-img:shadow-md prose-img:my-6
+             prose-blockquote:border-l-4 prose-blockquote:border-orange-300 prose-blockquote:bg-orange-50 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:italic prose-blockquote:text-gray-600
+             prose-code:text-pink-600 prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-1 prose-code:rounded-md
+             prose-ul:marker:text-orange-500 prose-ol:marker:text-orange-500
+             dark:prose-invert"
             dangerouslySetInnerHTML={{ __html: blog.body }}
           />
         </div>

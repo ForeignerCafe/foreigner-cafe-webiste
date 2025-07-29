@@ -1,152 +1,176 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, ShoppingCart, Search, Filter, SlidersHorizontal } from "lucide-react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import toast from "react-hot-toast"
-import Image from "next/image"
-import Link from "next/link"
-import { useCart } from "@/contexts/cart-context"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Loader2,
+  ShoppingCart,
+  Search,
+  Filter,
+  SlidersHorizontal,
+} from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import toast from "react-hot-toast";
+import Image from "next/image";
+import Link from "next/link";
+import { useCart } from "@/contexts/cart-context";
 
 interface Category {
-  _id: string
-  name: string
-  slug: string
+  _id: string;
+  name: string;
+  slug: string;
 }
 
 interface Product {
-  _id: string
-  title: string
-  description: string
-  price: number
-  stock: number
-  images: string[]
-  category: Category
-  slug: string
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  stock: number;
+  images: string[];
+  category: Category;
+  slug: string;
 }
 
 export default function ShopPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 
   // Filter states
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<string>("newest")
-  const [priceRange, setPriceRange] = useState<string>("all")
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("newest");
+  const [priceRange, setPriceRange] = useState<string>("all");
 
-  const { addToCart } = useCart()
-
-  useEffect(() => {
-    fetchProducts()
-    fetchCategories()
-  }, [])
+  const { addToCart } = useCart();
 
   useEffect(() => {
-    applyFilters()
-  }, [products, searchTerm, selectedCategory, sortBy, priceRange])
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [products, searchTerm, selectedCategory, sortBy, priceRange]);
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("/api/products")
-      const data = await response.json()
+      const response = await fetch("/api/products");
+      const data = await response.json();
 
       if (data.success) {
-        setProducts(data.data)
+        setProducts(data.data);
       } else {
-        toast.error("Failed to fetch products")
+        toast.error("Failed to fetch products");
       }
     } catch (error) {
-      toast.error("Failed to fetch products")
+      toast.error("Failed to fetch products");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("/api/categories")
-      const data = await response.json()
+      const response = await fetch("/api/categories");
+      const data = await response.json();
 
       if (data.success) {
-        setCategories(data.data)
+        setCategories(data.data);
       }
     } catch (error) {
-      console.error("Failed to fetch categories")
+      console.error("Failed to fetch categories");
     }
-  }
+  };
 
   const applyFilters = () => {
-    let filtered = [...products]
+    let filtered = [...products];
 
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (product) =>
           product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+          product.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     // Category filter
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((product) => product.category._id === selectedCategory)
+      filtered = filtered.filter(
+        (product) => product.category._id === selectedCategory
+      );
     }
 
     // Price range filter
     if (priceRange !== "all") {
       switch (priceRange) {
         case "under-10":
-          filtered = filtered.filter((product) => product.price < 10)
-          break
+          filtered = filtered.filter((product) => product.price < 10);
+          break;
         case "10-25":
-          filtered = filtered.filter((product) => product.price >= 10 && product.price <= 25)
-          break
+          filtered = filtered.filter(
+            (product) => product.price >= 10 && product.price <= 25
+          );
+          break;
         case "25-50":
-          filtered = filtered.filter((product) => product.price >= 25 && product.price <= 50)
-          break
+          filtered = filtered.filter(
+            (product) => product.price >= 25 && product.price <= 50
+          );
+          break;
         case "over-50":
-          filtered = filtered.filter((product) => product.price > 50)
-          break
+          filtered = filtered.filter((product) => product.price > 50);
+          break;
       }
     }
 
     // Sort
     switch (sortBy) {
       case "price-low":
-        filtered.sort((a, b) => a.price - b.price)
-        break
+        filtered.sort((a, b) => a.price - b.price);
+        break;
       case "price-high":
-        filtered.sort((a, b) => b.price - a.price)
-        break
+        filtered.sort((a, b) => b.price - a.price);
+        break;
       case "name":
-        filtered.sort((a, b) => a.title.localeCompare(b.title))
-        break
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
       case "newest":
       default:
         // Keep original order (newest first from API)
-        break
+        break;
     }
 
-    setFilteredProducts(filtered)
-  }
+    setFilteredProducts(filtered);
+  };
 
   const handleAddToCart = (product: Product, e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
 
     if (product.stock <= 0) {
-      toast.error("Product is out of stock")
-      return
+      toast.error("Product is out of stock");
+      return;
     }
 
     addToCart({
@@ -155,23 +179,25 @@ export default function ShopPage() {
       price: product.price,
       image: product.images[0],
       stock: product.stock,
-    })
+    });
 
-    toast.success(`${product.title} added to cart!`)
-  }
+    toast.success(`${product.title} added to cart!`);
+  };
 
   const clearFilters = () => {
-    setSearchTerm("")
-    setSelectedCategory("all")
-    setSortBy("newest")
-    setPriceRange("all")
-  }
+    setSearchTerm("");
+    setSelectedCategory("all");
+    setSortBy("newest");
+    setPriceRange("all");
+  };
 
   const FilterContent = () => (
     <div className="space-y-6">
       {/* Search */}
       <div>
-        <label className="text-sm font-medium mb-2 block">Search Products</label>
+        <label className="text-sm font-medium mb-2 block">
+          Search Products
+        </label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -235,11 +261,15 @@ export default function ShopPage() {
       </div>
 
       {/* Clear Filters */}
-      <Button variant="outline" onClick={clearFilters} className="w-full bg-transparent">
+      <Button
+        variant="outline"
+        onClick={clearFilters}
+        className="w-full bg-transparent"
+      >
         Clear All Filters
       </Button>
     </div>
-  )
+  );
 
   if (loading) {
     return (
@@ -248,16 +278,29 @@ export default function ShopPage() {
           <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Hero Section */}
-      <section className="relative h-[50vh] bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center">
-        <div className="text-center text-white px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Our Shop</h1>
-          <p className="text-xl md:text-2xl opacity-90 max-w-2xl mx-auto">
+      <section className="relative h-[675px] w-full flex items-center justify-center">
+        {/* Background Image */}
+        <Image
+          src="/images/interior.webp" // ✅ Replace with your actual image path
+          alt="Our Shop"
+          fill
+          className="object-cover"
+          priority
+        />
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/60 z-0" />
+
+        {/* Text Content */}
+        <div className="relative z-10 px-6 text-center text-white uppercase">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">Our Shop</h1>
+          <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
             Discover our carefully curated selection of premium products
           </p>
         </div>
@@ -287,7 +330,10 @@ export default function ShopPage() {
               <div className="flex items-center gap-4">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" className="lg:hidden bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="lg:hidden bg-transparent"
+                    >
                       <SlidersHorizontal className="h-4 w-4 mr-2" />
                       Filters
                     </Button>
@@ -306,7 +352,8 @@ export default function ShopPage() {
                 </Sheet>
 
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""} found
+                  {filteredProducts.length} product
+                  {filteredProducts.length !== 1 ? "s" : ""} found
                 </p>
               </div>
 
@@ -331,7 +378,9 @@ export default function ShopPage() {
               <div className="text-center py-20">
                 <ShoppingCart className="h-20 w-20 text-gray-400 mx-auto mb-6" />
                 <h3 className="text-3xl font-semibold text-gray-900 dark:text-white mb-4">
-                  {products.length === 0 ? "No Products Available" : "No Products Found"}
+                  {products.length === 0
+                    ? "No Products Available"
+                    : "No Products Found"}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6 text-lg">
                   {products.length === 0
@@ -357,9 +406,11 @@ export default function ShopPage() {
                         <div className="relative aspect-[4/3] overflow-hidden">
                           <Image
                             src={
-                              hoveredProduct === product._id && product.images[1]
+                              hoveredProduct === product._id &&
+                              product.images[1]
                                 ? product.images[1]
-                                : product.images[0] || "/placeholder.svg?height=400&width=400"
+                                : product.images[0] ||
+                                  "/placeholder.svg?height=400&width=400"
                             }
                             alt={product.title}
                             fill
@@ -368,13 +419,19 @@ export default function ShopPage() {
                           />
                           {product.stock <= 0 && (
                             <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                              <Badge variant="destructive" className="text-white text-lg px-4 py-2">
+                              <Badge
+                                variant="destructive"
+                                className="text-white text-lg px-4 py-2"
+                              >
                                 Out of Stock
                               </Badge>
                             </div>
                           )}
                           <div className="absolute top-4 left-4">
-                            <Badge variant="secondary" className="bg-white/95 text-gray-900 text-sm px-3 py-1">
+                            <Badge
+                              variant="secondary"
+                              className="bg-white/95 text-gray-900 text-sm px-3 py-1"
+                            >
                               {product.category.name}
                             </Badge>
                           </div>
@@ -394,7 +451,9 @@ export default function ShopPage() {
                             {product.description}
                           </p>
                           <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
-                            <span className="text-3xl font-bold text-orange-500">${product.price.toFixed(2)}</span>
+                            <span className="text-3xl font-bold text-orange-500">
+                              ${product.price.toFixed(2)}
+                            </span>
                             <span className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
                               {product.stock} in stock
                             </span>
@@ -410,5 +469,5 @@ export default function ShopPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

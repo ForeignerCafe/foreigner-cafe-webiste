@@ -85,7 +85,7 @@ export default function CafeStorySection() {
 					className={`text-center mb-16 transition-all duration-1000 ${
 						isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
 					}`}>
-					<h2 className="text-4xl md:text-5xl font-bold text-black mb-4">
+					<h2 className="text-4xl md:text-5xl font-bold text-black mb-4 uppercase">
 						Our Cafe Story
 					</h2>
 					<p className="text-lg text-gray-600 max-w-2xl mx-auto">

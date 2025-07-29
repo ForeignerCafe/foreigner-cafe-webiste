@@ -153,7 +153,7 @@ export default function ExperiencesSection() {
       <section className="py-10 sm:py-12 md:py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black mb-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black mb-2 uppercase">
               Testimonials
             </h2>
             <p className="text-sm sm:text-base text-gray-600">

@@ -1,3 +1,7 @@
+// Add these exports at the top of your blogs page
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,13 +20,26 @@ interface Blog {
 
 async function getBlogs(): Promise<Blog[]> {
   try {
-    const res = await axiosInstance.get("/api/blog/public", {
+    // Use absolute URL for production
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`
+      : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+    const url = `${baseUrl}/blog/public`;
+
+    const res = await fetch(url, {
+      cache: "no-store",
       headers: {
-        "Cache-Control": "no-store",
+        "Content-Type": "application/json",
       },
     });
 
-    return res.data.blogs || [];
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.blogs || [];
   } catch (error) {
     console.error("Error fetching blogs:", error);
     return [];
@@ -65,17 +82,24 @@ export default async function BlogsPage() {
   return (
     <main className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-orange-50 to-orange-100 py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Our Blog
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover the latest stories, updates, and community highlights
-              from Foreigners Cafe
-            </p>
-          </div>
+      <section
+        className="relative bg-cover bg-top bg-no-repeat h-[675px] flex items-center justify-center"
+        style={{
+          backgroundImage: "url('/images/fcafe.webp')",
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/50 z-0" />
+
+        {/* Text content */}
+        <div className="relative z-10 text-center text-white px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg">
+            Our Blog
+          </h1>
+          <p className="text-xl max-w-2xl mx-auto drop-shadow-md">
+            Discover the latest stories, updates, and community highlights from
+            Foreigners Cafe
+          </p>
         </div>
       </section>
 

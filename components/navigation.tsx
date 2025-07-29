@@ -1,11 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Menu, X, Search, User } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ContactModal } from "./ContactModal";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { ReservationModal } from "./reserveModal";
 
 export default function Navigation() {
@@ -16,10 +21,15 @@ export default function Navigation() {
   const [isTopHeaderHidden, setIsTopHeaderHidden] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeTab, setActiveTab] = useState<string | null>(null);
-  const [topNavActiveItem, setTopNavActiveItem] = useState<string>("DINE"); // Default to DINE
-  const topHeaderHeight = 65; // User-defined constant for top header height
-  const mainNavHeight = 64; // Height of the main navigation (h-16)
-  const progressBarHeight = 1; // Height of the progress bar (h-1)
+  const [topNavActiveItem, setTopNavActiveItem] = useState<string>("DINE");
+  const [modalType, setModalType] = useState<"reservation" | "contact">(
+    "reservation"
+  );
+
+  const topHeaderHeight = 65;
+  const mainNavHeight = 64;
+  const progressBarHeight = 1;
+
   const router = useRouter();
 
   useEffect(() => {
@@ -32,18 +42,35 @@ export default function Navigation() {
       setIsTopHeaderHidden(scrollTop > topHeaderHeight);
       setScrollProgress(scrollPercent);
     };
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [topHeaderHeight]);
 
-  const scrollToSection = (sectionId: string) => {
+  const scrollToSection = (sectionId: string, offset = 80) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      const topPosition =
+        element.getBoundingClientRect().top + window.scrollY - offset;
+
+      window.scrollTo({
+        top: topPosition,
+        behavior: "smooth",
+      });
     }
   };
 
-  // Navigation items for desktop (original navItems)
+  const openReservationModal = () => {
+    setModalType("reservation");
+    setIsReservationModalOpen(true);
+  };
+
+  const openContactModal = () => {
+    setModalType("contact");
+    setIsReservationModalOpen(true);
+  };
+
+  // Navigation items for desktop - conditionally includes About Us based on topNavActiveItem
   const navItems = [
     {
       label: "HOME",
@@ -62,13 +89,17 @@ export default function Navigation() {
           "noopener,noreferrer"
         ),
     },
-    {
-      label: "ABOUT US",
-      id: "aboutUs",
-      action: () => {
-        scrollToSection("story");
-      },
-    },
+    ...(topNavActiveItem === "DINE"
+      ? [
+          {
+            label: "ABOUT US",
+            id: "aboutUs",
+            action: () => {
+              scrollToSection("story");
+            },
+          },
+        ]
+      : []),
     {
       label: "EXPERIENCES",
       id: "contact",
@@ -115,13 +146,15 @@ export default function Navigation() {
           "noopener,noreferrer"
         ),
     },
-    { label: "ABOUT US", action: () => scrollToSection("story") },
+    ...(topNavActiveItem === "DINE"
+      ? [{ label: "ABOUT US", action: () => scrollToSection("story") }]
+      : []),
     { label: "EXPERIENCES", action: () => router.push("/experiences") },
     { label: "FAQS", action: () => router.push("/faqs") },
     {
       label: "CONTACT US",
       action: () => {
-        setIsContactModalOpen(true);
+        openContactModal();
       },
     },
   ];
@@ -144,6 +177,7 @@ export default function Navigation() {
           style={{ width: `${scrollProgress * 100}%` }}
         />
       </div>
+
       {/* Top Header - Hidden on small/medium screens, visible on large screens */}
       <header
         className={`fixed top-1 left-0 right-0 z-40 w-full transition-all duration-500 hidden lg:block ${
@@ -250,7 +284,7 @@ export default function Navigation() {
                     : ""
                 }`}
                 onClick={() => {
-                  setIsContactModalOpen(true);
+                  openContactModal();
                   handleTopNavClick("CONTACT US");
                 }}
               >
@@ -263,6 +297,7 @@ export default function Navigation() {
         {/* Bottom message bar */}
         <div className="bg-[#EC4E20] text-white text-center py-3 text-xs font-medium tracking-wide uppercase"></div>
       </header>
+
       {/* Main navigation */}
       <nav
         className={`fixed left-0 right-0 z-40 transition-all duration-500 top-1 ${
@@ -312,7 +347,7 @@ export default function Navigation() {
             {/* Reserve Button (Desktop) */}
             <div className="hidden lg:block">
               <Button
-                onClick={() => setIsReservationModalOpen(true)} // Open modal directly
+                onClick={openReservationModal}
                 className={`text-sm font-bold tracking-wide transition-all duration-300   hover:scale-110 hover:shadow-lg focus:outline-none ${
                   isScrolled
                     ? "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
@@ -347,13 +382,17 @@ export default function Navigation() {
                   side="right"
                   className="w-[20rem] h-[30rem] bg-white p-8 overflow-y-auto"
                 >
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Mobile Navigation Menu</SheetTitle>
+                  </SheetHeader>
+
                   <div className="flex flex-col space-y-8 pt-12">
-                    {mobileNavItems.map((item, index) => (
+                    {mobileNavItems.map((item) => (
                       <button
                         key={item.label}
                         onClick={() => {
                           item.action();
-                          setIsOpen(false); // Close sheet after action
+                          setIsOpen(false);
                         }}
                         className="block text-left text-sm font-semibold tracking-wide text-gray-800 hover:text-orange transition-colors hover:translate-x-2"
                       >
@@ -362,8 +401,8 @@ export default function Navigation() {
                     ))}
                     <Button
                       onClick={() => {
-                        setIsReservationModalOpen(true); // Open modal
-                        setIsOpen(false); // Close mobile menu
+                        openReservationModal();
+                        setIsOpen(false);
                       }}
                       className="bg-orange text-white text-sm rounded-xl tracking-wide mt-2 hover:bg-black transition-all duration-300 w-[130px]"
                     >
@@ -376,13 +415,11 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
-      <ContactModal
-        open={isContactModalOpen}
-        onOpenChange={setIsContactModalOpen}
-      />
+
       <ReservationModal
         open={isReservationModalOpen}
         onOpenChange={setIsReservationModalOpen}
+        isContactForm={modalType === "contact"}
       />
     </>
   );

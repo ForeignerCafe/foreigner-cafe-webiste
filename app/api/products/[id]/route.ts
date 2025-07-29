@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
+import mongoose from "mongoose";
 
 export async function GET(
   request: NextRequest,
@@ -8,9 +9,12 @@ export async function GET(
 ) {
   try {
     await connectDB();
+    const { id } = params;
+
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(id);
 
     const product = await Product.findOne({
-      $or: [{ _id: params.id }, { slug: params.id }],
+      $or: isValidObjectId ? [{ _id: id }, { slug: id }] : [{ slug: id }],
       isActive: true,
     }).populate("category", "name slug");
 
@@ -21,10 +25,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: product,
-    });
+    return NextResponse.json({ success: true, data: product });
   } catch (error) {
     console.error("Error fetching product:", error);
     return NextResponse.json(
@@ -40,17 +41,19 @@ export async function PUT(
 ) {
   try {
     await connectDB();
+    const { id } = params;
+
     const body = await request.json();
     const { title, description, price, stock, images, category, isActive } =
       body;
 
-    const product = await Product.findByIdAndUpdate(
-      params.id,
+    const updated = await Product.findByIdAndUpdate(
+      id,
       {
         title,
         description,
-        price: Number.parseFloat(price),
-        stock: Number.parseInt(stock),
+        price: parseFloat(price),
+        stock: parseInt(stock),
         images,
         category,
         isActive,
@@ -58,7 +61,7 @@ export async function PUT(
       { new: true, runValidators: true }
     ).populate("category", "name slug");
 
-    if (!product) {
+    if (!updated) {
       return NextResponse.json(
         { success: false, message: "Product not found" },
         { status: 404 }
@@ -68,7 +71,7 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: "Product updated successfully",
-      data: product,
+      data: updated,
     });
   } catch (error: any) {
     console.error("Error updating product:", error);
@@ -93,10 +96,11 @@ export async function DELETE(
 ) {
   try {
     await connectDB();
+    const { id } = params;
 
-    const product = await Product.findByIdAndDelete(params.id);
+    const deleted = await Product.findByIdAndDelete(id);
 
-    if (!product) {
+    if (!deleted) {
       return NextResponse.json(
         { success: false, message: "Product not found" },
         { status: 404 }
