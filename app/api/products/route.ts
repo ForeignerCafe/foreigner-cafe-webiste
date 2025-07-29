@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
-
+import Category from "@/models/Category";
 export async function GET() {
   try {
     await connectDB();
