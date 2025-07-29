@@ -1,6 +1,6 @@
 "use client"
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface TagInputProps {
   initialTags?: string[]
@@ -18,6 +18,11 @@ export const TagInput: React.FC<TagInputProps> = ({
   const [tags, setTags] = useState<string[]>(initialTags)
   const [inputValue, setInputValue] = useState("")
 
+  // ✅ Update internal tags if initialTags change (edit mode)
+  useEffect(() => {
+    setTags(initialTags)
+  }, [initialTags])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
   }
@@ -29,7 +34,7 @@ export const TagInput: React.FC<TagInputProps> = ({
       if (trimmed && !tags.includes(trimmed)) {
         const newTags = [...tags, trimmed]
         setTags(newTags)
-        onTagsChange(newTags) // ✅ Call here only
+        onTagsChange(newTags)
         setInputValue("")
       }
     }
@@ -38,7 +43,7 @@ export const TagInput: React.FC<TagInputProps> = ({
   const removeTag = (index: number) => {
     const newTags = tags.filter((_, i) => i !== index)
     setTags(newTags)
-    onTagsChange(newTags) // ✅ Call here only
+    onTagsChange(newTags)
   }
 
   return (
