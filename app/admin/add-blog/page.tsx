@@ -29,7 +29,7 @@ const formSchema = z.object({
 export default function AddBlogPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const blogId = searchParams.get("id") // Now using ID instead of slug
+  const blogId = searchParams.get("id")
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -86,7 +86,7 @@ export default function AddBlogPage() {
         setInitialmainImage(base64)
         form.setValue("mainImage", base64, { shouldValidate: true })
       }
-      reader.readAsDataURL(file) // 🔁 convert to base64
+      reader.readAsDataURL(file)
     } else {
       setInitialmainImage(null)
       form.setValue("mainImage", null, { shouldValidate: true })
@@ -97,7 +97,7 @@ export default function AddBlogPage() {
     setIsSubmitting(true)
     const values = form.getValues()
     const toastId = toast.loading(
-      isEditMode ? "Updating blog..." : status === "draft" ? "Saving draft..." : "Publishing...",
+      isEditMode ? "Updating blog..." : status === "draft" ? "Saving draft..." : "Publishing..."
     )
 
     try {
@@ -107,7 +107,7 @@ export default function AddBlogPage() {
         body: values.body,
         status,
         tags: values.tags || [],
-        mainImage: values.mainImage || null, // base64 included
+        mainImage: values.mainImage || null,
       }
 
       if (isEditMode && blogId) {
@@ -132,9 +132,12 @@ export default function AddBlogPage() {
     form.reset()
     router.push("/admin/blogs")
   }
+
   return (
-    <div className="flex flex-col p-4 md:p-6  w-full">
-      <h1 className="text-xl md:text-2xl font-semibold mb-6">{isEditMode ? "Edit blog post" : "Add new blog"}</h1>
+    <div className="flex flex-col p-4 md:p-6 w-full mb-16">
+      <h1 className="text-xl md:text-2xl font-semibold mb-6">
+        {isEditMode ? "Edit blog post" : "Add new blog"}
+      </h1>
 
       <div className="space-y-4 md:space-y-6">
         {/* Title */}
@@ -146,7 +149,9 @@ export default function AddBlogPage() {
             {...form.register("title")}
             className="bg-white dark:bg-[#28282B]"
           />
-          {form.formState.errors.title && <p className="text-red-500 text-sm">{form.formState.errors.title.message}</p>}
+          {form.formState.errors.title && (
+            <p className="text-red-500 text-sm">{form.formState.errors.title.message}</p>
+          )}
         </div>
 
         {/* Short Caption */}
@@ -172,7 +177,9 @@ export default function AddBlogPage() {
               onContentChange={(html) => form.setValue("body", html, { shouldValidate: true })}
             />
           </div>
-          {form.formState.errors.body && <p className="text-red-500 text-sm">{form.formState.errors.body.message}</p>}
+          {form.formState.errors.body && (
+            <p className="text-red-500 text-sm">{form.formState.errors.body.message}</p>
+          )}
         </div>
 
         {/* Image Upload */}
@@ -186,7 +193,6 @@ export default function AddBlogPage() {
         </div>
 
         {/* Tags */}
-        {/* Tags */}
         <div className="space-y-2">
           <Label htmlFor="tags">Tags</Label>
           <TagInput
@@ -198,7 +204,6 @@ export default function AddBlogPage() {
           </p>
         </div>
 
-        {/* Buttons */}
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 w-full">
           <Button

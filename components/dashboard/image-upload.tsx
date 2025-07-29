@@ -71,7 +71,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, recom
   return (
     <div
       className={cn(
-        "relative flex flex-col bg-white dark:bg-[#28282B] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center transition-colors hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500",
+        "cursor-pointer relative flex flex-col bg-white dark:bg-[#28282B] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center transition-colors hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500",
         preview ? "h-48" : "h-auto min-h-[150px]", // Adjust height based on preview
       )}
       onDrop={handleDrop}
