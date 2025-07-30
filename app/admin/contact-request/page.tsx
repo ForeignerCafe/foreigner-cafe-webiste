@@ -16,6 +16,7 @@ import axiosInstance from "@/lib/axios";
 const ContactRequestsPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const [stats, setStats] = useState({
     contactRequests: {
@@ -46,6 +47,7 @@ const ContactRequestsPage = () => {
 
   // Fetch stats from /api/stats
   const fetchStats = useCallback(async () => {
+    setStatsLoading(true);
     try {
       const res = await axiosInstance.get("/api/stats");
       setStats((prev) => ({
@@ -54,6 +56,8 @@ const ContactRequestsPage = () => {
       }));
     } catch (error) {
       toast.error("Failed to fetch stats");
+    } finally {
+      setStatsLoading(false);
     }
   }, []);
 
@@ -70,7 +74,9 @@ const ContactRequestsPage = () => {
   const handleDeleteConfirm = async () => {
     try {
       await axiosInstance.delete(`/api/contact?id=${selectedRequestId}`);
-      setRequests((prev) => prev.filter((req) => req._id !== selectedRequestId));
+      setRequests((prev) =>
+        prev.filter((req) => req._id !== selectedRequestId)
+      );
       toast.success("Request deleted");
     } catch (error) {
       toast.error("Failed to delete request");
@@ -106,6 +112,15 @@ const ContactRequestsPage = () => {
       toast.error("Failed to update status");
     }
   };
+
+  // Skeleton loader for stats cards
+  const StatsCardsSkeleton = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-2">
+      {[...Array(4)].map((_, i) => (
+        <Skeleton key={`stats-${i}`} className="h-24 w-full rounded-lg" />
+      ))}
+    </div>
+  );
 
   const statsData = [
     {
@@ -144,11 +159,16 @@ const ContactRequestsPage = () => {
         description="Are you sure you want to delete this request?"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-2">
-        {statsData.map((item, i) => (
-          <StatsCard key={i} {...item} />
-        ))}
-      </div>
+      {/* Stats Cards */}
+      {statsLoading ? (
+        <StatsCardsSkeleton />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-2">
+          {statsData.map((item, i) => (
+            <StatsCard key={i} {...item} />
+          ))}
+        </div>
+      )}
 
       <div className="rounded-lg border p-4 shadow-sm">
         <h1 className="text-2xl font-semibold mb-4">All Requests</h1>

@@ -21,6 +21,7 @@ import type { Blog } from "@/models/Blog";
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState({
     blogs: { total: 0, published: 0, draft: 0, archived: 0 },
   });
@@ -40,11 +41,14 @@ export default function BlogsPage() {
 
   // Fetch blog stats
   const fetchStats = useCallback(async () => {
+    setStatsLoading(true);
     try {
       const res = await axiosInstance.get("/api/stats");
       setStats(res.data.stats);
     } catch (err) {
       console.error("Failed to fetch stats:", err);
+    } finally {
+      setStatsLoading(false);
     }
   }, []);
 
@@ -53,7 +57,7 @@ export default function BlogsPage() {
     fetchStats();
   }, [fetchBlogs, fetchStats]);
 
-  // Skeleton Loader
+  // Skeleton Loader for table
   const TableSkeleton = () => (
     <div className="space-y-4 w-full">
       <div className="flex justify-between items-center">
@@ -74,6 +78,15 @@ export default function BlogsPage() {
           </div>
         ))}
       </div>
+    </div>
+  );
+
+  // Skeleton loader for stats cards
+  const StatsCardsSkeleton = () => (
+    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+      {[...Array(4)].map((_, i) => (
+        <Skeleton key={`stats-${i}`} className="h-24 w-full rounded-lg" />
+      ))}
     </div>
   );
 
@@ -107,11 +120,15 @@ export default function BlogsPage() {
   return (
     <div className="p-4 w-full max-w-screen-2xl mx-auto space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
-        {statsData.map((item, index) => (
-          <StatsCard key={index} {...item} />
-        ))}
-      </div>
+      {statsLoading ? (
+        <StatsCardsSkeleton />
+      ) : (
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+          {statsData.map((item, index) => (
+            <StatsCard key={index} {...item} />
+          ))}
+        </div>
+      )}
 
       {/* Page Title and Add Button */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
