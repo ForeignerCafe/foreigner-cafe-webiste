@@ -1,8 +1,7 @@
-// @ts-nocheck
 "use client"
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Users, FileText, Mail, Eye, PlusCircle, ArrowRight } from "lucide-react"
+import { Users, FileText, Mail, Eye, PlusCircle, ArrowRight, MessageSquare, CheckCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,7 +37,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({
     subscribers: 0,
     blogs: { total: 0, published: 0, draft: 0 },
-    contactRequests: { total: 0 },
+    contactRequests: { total: 0, thisMonth: 0, acknowledged: 0, pending: 0 },
     uniqueVisitors: 0,
     deviceData: [],
     monthlyBlogStats: [],
@@ -51,7 +50,11 @@ export default function DashboardPage() {
       setBlogs(res.data.blogs || [])
     } catch (err) {
       console.error("Failed to fetch blogs:", err)
-      toast.error("Failed to fetch blogs")
+      toast({
+        title: "Error",
+        description: "Failed to fetch blogs",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -63,7 +66,11 @@ export default function DashboardPage() {
       setStats(res.data.stats)
     } catch (err) {
       console.error("Failed to fetch stats:", err)
-      toast.error("Failed to fetch dashboard stats")
+      toast({
+        title: "Error",
+        description: "Failed to fetch dashboard stats",
+        variant: "destructive",
+      })
     }
   }, [])
 
@@ -103,13 +110,44 @@ export default function DashboardPage() {
     },
   ]
 
+  const contactRequestStats = [
+    {
+      icon: <MessageSquare className="text-white" size={20} />,
+      bgColor: "bg-blue-600",
+      value: stats.contactRequests.thisMonth || 0,
+      label: "This Month's Requests",
+    },
+    {
+      icon: <CheckCircle className="text-white" size={20} />,
+      bgColor: "bg-green-600",
+      value: stats.contactRequests.acknowledged || 0,
+      label: "Acknowledged Requests",
+    },
+    {
+      icon: <Clock className="text-white" size={20} />,
+      bgColor: "bg-orange-600",
+      value: stats.contactRequests.pending || 0,
+      label: "Pending Requests",
+    },
+  ]
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
+      {/* Main Stats Cards */}
       <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-2">
         {statsData.map((item, index) => (
           <StatsCard key={index} {...item} />
         ))}
       </div>
+
+      {/* Contact Request Stats Cards */}
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-4">
+        {contactRequestStats.map((item, index) => (
+          <StatsCard key={`contact-${index}`} {...item} />
+        ))}
+      </div>
+
+      {/* Charts Section */}
       <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-6 rounded-lg overflow-hidden">
           <MonthlyBlogStatsChart data={stats.monthlyBlogStats} />
@@ -127,7 +165,9 @@ export default function DashboardPage() {
           />
         </div>
       </div>
-      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800  p-4">
+
+      {/* Recent Blogs Table */}
+      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
           <h1 className="text-xl sm:text-2xl font-semibold">Recent Blogs</h1>
           <div className="flex gap-2 w-full sm:w-auto">

@@ -3,6 +3,7 @@ import { connectDB } from "../lib/db"
 import Blog from "../models/Blog"
 import BlogView from "../models/BlogView"
 import Visitor from "../models/Visitor"
+import ContactRequest from "../models/ContactRequest"
 
 // Device types and their probabilities
 const deviceTypes = [
@@ -13,6 +14,10 @@ const deviceTypes = [
 
 const browsers = ["Chrome", "Safari", "Firefox", "Edge", "Opera"]
 const operatingSystems = ["Windows", "macOS", "iOS", "Android", "Linux"]
+
+// Contact request types
+const contactTypes = ["general", "reservation", "event", "feedback", "other"]
+const contactStatuses = ["pending", "read", "archived"]
 
 // Generate random IP address
 function generateRandomIP(): string {
@@ -45,7 +50,7 @@ function getDailyViewCount(date: Date): number {
   const month = date.getMonth() // 0 = January, 11 = December
 
   // Base views per day
-  let baseViews = 50
+  let baseViews = 80
 
   // Weekend multiplier (less traffic)
   if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -72,119 +77,114 @@ function getDailyViewCount(date: Date): number {
   return Math.floor(baseViews * randomFactor)
 }
 
-// Generate realistic visitor count
-function getDailyVisitorCount(date: Date): number {
-  const viewCount = getDailyViewCount(date)
-  // Visitors are typically 60-80% of views (some people view multiple pages)
-  return Math.floor(viewCount * (0.6 + Math.random() * 0.2))
+// Generate realistic contact request count per day
+function getDailyContactRequestCount(date: Date): number {
+  const dayOfWeek = date.getDay()
+  let baseRequests = 3
+
+  // More requests on weekdays
+  if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+    baseRequests *= 1.5
+  }
+
+  // Add randomness
+  const randomFactor = 0.5 + Math.random() * 1.0 // 0.5 to 1.5
+
+  return Math.floor(baseRequests * randomFactor)
 }
+
+// Generate sample blog titles and content
+const sampleBlogs = [
+  {
+    title: "The Art of Coffee Brewing: A Complete Guide",
+    shortCaption: "Master the perfect cup with our comprehensive brewing guide",
+    body: "Coffee brewing is both an art and a science. In this comprehensive guide, we'll explore various brewing methods...",
+  },
+  {
+    title: "Seasonal Menu Highlights: Winter Warmers",
+    shortCaption: "Discover our cozy winter menu featuring hearty soups and warm beverages",
+    body: "As winter settles in, our kitchen team has crafted a special menu to warm your heart and soul...",
+  },
+  {
+    title: "Behind the Scenes: Meet Our Baristas",
+    shortCaption: "Get to know the talented team behind your favorite coffee creations",
+    body: "Our baristas are the heart of our cafe. Today, we're taking you behind the scenes to meet the talented individuals...",
+  },
+  {
+    title: "Sustainable Coffee: Our Journey to Fair Trade",
+    shortCaption: "Learn about our commitment to ethical sourcing and sustainability",
+    body: "Sustainability isn't just a buzzword for us - it's a core value that guides every decision we make...",
+  },
+  {
+    title: "Local Community Events: What's Coming Up",
+    shortCaption: "Stay updated on upcoming community events and gatherings at our cafe",
+    body: "We believe in being more than just a cafe - we're a community hub where people come together...",
+  },
+]
 
 async function seedAnalytics() {
   try {
     await connectDB()
     console.log("🌱 Starting analytics seeding...")
 
-    // Get all blogs
-    const blogs = await Blog.find({})
-    console.log(`📚 Found ${blogs.length} blogs`)
+    // Clear existing data
+    await BlogView.deleteMany({})
+    await Visitor.deleteMany({}) // Set unique visitors to zero as requested
+    await ContactRequest.deleteMany({})
+    await Blog.deleteMany({})
 
-    // Clear existing analytics data (except July 2024)
-    const julyStart = new Date("2024-07-01")
-    const julyEnd = new Date("2024-08-01")
+    console.log("🗑️  Cleared existing analytics data")
 
-    await BlogView.deleteMany({
-      viewedAt: {
-        $not: {
-          $gte: julyStart,
-          $lt: julyEnd,
-        },
-      },
-    })
-
-    await Visitor.deleteMany({
-      visitedAt: {
-        $not: {
-          $gte: julyStart,
-          $lt: julyEnd,
-        },
-      },
-    })
-
-    console.log("🗑️  Cleared existing analytics data (preserving July 2024)")
-
-    // Generate data for the last 6 months (excluding July 2024)
+    // Generate blogs distributed across the last 7 months
+    const blogs: any[] = []
     const endDate = new Date()
     const startDate = new Date()
     startDate.setMonth(startDate.getMonth() - 6)
 
+    // Create blogs distributed across months
+    for (let i = 0; i < 25; i++) {
+      const randomDaysAgo = Math.floor(Math.random() * 180) // Random day in last 6 months
+      const blogDate = new Date()
+      blogDate.setDate(blogDate.getDate() - randomDaysAgo)
+
+      const randomBlog = sampleBlogs[Math.floor(Math.random() * sampleBlogs.length)]
+
+      blogs.push({
+        title: `${randomBlog.title} ${i + 1}`,
+        shortCaption: randomBlog.shortCaption,
+        body: randomBlog.body,
+        status: Math.random() > 0.2 ? "published" : "draft", // 80% published
+        tags: ["coffee", "cafe", "community"].slice(0, Math.floor(Math.random() * 3) + 1),
+        publishedAt: Math.random() > 0.2 ? blogDate : undefined,
+        createdAt: blogDate,
+        updatedAt: blogDate,
+      })
+    }
+
+    const createdBlogs = await Blog.insertMany(blogs)
+    console.log(`📚 Created ${createdBlogs.length} blogs`)
+
+    // Generate blog views and contact requests day by day
+    const blogViews: any[] = []
+    const contactRequests: any[] = []
+
     console.log(`📅 Generating data from ${startDate.toDateString()} to ${endDate.toDateString()}`)
 
-    const blogViews: any[] = []
-    const visitors: any[] = []
-
-    // Generate data day by day
     for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-      // Skip July 2024 (preserve real data)
-      if (date >= julyStart && date < julyEnd) {
-        continue
-      }
-
       const currentDate = new Date(date)
-      const dailyVisitorCount = getDailyVisitorCount(currentDate)
       const dailyViewCount = getDailyViewCount(currentDate)
-
-      // Generate unique visitors for this day
-      const dayVisitors = new Set<string>()
-      const daySessionIds = new Set<string>()
-
-      for (let i = 0; i < dailyVisitorCount; i++) {
-        const ip = generateRandomIP()
-        const sessionId = generateSessionId()
-        const deviceType = getRandomDeviceType()
-        const browser = browsers[Math.floor(Math.random() * browsers.length)]
-        const os = operatingSystems[Math.floor(Math.random() * operatingSystems.length)]
-
-        // Ensure unique visitors per day
-        const visitorKey = `${ip}-${currentDate.toDateString()}`
-        if (!dayVisitors.has(visitorKey)) {
-          dayVisitors.add(visitorKey)
-          daySessionIds.add(sessionId)
-
-          // Random time during the day
-          const randomHour = Math.floor(Math.random() * 24)
-          const randomMinute = Math.floor(Math.random() * 60)
-          const visitTime = new Date(currentDate)
-          visitTime.setHours(randomHour, randomMinute, 0, 0)
-
-          visitors.push({
-            ipAddress: ip,
-            sessionId,
-            userAgent: `Mozilla/5.0 (${os}) ${browser}`,
-            deviceType,
-            browser,
-            os,
-            visitedAt: visitTime,
-            createdAt: visitTime,
-          })
-        }
-      }
+      const dailyContactRequestCount = getDailyContactRequestCount(currentDate)
 
       // Generate blog views for this day
-      const sessionIdsArray = Array.from(daySessionIds)
-      const ipsArray = Array.from(dayVisitors).map((v) => v.split("-")[0])
-
       for (let i = 0; i < dailyViewCount; i++) {
         // Pick a random blog
-        const randomBlog = blogs[Math.floor(Math.random() * blogs.length)]
-
-        // Pick a random visitor from today's visitors
-        const randomVisitorIndex = Math.floor(Math.random() * sessionIdsArray.length)
-        const sessionId = sessionIdsArray[randomVisitorIndex]
-        const ip = ipsArray[randomVisitorIndex]
+        const randomBlog = createdBlogs[Math.floor(Math.random() * createdBlogs.length)]
 
         const deviceType = getRandomDeviceType()
         const browser = browsers[Math.floor(Math.random() * browsers.length)]
         const os = operatingSystems[Math.floor(Math.random() * operatingSystems.length)]
+        const ip = generateRandomIP()
+        const sessionId = generateSessionId()
 
         // Random time during the day
         const randomHour = Math.floor(Math.random() * 24)
@@ -205,37 +205,74 @@ async function seedAnalytics() {
           createdAt: viewTime,
         })
       }
+
+      // Generate contact requests for this day
+      for (let i = 0; i < dailyContactRequestCount; i++) {
+        const randomHour = Math.floor(Math.random() * 24)
+        const randomMinute = Math.floor(Math.random() * 60)
+        const requestTime = new Date(currentDate)
+        requestTime.setHours(randomHour, randomMinute, 0, 0)
+
+        const type = contactTypes[Math.floor(Math.random() * contactTypes.length)]
+        const status = contactStatuses[Math.floor(Math.random() * contactStatuses.length)]
+
+        contactRequests.push({
+          type,
+          name: `Customer ${Math.floor(Math.random() * 1000)}`,
+          email: `customer${Math.floor(Math.random() * 1000)}@example.com`,
+          phone: `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+          message: `This is a sample ${type} request generated for testing purposes.`,
+          status,
+          createdAt: requestTime,
+          updatedAt: requestTime,
+        })
+      }
     }
 
     // Insert data in batches
-    console.log(`📊 Inserting ${visitors.length} visitor records...`)
-    if (visitors.length > 0) {
-      await Visitor.insertMany(visitors, { ordered: false })
-    }
-
     console.log(`👁️  Inserting ${blogViews.length} blog view records...`)
     if (blogViews.length > 0) {
       await BlogView.insertMany(blogViews, { ordered: false })
     }
 
+    console.log(`📧 Inserting ${contactRequests.length} contact request records...`)
+    if (contactRequests.length > 0) {
+      await ContactRequest.insertMany(contactRequests, { ordered: false })
+    }
+
     // Generate some summary stats
-    const totalVisitors = await Visitor.countDocuments()
+    const totalBlogs = await Blog.countDocuments()
     const totalBlogViews = await BlogView.countDocuments()
-    const deviceStats = await Visitor.aggregate([
+    const totalContactRequests = await ContactRequest.countDocuments()
+    const totalVisitors = await Visitor.countDocuments() // Should be 0
+
+    console.log("🎉 Analytics seeding completed successfully!")
+    console.log(`📚 Total blogs: ${totalBlogs}`)
+    console.log(`👁️  Total blog views: ${totalBlogViews}`)
+    console.log(`📧 Total contact requests: ${totalContactRequests}`)
+    console.log(`👥 Total visitors: ${totalVisitors} (reset to zero as requested)`)
+
+    // Show monthly distribution
+    const monthlyStats = await Blog.aggregate([
       {
         $group: {
-          _id: "$deviceType",
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
           count: { $sum: 1 },
         },
       },
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
     ])
 
-    console.log("🎉 Analytics seeding completed successfully!")
-    console.log(`📈 Total visitors: ${totalVisitors}`)
-    console.log(`👁️  Total blog views: ${totalBlogViews}`)
-    console.log("📱 Device breakdown:")
-    deviceStats.forEach((stat) => {
-      console.log(`  - ${stat._id}: ${stat.count}`)
+    console.log("📊 Monthly blog distribution:")
+    monthlyStats.forEach((stat) => {
+      const monthName = new Date(stat._id.year, stat._id.month - 1).toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      })
+      console.log(`  - ${monthName}: ${stat.count} blogs`)
     })
   } catch (error) {
     console.error("❌ Error seeding analytics:", error)

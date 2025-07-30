@@ -1,118 +1,121 @@
 import { connectDB } from "@/lib/db"
 import Blog from "@/models/Blog"
-import Subscriber from "@/models/Subscriber"
-import ContactRequest from "@/models/ContactRequest"
-import Visitor from "@/models/Visitor"
 import BlogView from "@/models/BlogView"
-import { NextResponse } from "next/server"
+import ContactRequest from "@/models/ContactRequest"
+import Subscriber from "@/models/Subscriber"
+import Visitor from "@/models/Visitor"
 
 export async function GET() {
   try {
     await connectDB()
 
-    // Get basic stats
-    const [subscribers, blogs, contactRequests] = await Promise.all([
+    // Get current date info
+    const now = new Date()
+    const currentMonth = now.getMonth()
+    const currentYear = now.getFullYear()
+    const startOfMonth = new Date(currentYear, currentMonth, 1)
+    const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999)
+
+    // Basic counts
+    const [
+      totalSubscribers,
+      totalBlogs,
+      publishedBlogs,
+      draftBlogs,
+      totalContactRequests,
+      thisMonthContactRequests,
+      acknowledgedContactRequests,
+      pendingContactRequests,
+      uniqueVisitors,
+    ] = await Promise.all([
       Subscriber.countDocuments(),
-      Blog.aggregate([
-        {
-          $group: {
-            _id: null,
-            total: { $sum: 1 },
-            published: {
-              $sum: { $cond: [{ $eq: ["$status", "published"] }, 1, 0] },
-            },
-            draft: {
-              $sum: { $cond: [{ $eq: ["$status", "draft"] }, 1, 0] },
-            },
-          },
-        },
-      ]),
+      Blog.countDocuments(),
+      Blog.countDocuments({ status: "published" }),
+      Blog.countDocuments({ status: "draft" }),
       ContactRequest.countDocuments(),
+      ContactRequest.countDocuments({
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+      }),
+      ContactRequest.countDocuments({ status: "read" }),
+      ContactRequest.countDocuments({ status: "pending" }),
+      Visitor.countDocuments(),
     ])
 
-    // Get unique visitors count (last 30 days)
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-    const uniqueVisitors = await Visitor.countDocuments({
-      visitedAt: { $gte: thirtyDaysAgo },
-    })
-
-    // Get device analytics for the chart
-    const deviceStats = await Visitor.aggregate([
-      {
-        $match: {
-          visitedAt: { $gte: thirtyDaysAgo },
-        },
-      },
+    // Device data aggregation
+    const deviceData = await Visitor.aggregate([
       {
         $group: {
           _id: "$deviceType",
           count: { $sum: 1 },
         },
       },
-    ])
-
-    // Calculate device percentages
-    const totalDeviceVisits = deviceStats.reduce((sum, device) => sum + device.count, 0)
-    const deviceData = deviceStats.map((device) => ({
-      name: device._id,
-      value: totalDeviceVisits > 0 ? Math.round((device.count / totalDeviceVisits) * 100) : 0,
-      color: device._id === "Mobile" ? "#6366F1" : device._id === "Tablet" ? "#06AED4" : "#10B981",
-    }))
-
-    // Get monthly blog view stats for the chart
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-
-    const monthlyBlogStats = await BlogView.aggregate([
-      {
-        $match: {
-          viewedAt: { $gte: sixMonthsAgo },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$viewedAt" },
-            month: { $month: "$viewedAt" },
-          },
-          views: { $sum: 1 },
-          uniqueBlogs: { $addToSet: "$blogId" },
-        },
-      },
       {
         $project: {
-          _id: 1,
-          views: 1,
-          blogs: { $size: "$uniqueBlogs" },
+          name: "$_id",
+          value: "$count",
+          color: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$_id", "Mobile"] }, then: "#6366F1" },
+                { case: { $eq: ["$_id", "Desktop"] }, then: "#06AED4" },
+                { case: { $eq: ["$_id", "Tablet"] }, then: "#10B981" },
+              ],
+              default: "#8B5CF6",
+            },
+          },
         },
-      },
-      {
-        $sort: { "_id.year": 1, "_id.month": 1 },
       },
     ])
 
-    // Format monthly data for the chart
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    const chartData = monthlyBlogStats.map((stat) => ({
-      month: monthNames[stat._id.month - 1],
-      blogs: stat.blogs,
-      views: stat.views,
-    }))
+    // Monthly blog stats - last 7 months
+    const monthlyBlogStats = []
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setMonth(date.getMonth() - i)
+      const year = date.getFullYear()
+      const month = date.getMonth()
 
-    const stats = {
-      subscribers,
-      blogs: blogs[0] || { total: 0, published: 0, draft: 0 },
-      contactRequests: { total: contactRequests },
-      uniqueVisitors,
-      deviceData,
-      monthlyBlogStats: chartData,
+      const monthStart = new Date(year, month, 1)
+      const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999)
+
+      // Count blogs created in this month
+      const blogsCount = await Blog.countDocuments({
+        createdAt: { $gte: monthStart, $lte: monthEnd },
+      })
+
+      // Count total views that occurred in this month (regardless of blog creation date)
+      const viewsCount = await BlogView.countDocuments({
+        viewedAt: { $gte: monthStart, $lte: monthEnd },
+      })
+
+      monthlyBlogStats.push({
+        month: date.toLocaleDateString("en-US", { month: "short" }),
+        blogs: blogsCount,
+        views: Math.round(viewsCount / 1000), // Convert to thousands for display
+      })
     }
 
-    return NextResponse.json({ stats })
+    const stats = {
+      subscribers: totalSubscribers,
+      blogs: {
+        total: totalBlogs,
+        published: publishedBlogs,
+        draft: draftBlogs,
+      },
+      contactRequests: {
+        total: totalContactRequests,
+        thisMonth: thisMonthContactRequests,
+        acknowledged: acknowledgedContactRequests,
+        pending: pendingContactRequests,
+      },
+      uniqueVisitors,
+      deviceData,
+      monthlyBlogStats,
+    }
+
+    return Response.json({ stats })
   } catch (error) {
-    console.error("Error fetching stats:", error)
-    return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 })
+    console.error("GET /api/stats error:", error)
+    return new Response("Failed to load stats", { status: 500 })
   }
 }
