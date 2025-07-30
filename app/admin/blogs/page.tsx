@@ -145,7 +145,7 @@ export default function BlogsPage() {
       {loading ? (
         <TableSkeleton />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto mb-18">
           <DataTable
             columns={getBlogColumns(fetchBlogs)}
             data={blogs}

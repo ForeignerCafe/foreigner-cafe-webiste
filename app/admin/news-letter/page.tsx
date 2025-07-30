@@ -79,7 +79,7 @@ export default function RecentNewsletters() {
         </Select>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto mb-16">
         <Table>
           <TableHeader className="bg-gray-100 dark:bg-[#1f1f1f]">
             <TableRow>
