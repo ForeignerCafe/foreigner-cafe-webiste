@@ -1,285 +1,191 @@
-import mongoose from "mongoose"
-import { connectDB } from "../lib/db"
-import Blog from "../models/Blog"
-import BlogView from "../models/BlogView"
-import Visitor from "../models/Visitor"
-import ContactRequest from "../models/ContactRequest"
-
-// Device types and their probabilities
-const deviceTypes = [
-  { type: "Mobile", weight: 0.65 },
-  { type: "Desktop", weight: 0.3 },
-  { type: "Tablet", weight: 0.05 },
-] as const
-
-const browsers = ["Chrome", "Safari", "Firefox", "Edge", "Opera"]
-const operatingSystems = ["Windows", "macOS", "iOS", "Android", "Linux"]
-
-// Contact request types
-const contactTypes = ["general", "reservation", "event", "feedback", "other"]
-const contactStatuses = ["pending", "read", "archived"]
-
-// Generate random IP address
-function generateRandomIP(): string {
-  return `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
-}
-
-// Generate random session ID
-function generateSessionId(): string {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
-}
-
-// Get weighted random device type
-function getRandomDeviceType(): string {
-  const random = Math.random()
-  let cumulativeWeight = 0
-
-  for (const device of deviceTypes) {
-    cumulativeWeight += device.weight
-    if (random <= cumulativeWeight) {
-      return device.type
-    }
-  }
-
-  return "Desktop" // fallback
-}
-
-// Generate realistic daily view count based on day of week and month
-function getDailyViewCount(date: Date): number {
-  const dayOfWeek = date.getDay() // 0 = Sunday, 6 = Saturday
-  const month = date.getMonth() // 0 = January, 11 = December
-
-  // Base views per day
-  let baseViews = 80
-
-  // Weekend multiplier (less traffic)
-  if (dayOfWeek === 0 || dayOfWeek === 6) {
-    baseViews *= 0.7
-  }
-
-  // Weekday peak (Tuesday-Thursday)
-  if (dayOfWeek >= 2 && dayOfWeek <= 4) {
-    baseViews *= 1.3
-  }
-
-  // Seasonal variations
-  if (month >= 5 && month <= 7) {
-    // Summer months
-    baseViews *= 1.2
-  } else if (month >= 11 || month <= 1) {
-    // Winter months
-    baseViews *= 0.9
-  }
-
-  // Add some randomness
-  const randomFactor = 0.7 + Math.random() * 0.6 // 0.7 to 1.3
-
-  return Math.floor(baseViews * randomFactor)
-}
-
-// Generate realistic contact request count per day
-function getDailyContactRequestCount(date: Date): number {
-  const dayOfWeek = date.getDay()
-  let baseRequests = 3
-
-  // More requests on weekdays
-  if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-    baseRequests *= 1.5
-  }
-
-  // Add randomness
-  const randomFactor = 0.5 + Math.random() * 1.0 // 0.5 to 1.5
-
-  return Math.floor(baseRequests * randomFactor)
-}
-
-// Generate sample blog titles and content
-const sampleBlogs = [
-  {
-    title: "The Art of Coffee Brewing: A Complete Guide",
-    shortCaption: "Master the perfect cup with our comprehensive brewing guide",
-    body: "Coffee brewing is both an art and a science. In this comprehensive guide, we'll explore various brewing methods...",
-  },
-  {
-    title: "Seasonal Menu Highlights: Winter Warmers",
-    shortCaption: "Discover our cozy winter menu featuring hearty soups and warm beverages",
-    body: "As winter settles in, our kitchen team has crafted a special menu to warm your heart and soul...",
-  },
-  {
-    title: "Behind the Scenes: Meet Our Baristas",
-    shortCaption: "Get to know the talented team behind your favorite coffee creations",
-    body: "Our baristas are the heart of our cafe. Today, we're taking you behind the scenes to meet the talented individuals...",
-  },
-  {
-    title: "Sustainable Coffee: Our Journey to Fair Trade",
-    shortCaption: "Learn about our commitment to ethical sourcing and sustainability",
-    body: "Sustainability isn't just a buzzword for us - it's a core value that guides every decision we make...",
-  },
-  {
-    title: "Local Community Events: What's Coming Up",
-    shortCaption: "Stay updated on upcoming community events and gatherings at our cafe",
-    body: "We believe in being more than just a cafe - we're a community hub where people come together...",
-  },
-]
+import { connectDB } from "@/lib/db";
+import Blog from "@/models/Blog";
+import BlogView from "@/models/BlogView";
+import ContactRequest from "@/models/ContactRequest";
+import Visitor from "@/models/Visitor";
 
 async function seedAnalytics() {
   try {
-    await connectDB()
-    console.log("🌱 Starting analytics seeding...")
+    await connectDB();
+    console.log("🌱 Starting analytics seeding...");
 
-    // Clear existing data
-    await BlogView.deleteMany({})
-    await Visitor.deleteMany({}) // Set unique visitors to zero as requested
-    await ContactRequest.deleteMany({})
-    await Blog.deleteMany({})
-
-    console.log("🗑️  Cleared existing analytics data")
+    // Clear existing analytics data
+    await Promise.all([
+      BlogView.deleteMany({}),
+      Visitor.deleteMany({}), // Set unique visitors to zero as requested
+      ContactRequest.deleteMany({}),
+    ]);
+    console.log("🧹 Cleared existing analytics data");
 
     // Generate blogs distributed across the last 7 months
-    const blogs: any[] = []
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setMonth(startDate.getMonth() - 6)
+    const blogTitles = [
+      "The Art of Coffee Brewing: A Complete Guide",
+      "Seasonal Menu Highlights for Spring",
+      "Behind the Scenes: Our Coffee Sourcing Journey",
+      "Customer Spotlight: Local Artists in Our Cafe",
+      "The Perfect Pairing: Coffee and Pastries",
+      "Sustainability in Our Coffee Shop",
+      "New Breakfast Menu Items You'll Love",
+      "The History of Our Neighborhood Cafe",
+      "Coffee Tasting Notes: Understanding Flavors",
+      "Weekend Brunch Specials",
+      "Local Community Events at Our Cafe",
+      "The Science Behind the Perfect Espresso",
+      "Seasonal Decorations and Ambiance",
+      "Staff Picks: Favorite Menu Items",
+      "Coffee Shop Etiquette: A Friendly Guide",
+      "The Journey from Bean to Cup",
+      "Customer Reviews and Testimonials",
+      "Special Holiday Menu Items",
+      "The Art of Latte Making",
+      "Cozy Corner: Best Spots for Reading",
+      "Local Partnerships and Collaborations",
+      "The Perfect Study Environment",
+      "Coffee Culture Around the World",
+      "Healthy Options on Our Menu",
+      "The Story Behind Our Signature Blend",
+    ];
 
-    // Create blogs distributed across months
+    const blogs = [];
+    const now = new Date();
+
+    // Create blogs distributed across 7 months
     for (let i = 0; i < 25; i++) {
-      const randomDaysAgo = Math.floor(Math.random() * 180) // Random day in last 6 months
-      const blogDate = new Date()
-      blogDate.setDate(blogDate.getDate() - randomDaysAgo)
+      const monthsBack = Math.floor(Math.random() * 7); // 0-6 months back
+      const blogDate = new Date(now);
+      blogDate.setMonth(blogDate.getMonth() - monthsBack);
+      blogDate.setDate(Math.floor(Math.random() * 28) + 1); // Random day in month
 
-      const randomBlog = sampleBlogs[Math.floor(Math.random() * sampleBlogs.length)]
-
-      blogs.push({
-        title: `${randomBlog.title} ${i + 1}`,
-        shortCaption: randomBlog.shortCaption,
-        body: randomBlog.body,
-        status: Math.random() > 0.2 ? "published" : "draft", // 80% published
-        tags: ["coffee", "cafe", "community"].slice(0, Math.floor(Math.random() * 3) + 1),
-        publishedAt: Math.random() > 0.2 ? blogDate : undefined,
+      const blog = new Blog({
+        title: blogTitles[i],
+        slug: blogTitles[i]
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/-+$/, ""),
+        content: `<p>This is a comprehensive blog post about ${blogTitles[
+          i
+        ].toLowerCase()}. It contains detailed information and insights that our readers find valuable.</p><p>Our team has carefully researched this topic to provide you with the most accurate and helpful information.</p>`,
+        excerpt: `Learn everything you need to know about ${blogTitles[
+          i
+        ].toLowerCase()} in this detailed guide.`,
+        featuredImage: `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(
+          blogTitles[i]
+        )}`,
+        author: "Admin",
+        status: "published",
+        tags: ["coffee", "cafe", "guide"],
+        category: "General",
         createdAt: blogDate,
         updatedAt: blogDate,
-      })
+      });
+
+      const savedBlog = await blog.save();
+      blogs.push(savedBlog);
     }
 
-    const createdBlogs = await Blog.insertMany(blogs)
-    console.log(`📚 Created ${createdBlogs.length} blogs`)
+    console.log(`📝 Created ${blogs.length} blogs distributed across 7 months`);
 
-    // Generate blog views and contact requests day by day
-    const blogViews: any[] = []
-    const contactRequests: any[] = []
+    // Generate blog views distributed across time periods
+    const blogViews = [];
+    for (const blog of blogs) {
+      // Generate views for each blog across different months
+      const viewsCount = Math.floor(Math.random() * 500) + 50; // 50-550 views per blog
 
-    console.log(`📅 Generating data from ${startDate.toDateString()} to ${endDate.toDateString()}`)
+      for (let i = 0; i < viewsCount; i++) {
+        const viewDate = new Date();
+        // Distribute views across the last 6 months
+        const monthsBack = Math.floor(Math.random() * 6);
+        viewDate.setMonth(viewDate.getMonth() - monthsBack);
+        viewDate.setDate(Math.floor(Math.random() * 28) + 1);
+        viewDate.setHours(Math.floor(Math.random() * 24));
+        viewDate.setMinutes(Math.floor(Math.random() * 60));
 
-    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-      const currentDate = new Date(date)
-      const dailyViewCount = getDailyViewCount(currentDate)
-      const dailyContactRequestCount = getDailyContactRequestCount(currentDate)
+        const blogView = new BlogView({
+          blogId: blog._id,
+          ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
+          userAgent:
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          viewedAt: viewDate,
+        });
 
-      // Generate blog views for this day
-      for (let i = 0; i < dailyViewCount; i++) {
-        // Pick a random blog
-        const randomBlog = createdBlogs[Math.floor(Math.random() * createdBlogs.length)]
-
-        const deviceType = getRandomDeviceType()
-        const browser = browsers[Math.floor(Math.random() * browsers.length)]
-        const os = operatingSystems[Math.floor(Math.random() * operatingSystems.length)]
-        const ip = generateRandomIP()
-        const sessionId = generateSessionId()
-
-        // Random time during the day
-        const randomHour = Math.floor(Math.random() * 24)
-        const randomMinute = Math.floor(Math.random() * 60)
-        const viewTime = new Date(currentDate)
-        viewTime.setHours(randomHour, randomMinute, 0, 0)
-
-        blogViews.push({
-          blogId: randomBlog._id,
-          blogSlug: randomBlog.slug,
-          ipAddress: ip,
-          sessionId,
-          userAgent: `Mozilla/5.0 (${os}) ${browser}`,
-          deviceType,
-          browser,
-          os,
-          viewedAt: viewTime,
-          createdAt: viewTime,
-        })
-      }
-
-      // Generate contact requests for this day
-      for (let i = 0; i < dailyContactRequestCount; i++) {
-        const randomHour = Math.floor(Math.random() * 24)
-        const randomMinute = Math.floor(Math.random() * 60)
-        const requestTime = new Date(currentDate)
-        requestTime.setHours(randomHour, randomMinute, 0, 0)
-
-        const type = contactTypes[Math.floor(Math.random() * contactTypes.length)]
-        const status = contactStatuses[Math.floor(Math.random() * contactStatuses.length)]
-
-        contactRequests.push({
-          type,
-          name: `Customer ${Math.floor(Math.random() * 1000)}`,
-          email: `customer${Math.floor(Math.random() * 1000)}@example.com`,
-          phone: `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`,
-          message: `This is a sample ${type} request generated for testing purposes.`,
-          status,
-          createdAt: requestTime,
-          updatedAt: requestTime,
-        })
+        blogViews.push(blogView);
       }
     }
 
-    // Insert data in batches
-    console.log(`👁️  Inserting ${blogViews.length} blog view records...`)
-    if (blogViews.length > 0) {
-      await BlogView.insertMany(blogViews, { ordered: false })
+    await BlogView.insertMany(blogViews);
+    console.log(
+      `👀 Created ${blogViews.length} blog views distributed across months`
+    );
+
+    // Generate contact requests with different statuses
+    const contactTypes = [
+      "general",
+      "catering",
+      "events",
+      "feedback",
+      "complaint",
+    ];
+    const contactRequests = [];
+
+    for (let i = 0; i < 50; i++) {
+      const monthsBack = Math.floor(Math.random() * 6); // 0-5 months back
+      const requestDate = new Date(now);
+      requestDate.setMonth(requestDate.getMonth() - monthsBack);
+      requestDate.setDate(Math.floor(Math.random() * 28) + 1);
+
+      const status = Math.random() > 0.6 ? "read" : "pending"; // 40% read, 60% pending
+
+      const contactRequest = new ContactRequest({
+        name: `Customer ${i + 1}`,
+        email: `customer${i + 1}@example.com`,
+        phone: `+1234567${String(i).padStart(3, "0")}`,
+        subject: `Inquiry about ${
+          contactTypes[Math.floor(Math.random() * contactTypes.length)]
+        }`,
+        message: "This is a sample contact request message from a customer.",
+        type: contactTypes[Math.floor(Math.random() * contactTypes.length)],
+        status: status,
+        createdAt: requestDate,
+        updatedAt: requestDate,
+      });
+
+      contactRequests.push(contactRequest);
     }
 
-    console.log(`📧 Inserting ${contactRequests.length} contact request records...`)
-    if (contactRequests.length > 0) {
-      await ContactRequest.insertMany(contactRequests, { ordered: false })
-    }
+    await ContactRequest.insertMany(contactRequests);
+    console.log(
+      `📞 Created ${contactRequests.length} contact requests with various statuses`
+    );
 
-    // Generate some summary stats
-    const totalBlogs = await Blog.countDocuments()
-    const totalBlogViews = await BlogView.countDocuments()
-    const totalContactRequests = await ContactRequest.countDocuments()
-    const totalVisitors = await Visitor.countDocuments() // Should be 0
+    // Summary
+    const summary = {
+      blogs: blogs.length,
+      blogViews: blogViews.length,
+      contactRequests: contactRequests.length,
+      uniqueVisitors: 0, // Set to zero as requested
+    };
 
-    console.log("🎉 Analytics seeding completed successfully!")
-    console.log(`📚 Total blogs: ${totalBlogs}`)
-    console.log(`👁️  Total blog views: ${totalBlogViews}`)
-    console.log(`📧 Total contact requests: ${totalContactRequests}`)
-    console.log(`👥 Total visitors: ${totalVisitors} (reset to zero as requested)`)
+    console.log("🎉 Analytics seeding completed successfully!");
+    console.log("📊 Summary:", summary);
 
-    // Show monthly distribution
-    const monthlyStats = await Blog.aggregate([
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { "_id.year": 1, "_id.month": 1 } },
-    ])
-
-    console.log("📊 Monthly blog distribution:")
-    monthlyStats.forEach((stat) => {
-      const monthName = new Date(stat._id.year, stat._id.month - 1).toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      })
-      console.log(`  - ${monthName}: ${stat.count} blogs`)
-    })
+    return summary;
   } catch (error) {
-    console.error("❌ Error seeding analytics:", error)
-  } finally {
-    await mongoose.connection.close()
-    console.log("🔌 Database connection closed")
+    console.error("❌ Error seeding analytics:", error);
+    throw error;
   }
 }
 
-seedAnalytics()
+// Run the seeder if called directly
+if (require.main === module) {
+  seedAnalytics()
+    .then(() => {
+      console.log("✅ Seeding completed");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("❌ Seeding failed:", error);
+      process.exit(1);
+    });
+}
+
+export default seedAnalytics;

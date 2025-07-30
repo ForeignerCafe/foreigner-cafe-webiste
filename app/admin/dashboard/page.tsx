@@ -1,203 +1,227 @@
-"use client"
-import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
-import { Users, FileText, Mail, Eye, PlusCircle, ArrowRight, MessageSquare, CheckCircle, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { toast } from "@/components/ui/use-toast"
-import { Skeleton } from "@/components/ui/skeleton"
-import axiosInstance from "@/lib/axios"
-import { DataTable } from "@/components/dashboard/table"
-import StatsCard from "@/components/dashboard/statsCard"
-import MonthlyBlogStatsChart from "@/components/dashboard/left-chart"
-import RatioOfDevicesChart from "@/components/dashboard/right-chart"
-import { getBlogColumns } from "@/components/dashboard/blog-colums"
-import type { Blog } from "@/models/Blog"
+"use client";
 
-// Skeleton loader
-const TableSkeleton = () => (
-  <div className="space-y-4 w-full">
-    <div className="grid grid-cols-5 gap-4">
-      {[...Array(5)].map((_, i) => (
-        <Skeleton key={`header-${i}`} className="h-10 w-full rounded-md" />
-      ))}
-    </div>
-    {[...Array(5)].map((_, rowIndex) => (
-      <div key={`row-${rowIndex}`} className="grid grid-cols-5 gap-4">
-        {[...Array(5)].map((_, colIndex) => (
-          <Skeleton key={`cell-${rowIndex}-${colIndex}`} className="h-12 w-full rounded-md" />
-        ))}
-      </div>
-    ))}
-  </div>
-)
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import {
+  Users,
+  FileText,
+  MessageSquare,
+  Eye,
+  CheckCircle,
+  Clock,
+  Calendar,
+} from "lucide-react";
+import MonthlyBlogStatsChart from "@/components/dashboard/left-chart";
+import RightChart from "@/components/dashboard/right-chart";
+
+interface Stats {
+  subscribers: number;
+  blogs: {
+    total: number;
+    published: number;
+    draft: number;
+  };
+  contactRequests: {
+    total: number;
+    thisMonth: number;
+    acknowledged: number;
+    pending: number;
+  };
+  uniqueVisitors: number;
+  deviceData: Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>;
+  monthlyBlogStats: Array<{
+    month: string;
+    blogs: number;
+    views: number;
+  }>;
+}
 
 export default function DashboardPage() {
-  const [blogs, setBlogs] = useState<Blog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState({
-    subscribers: 0,
-    blogs: { total: 0, published: 0, draft: 0 },
-    contactRequests: { total: 0, thisMonth: 0, acknowledged: 0, pending: 0 },
-    uniqueVisitors: 0,
-    deviceData: [],
-    monthlyBlogStats: [],
-  })
-
-  const fetchBlogs = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await axiosInstance.get("/api/blog")
-      setBlogs(res.data.blogs || [])
-    } catch (err) {
-      console.error("Failed to fetch blogs:", err)
-      toast({
-        title: "Error",
-        description: "Failed to fetch blogs",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const fetchStats = useCallback(async () => {
-    try {
-      const res = await axiosInstance.get("/api/stats")
-      setStats(res.data.stats)
-    } catch (err) {
-      console.error("Failed to fetch stats:", err)
-      toast({
-        title: "Error",
-        description: "Failed to fetch dashboard stats",
-        variant: "destructive",
-      })
-    }
-  }, [])
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchBlogs()
-    fetchStats()
-  }, [fetchBlogs, fetchStats])
+    fetchStats();
+  }, []);
 
-  const recentBlogs = [...blogs]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 7)
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/stats");
 
-  const statsData = [
-    {
-      icon: <Users className="text-white" size={20} />,
-      bgColor: "bg-indigo-600",
-      value: stats.subscribers,
-      label: "Total Subscribers",
-    },
-    {
-      icon: <FileText className="text-white" size={20} />,
-      bgColor: "bg-[#1B17A6]",
-      value: stats.blogs.total,
-      label: "Total Blogs",
-    },
-    {
-      icon: <Mail className="text-white" size={20} />,
-      bgColor: "bg-[#00D492]",
-      value: stats.contactRequests.total || 0,
-      label: "Contact Requests",
-    },
-    {
-      icon: <Eye className="text-white" size={20} />,
-      bgColor: "bg-[#EF4D68]",
-      value: stats.uniqueVisitors,
-      label: "Unique Visitors",
-    },
-  ]
+      if (!response.ok) {
+        throw new Error("Failed to fetch stats");
+      }
 
-  const contactRequestStats = [
-    {
-      icon: <MessageSquare className="text-white" size={20} />,
-      bgColor: "bg-blue-600",
-      value: stats.contactRequests.thisMonth || 0,
-      label: "This Month's Requests",
-    },
-    {
-      icon: <CheckCircle className="text-white" size={20} />,
-      bgColor: "bg-green-600",
-      value: stats.contactRequests.acknowledged || 0,
-      label: "Acknowledged Requests",
-    },
-    {
-      icon: <Clock className="text-white" size={20} />,
-      bgColor: "bg-orange-600",
-      value: stats.contactRequests.pending || 0,
-      label: "Pending Requests",
-    },
-  ]
+      const data = await response.json();
+      setStats(data.stats);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      toast.error("Failed to load dashboard stats");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[60px] mb-2" />
+                <Skeleton className="h-3 w-[120px]" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-[400px]" />
+          <Skeleton className="h-[400px]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Failed to load dashboard data</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
+    <div className="space-y-6">
       {/* Main Stats Cards */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-2">
-        {statsData.map((item, index) => (
-          <StatsCard key={index} {...item} />
-        ))}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Subscribers
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.subscribers.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Newsletter subscribers
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Blogs</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.blogs.total}</div>
+            <div className="flex gap-2 mt-1">
+              <Badge variant="secondary" className="text-xs">
+                {stats.blogs.published} Published
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                {stats.blogs.draft} Draft
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Contact Requests
+            </CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.contactRequests.total}
+            </div>
+            <p className="text-xs text-muted-foreground">Total inquiries</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Unique Visitors
+            </CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.uniqueVisitors.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Site visitors</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Contact Request Stats Cards
-      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-4">
-        {contactRequestStats.map((item, index) => (
-          <StatsCard key={`contact-${index}`} {...item} />
-        ))}
+      {/* Contact Request Details */}
+      {/* <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            <Calendar className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {stats.contactRequests.thisMonth}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              New requests this month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Acknowledged</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.contactRequests.acknowledged}
+            </div>
+            <p className="text-xs text-muted-foreground">Processed requests</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {stats.contactRequests.pending}
+            </div>
+            <p className="text-xs text-muted-foreground">Awaiting response</p>
+          </CardContent>
+        </Card>
       </div> */}
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-10">
-        <div className="col-span-1 lg:col-span-6 rounded-lg overflow-hidden">
-          <MonthlyBlogStatsChart data={stats.monthlyBlogStats} />
-        </div>
-        <div className="col-span-1 lg:col-span-4 rounded-lg overflow-hidden">
-          <RatioOfDevicesChart
-            chartData={
-              stats.deviceData.length > 0
-                ? stats.deviceData
-                : [
-                    { name: "Mobile", value: 68, color: "#6366F1" },
-                    { name: "Desktop", value: 32, color: "#06AED4" },
-                  ]
-            }
-          />
-        </div>
-      </div>
-
-      {/* Recent Blogs Table */}
-      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
-          <h1 className="text-xl sm:text-2xl font-semibold">Recent Blogs</h1>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Link href="/admin/blogs" className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full sm:w-auto bg-transparent">
-                View All <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/admin/add-blog" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add New
-              </Button>
-            </Link>
-          </div>
-        </div>
-        <div className="mt-4">
-          {loading ? (
-            <TableSkeleton />
-          ) : (
-            <DataTable
-              columns={getBlogColumns(fetchBlogs)}
-              data={recentBlogs}
-              searchableColumn="title"
-              searchableColumnTitle="Title"
-              enablePagination={false}
-            />
-          )}
-        </div>
+      {/* Charts */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <MonthlyBlogStatsChart data={stats.monthlyBlogStats} />
+        <RightChart data={stats.deviceData} />
       </div>
     </div>
-  )
+  );
 }

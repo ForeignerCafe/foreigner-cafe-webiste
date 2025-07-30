@@ -14,7 +14,6 @@ import {
   type ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 
 interface MonthlyBlogStatsChartProps {
@@ -26,18 +25,18 @@ interface MonthlyBlogStatsChartProps {
 }
 
 const defaultChartData = [
-  { month: "Jan", blogs: 17, views: 75 },
-  { month: "Feb", blogs: 12, views: 85 },
-  { month: "Mar", blogs: 14, views: 92 },
-  { month: "Apr", blogs: 18, views: 68 },
-  { month: "May", blogs: 16, views: 103 },
-  { month: "Jun", blogs: 20, views: 89 },
-  { month: "Jul", blogs: 15, views: 97 },
+  { month: "Jan", blogs: 17, views: 750 },
+  { month: "Feb", blogs: 12, views: 850 },
+  { month: "Mar", blogs: 14, views: 920 },
+  { month: "Apr", blogs: 18, views: 680 },
+  { month: "May", blogs: 16, views: 1030 },
+  { month: "Jun", blogs: 20, views: 890 },
+  { month: "Jul", blogs: 15, views: 970 },
 ];
 
 const chartConfig = {
   views: {
-    label: "Views (k)",
+    label: "Views",
     color: "hsl(174 74% 41%)", // A teal color
   },
   blogs: {
@@ -56,7 +55,7 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
           <p key={index} className="text-sm" style={{ color: entry.color }}>
             {entry.dataKey === "blogs"
               ? `Blogs: ${entry.value}`
-              : `Views: ${entry.value}k`}
+              : `Views: ${entry.value.toLocaleString()}`}
           </p>
         ))}
       </div>
@@ -65,10 +64,28 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
   return null;
 };
 
+// Format large numbers for Y-axis labels
+const formatYAxisLabel = (value: number) => {
+  if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(1)}M`;
+  } else if (value >= 1000) {
+    return `${(value / 1000).toFixed(1)}k`;
+  }
+  return value.toString();
+};
+
 export default function MonthlyBlogStatsChart({
   data,
 }: MonthlyBlogStatsChartProps) {
   const chartData = data && data.length > 0 ? data : defaultChartData;
+
+  // Calculate dynamic domains based on data
+  const maxViews = Math.max(...chartData.map((d) => d.views));
+  const maxBlogs = Math.max(...chartData.map((d) => d.blogs));
+
+  // Set domains with some padding
+  const viewsDomain = [0, Math.max(maxViews * 1.1, 100)];
+  const blogsDomain = [0, Math.max(maxBlogs * 1.2, 10)];
 
   return (
     <Card
@@ -111,7 +128,7 @@ export default function MonthlyBlogStatsChart({
                   tick={{ fill: "#6B7280", fontSize: 11 }}
                   tickLine={false}
                   axisLine={false}
-                  domain={[0, 25]}
+                  domain={blogsDomain}
                   label={{
                     value: "Blogs",
                     angle: -90,
@@ -130,10 +147,10 @@ export default function MonthlyBlogStatsChart({
                   tick={{ fill: "#6B7280", fontSize: 11 }}
                   tickLine={false}
                   axisLine={false}
-                  domain={[0, 120]}
-                  tickFormatter={(value) => `${value}k`}
+                  domain={viewsDomain}
+                  tickFormatter={formatYAxisLabel}
                   label={{
-                    value: "Views (k)",
+                    value: "Views",
                     angle: 90,
                     position: "insideRight",
                     style: {
@@ -167,7 +184,7 @@ export default function MonthlyBlogStatsChart({
                   wrapperStyle={{ paddingTop: "20px" }}
                   formatter={(value) => (
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {value === "views" ? "Views (k)" : "Blogs"}
+                      {value === "views" ? "Views" : "Blogs"}
                     </span>
                   )}
                 />
