@@ -18,11 +18,11 @@ interface MonthlyBlogStatsChartProps {
 }
 
 const defaultChartData = [
-  { month: "Mar", blogs: 12, views: 8000 },
-  { month: "April", blogs: 10, views: 15000 },
-  { month: "May", blogs: 14, views: 26000 },
-  { month: "June", blogs: 18, views: 7000 },
-  { month: "July", blogs: 10, views: 27000 },
+  { month: "Mar", blogs: 12, views: 8 },
+  { month: "April", blogs: 10, views: 15 },
+  { month: "May", blogs: 14, views: 26 },
+  { month: "June", blogs: 18, views: 7 },
+  { month: "July", blogs: 10, views: 27 },
 ];
 
 const chartConfig = {
@@ -53,9 +53,7 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
             {`${entry.dataKey === "views" ? "Views" : "Blogs"}: ${
-              entry.dataKey === "views"
-                ? formatNumber(entry.value)
-                : entry.value
+              entry.dataKey === "views" ? `${entry.value}k` : entry.value
             }`}
           </p>
         ))}
@@ -63,6 +61,16 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
     );
   }
   return null;
+};
+
+// Custom tick formatter that only formats views axis values
+const customTickFormatter = (value: number, index: number, payload: any) => {
+  // This will be used for the X-axis which shows numeric values
+  // We want to format large numbers (views) but keep small numbers (blogs) as-is
+  if (value >= 1000) {
+    return formatNumber(value);
+  }
+  return value.toString();
 };
 
 export default function MonthlyBlogStatsChart({
@@ -110,8 +118,7 @@ export default function MonthlyBlogStatsChart({
               />
               <XAxis
                 type="number"
-                domain={[0, 40000]}
-                tickFormatter={(value) => formatNumber(value)}
+                domain={[0, 40]}
                 tick={{ fill: "#6B7280", fontSize: 12 }}
                 className="dark:[&>g>text]:fill-gray-300"
                 axisLine={{
