@@ -51,7 +51,7 @@ export default function RootLayout({
             <AnalyticsTracker />
             <Preloader />
             {children}
-            <CartIcon />
+            {/* <CartIcon /> */}
             <TawkToChat />
             {/* </LenisProvider> */}
           </CartProvider>
