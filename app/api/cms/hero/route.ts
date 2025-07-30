@@ -11,12 +11,10 @@ export async function GET() {
     // Create default content if none exists
     if (!heroContent) {
       heroContent = await HeroContent.create({
-        title: "FOREIGNER CAFE",
-        subtitle: "A Space for Community & Craft",
-        description:
-          "More than a coffee shop — we're a gathering place for people, ideas, and craft. Rooted in hospitality and culture, our space is a warm invitation to slow down and connect.",
-        videoUrl:
-          "https://res.cloudinary.com/dxtclcoxh/video/upload/v1752141159/yt1z.net_-_BARISTA_Cafe_Promo_Video_Cinematic_Real_Estate_video_Epic_B-Roll_1080p60_httacw.mp4",
+        title: "Welcome to Foreigners Cafe",
+        subtitle: "Where Stories Begin",
+        description: "Experience exceptional coffee, delicious food, and warm hospitality in our cozy atmosphere.",
+        videoUrl: "/videos/hero-video.mp4",
       })
     }
 

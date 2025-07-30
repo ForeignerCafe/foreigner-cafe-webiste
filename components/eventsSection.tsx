@@ -5,72 +5,114 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ChevronRight } from "lucide-react"
+import axiosInstance from "@/lib/axios"
 
-const eventImages = [
-  {
-    src: "/images/couple.webp",
-    alt: "Wedding",
-  },
-  {
-    src: "/images/celebration.webp",
-    alt: "Celebration",
-  },
-  {
-    src: "/images/corporate.webp",
-    alt: "Corporate",
-  },
-  {
-    src: "/images/private.webp",
-    alt: "Private Meeting",
-  },
-]
+interface EventImage {
+  src: string
+  alt: string
+}
+
+interface EventsSection {
+  title: string
+  description: string
+  buttonText: string
+  buttonLink: string
+  eventImages: EventImage[]
+}
 
 export default function Events() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [content, setContent] = useState<EventsSection>({
+    title: "Where Stories Come to Life",
+    description:
+      "Join us for unforgettable experiences at our cafe. From intimate coffee tastings and live acoustic sessions to art exhibitions and book clubs, we create moments that bring our community together over exceptional coffee and shared passions.",
+    buttonText: "Explore All Events",
+    buttonLink: "/events",
+    eventImages: [],
+  })
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex === eventImages.length - 1 ? 0 : prevIndex + 1))
-    }, 3000)
-
-    return () => clearInterval(interval)
+    fetchEventsContent()
   }, [])
 
+  useEffect(() => {
+    if (content.eventImages.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex === content.eventImages.length - 1 ? 0 : prevIndex + 1))
+      }, 3000)
+      return () => clearInterval(interval)
+    }
+  }, [content.eventImages.length])
+
+  const fetchEventsContent = async () => {
+    try {
+      const response = await axiosInstance.get("/api/cms/events")
+      if (response.data.success) {
+        setContent(response.data.data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch events content:", error)
+    }
+  }
+
+  if (content.eventImages.length === 0) {
+    return (
+      <section className="md:mt-20 w-full md:py-16 py-8 lg:p-10">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+            <div className="space-y-6 lg:space-y-8 lg:p-8">
+              <div className="space-y-4">
+                <h2 className="font-bold tracking-tight text-4xl md:text-5xl text-black uppercase">{content.title}</h2>
+                <p className="text-md text-gray-600 leading-relaxed max-w-xl">{content.description}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href={content.buttonLink}>
+                  <Button className="uppercase border border-[#EC4E20] bg-transparent text-[#EC4E20] hover:bg-[#f97316] hover:text-black hover:scale-110 text-xs sm:text-sm px-4 py-2">
+                    {content.buttonText}
+                    <ChevronRight className="ml-1 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="relative h-[400px] overflow-hidden rounded-2xl shadow-2xl bg-gray-200 animate-pulse">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-gray-500">Loading images...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
-    <section className=" md:mt-20 w-full md:py-16 py-8 lg:p-10 "> 
+    <section className="md:mt-20 w-full md:py-16 py-8 lg:p-10">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           {/* Text Content - Left Column */}
           <div className="space-y-6 lg:space-y-8 lg:p-8">
             <div className="space-y-4">
-              
-              <h2 className=" font-bold tracking-tight text-4xl md:text-5xl text-black uppercase">
-                Where Stories Come to Life
-              </h2>
-              <p className="text-md text-gray-600 leading-relaxed max-w-xl">
-                Join us for unforgettable experiences at our cafe. From intimate coffee tastings and live acoustic
-                sessions to art exhibitions and book clubs, we create moments that bring our community together over
-                exceptional coffee and shared passions.
-              </p>
+              <h2 className="font-bold tracking-tight text-4xl md:text-5xl text-black uppercase">{content.title}</h2>
+              <p className="text-md text-gray-600 leading-relaxed max-w-xl">{content.description}</p>
             </div>
-
             <div className="flex flex-col sm:flex-row gap-4">
-                          <Link href="/events">
-                               <Button className=" uppercase border border-[#EC4E20] bg-transparent text-[#EC4E20] hover:bg-[#f97316] hover:text-black hover:scale-110 text-xs sm:text-sm px-4 py-2">
-                                  Explore All Events
-                                   <ChevronRight className="ml-1 h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </Button>
+              <Link href={content.buttonLink}>
+                <Button className="uppercase border border-[#EC4E20] bg-transparent text-[#EC4E20] hover:bg-[#f97316] hover:text-black hover:scale-110 text-xs sm:text-sm px-4 py-2">
+                  {content.buttonText}
+                  <ChevronRight className="ml-1 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Button>
               </Link>
-    
             </div>
           </div>
 
           {/* Image Carousel - Right Column */}
           <div className="relative">
-            <div className="relative h-[400px]  overflow-hidden rounded-2xl shadow-2xl">
+            <div className="relative h-[400px] overflow-hidden rounded-2xl shadow-2xl">
               {/* Main Image Display */}
               <div className="relative w-full h-full">
-                {eventImages.map((image, index) => (
+                {content.eventImages.map((image, index) => (
                   <div
                     key={index}
                     className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
@@ -91,7 +133,7 @@ export default function Events() {
 
               {/* Floating Image Previews */}
               <div className="absolute -right-4 top-1/2 -translate-y-1/2 space-y-4 hidden lg:block">
-                {eventImages.map((image, index) => (
+                {content.eventImages.map((image, index) => (
                   <div
                     key={index}
                     className={`relative w-20 h-20 rounded-xl overflow-hidden shadow-lg transition-all duration-500 cursor-pointer ${
@@ -108,7 +150,7 @@ export default function Events() {
 
               {/* Progress Indicators */}
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2">
-                {eventImages.map((_, index) => (
+                {content.eventImages.map((_, index) => (
                   <button
                     key={index}
                     className={`w-3 h-3 rounded-full transition-all duration-300 ${
@@ -132,8 +174,8 @@ export default function Events() {
 
         {/* Mobile Image Thumbnails */}
         <div className="mt-8 lg:hidden">
-          <div className="flex justify-center space-x-4  pb-4">
-            {eventImages.map((image, index) => (
+          <div className="flex justify-center space-x-4 pb-4">
+            {content.eventImages.map((image, index) => (
               <div
                 key={index}
                 className={`flex-shrink-0 relative w-16 h-16 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronDown } from "lucide-react"
 import axiosInstance from "@/lib/axios"
 
 interface HeroContent {
@@ -14,12 +13,10 @@ interface HeroContent {
 
 export default function Hero() {
   const [content, setContent] = useState<HeroContent>({
-    title: "FOREIGNER CAFE",
-    subtitle: "A Space for Community & Craft",
-    description:
-      "More than a coffee shop — we're a gathering place for people, ideas, and craft. Rooted in hospitality and culture, our space is a warm invitation to slow down and connect.",
-    videoUrl:
-      "https://res.cloudinary.com/dxtclcoxh/video/upload/v1752141159/yt1z.net_-_BARISTA_Cafe_Promo_Video_Cinematic_Real_Estate_video_Epic_B-Roll_1080p60_httacw.mp4",
+    title: "Welcome to Foreigners Cafe",
+    subtitle: "Where Stories Begin",
+    description: "Experience exceptional coffee, delicious food, and warm hospitality in our cozy atmosphere.",
+    videoUrl: "/videos/hero-video.mp4",
   })
   const [isLoading, setIsLoading] = useState(true)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -28,8 +25,8 @@ export default function Hero() {
     fetchHeroContent()
   }, [])
 
-  // Force video reload when URL changes
   useEffect(() => {
+    // Force video reload when URL changes
     if (videoRef.current && content.videoUrl) {
       videoRef.current.load()
     }
@@ -49,19 +46,17 @@ export default function Hero() {
     }
   }
 
-  const scrollToNextSection = () => {
-    const nextSection = document.querySelector("#whats-on")
-    if (nextSection) {
-      nextSection.scrollIntoView({ behavior: "smooth" })
-    }
-  }
-
   if (isLoading) {
     return (
-      <section className="relative h-screen overflow-hidden bg-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading...</p>
+      <section className="relative h-screen flex items-center justify-center bg-gray-900">
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="relative z-10 text-center text-white">
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-300 rounded w-96 mx-auto mb-4"></div>
+            <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-6"></div>
+            <div className="h-6 bg-gray-300 rounded w-80 mx-auto mb-8"></div>
+            <div className="h-12 bg-gray-300 rounded w-40 mx-auto"></div>
+          </div>
         </div>
       </section>
     )
@@ -70,53 +65,51 @@ export default function Hero() {
   return (
     <section className="relative h-screen overflow-hidden">
       {/* Background Video */}
-      <div className="absolute inset-0 z-0">
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-          poster="/placeholder.svg?height=1080&width=1920"
-          key={content.videoUrl} // Force re-render when URL changes
-        >
-          <source src={content.videoUrl} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-        <div className="absolute inset-0 bg-black/40" />
-      </div>
+      <video
+        ref={videoRef}
+        key={content.videoUrl} // Force re-render when URL changes
+        className="absolute inset-0 w-full h-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src={content.videoUrl} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
 
-      {/* Content Overlay */}
-      <div className="relative z-10 flex items-center justify-center h-full text-center text-white px-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-wide">{content.title}</h1>
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-light mb-6 tracking-wide">{content.subtitle}</h2>
-          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 leading-relaxed opacity-90">{content.description}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-black hover:bg-gray-100 font-semibold px-8 py-3 text-lg">
-              Explore Menu
-            </Button>
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40"></div>
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex items-center justify-center">
+        <div className="text-center text-white max-w-4xl mx-auto px-4">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in-up">{content.title}</h1>
+          <h2 className="text-2xl md:text-3xl font-light mb-8 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            {content.subtitle}
+          </h2>
+          <p
+            className="text-lg md:text-xl mb-12 max-w-2xl mx-auto leading-relaxed animate-fade-in-up"
+            style={{ animationDelay: "0.4s" }}
+          >
+            {content.description}
+          </p>
+          <div className="animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
             <Button
               size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-black font-semibold px-8 py-3 text-lg bg-transparent"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 text-lg font-medium transition-all duration-300 transform hover:scale-105"
             >
-              Book a Table
+              Explore Our Menu
             </Button>
           </div>
         </div>
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-        <button
-          onClick={scrollToNextSection}
-          className="text-white hover:text-gray-300 transition-colors animate-bounce"
-          aria-label="Scroll to next section"
-        >
-          <ChevronDown className="w-8 h-8" />
-        </button>
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
+          <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
+        </div>
       </div>
     </section>
   )

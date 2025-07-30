@@ -15,23 +15,14 @@ export async function GET() {
           {
             name: "Main Cafe",
             location: "Ground Floor",
-            description:
-              "Our main dining area featuring artisanal coffee, fresh pastries, and light meals in a cozy atmosphere.",
-            image: "/placeholder.svg?height=400&width=600",
+            description: "Our main dining area with comfortable seating and a warm atmosphere.",
+            image: "/placeholder.svg?height=300&width=400",
           },
           {
-            name: "The Rooftop Bar",
-            location: "Top Floor",
-            description:
-              "Enjoy craft cocktails and premium wines with a stunning city view in our sophisticated rooftop setting.",
-            image: "/placeholder.svg?height=400&width=600",
-          },
-          {
-            name: "Private Dining",
-            location: "Second Floor",
-            description:
-              "Intimate dining space perfect for special occasions, business meetings, and private celebrations.",
-            image: "/placeholder.svg?height=400&width=600",
+            name: "Garden Terrace",
+            location: "Outdoor",
+            description: "Enjoy your coffee in our beautiful garden setting with fresh air and natural light.",
+            image: "/placeholder.svg?height=300&width=400",
           },
         ],
       })
@@ -39,8 +30,8 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data: dineDrinkContent })
   } catch (error) {
-    console.error("Error fetching dine & drink content:", error)
-    return NextResponse.json({ success: false, message: "Failed to fetch dine & drink content" }, { status: 500 })
+    console.error("Error fetching dine drink content:", error)
+    return NextResponse.json({ success: false, message: "Failed to fetch dine drink content" }, { status: 500 })
   }
 }
 
@@ -68,7 +59,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: dineDrinkContent })
   } catch (error) {
-    console.error("Error updating dine & drink content:", error)
-    return NextResponse.json({ success: false, message: "Failed to update dine & drink content" }, { status: 500 })
+    console.error("Error updating dine drink content:", error)
+    return NextResponse.json({ success: false, message: "Failed to update dine drink content" }, { status: 500 })
   }
 }

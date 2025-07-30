@@ -11,21 +11,27 @@ export async function GET() {
     // Create default content if none exists
     if (!eventsSection) {
       eventsSection = await EventsSection.create({
-        title: "WHAT'S ON",
-        events: [
+        title: "Where Stories Come to Life",
+        description:
+          "Join us for unforgettable experiences at our cafe. From intimate coffee tastings and live acoustic sessions to art exhibitions and book clubs, we create moments that bring our community together over exceptional coffee and shared passions.",
+        buttonText: "Explore All Events",
+        buttonLink: "/events",
+        eventImages: [
           {
-            title: "Live Music Nights",
-            description: "Join us every Friday for live acoustic performances by local artists.",
-            image: "/placeholder.svg?height=400&width=600",
-            linkText: "Learn More",
-            linkHref: "/events",
+            src: "/images/couple.webp",
+            alt: "Wedding",
           },
           {
-            title: "Coffee Cupping Sessions",
-            description: "Discover the art of coffee tasting with our expert baristas.",
-            image: "/placeholder.svg?height=400&width=600",
-            linkText: "Book Session",
-            linkHref: "/experiences",
+            src: "/images/celebration.webp",
+            alt: "Celebration",
+          },
+          {
+            src: "/images/corporate.webp",
+            alt: "Corporate",
+          },
+          {
+            src: "/images/private.webp",
+            alt: "Private Meeting",
           },
         ],
       })
@@ -43,22 +49,28 @@ export async function PUT(request: NextRequest) {
     await connectDB()
 
     const body = await request.json()
-    const { title, events } = body
+    const { title, description, buttonText, buttonLink, eventImages } = body
 
-    if (!title || !events || !Array.isArray(events)) {
-      return NextResponse.json({ success: false, message: "Title and events array are required" }, { status: 400 })
+    if (!title || !description || !buttonText || !buttonLink || !eventImages || !Array.isArray(eventImages)) {
+      return NextResponse.json({ success: false, message: "All fields are required" }, { status: 400 })
     }
 
     let eventsSection = await EventsSection.findOne()
 
     if (eventsSection) {
       eventsSection.title = title
-      eventsSection.events = events
+      eventsSection.description = description
+      eventsSection.buttonText = buttonText
+      eventsSection.buttonLink = buttonLink
+      eventsSection.eventImages = eventImages
       await eventsSection.save()
     } else {
       eventsSection = await EventsSection.create({
         title,
-        events,
+        description,
+        buttonText,
+        buttonLink,
+        eventImages,
       })
     }
 

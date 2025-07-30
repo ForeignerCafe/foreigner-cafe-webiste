@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight } from "lucide-react"
 import axiosInstance from "@/lib/axios"
 
-interface Event {
+interface WhatsOnEvent {
   title: string
   description: string
   image: string
@@ -14,96 +12,78 @@ interface Event {
   linkHref: string
 }
 
-interface EventsSection {
+interface WhatsOnSection {
   title: string
-  events: Event[]
+  events: WhatsOnEvent[]
 }
 
 export default function EventsSection() {
-  const [content, setContent] = useState<EventsSection>({
+  const [content, setContent] = useState<WhatsOnSection>({
     title: "WHAT'S ON",
     events: [],
   })
-  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetchEventsContent()
+    fetchWhatsOnContent()
   }, [])
 
-  const fetchEventsContent = async () => {
+  const fetchWhatsOnContent = async () => {
     try {
-      setIsLoading(true)
-      const response = await axiosInstance.get("/api/cms/events")
+      const response = await axiosInstance.get("/api/cms/whats-on")
       if (response.data.success) {
         setContent(response.data.data)
       }
     } catch (error) {
-      console.error("Failed to fetch events content:", error)
-    } finally {
-      setIsLoading(false)
+      console.error("Failed to fetch what's on content:", error)
     }
   }
 
-  if (isLoading) {
-    return (
-      <section id="whats-on" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <div className="h-8 bg-gray-200 rounded w-48 mx-auto animate-pulse"></div>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-lg overflow-hidden shadow-lg animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-6">
-                  <div className="h-6 bg-gray-200 rounded mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-4 w-3/4"></div>
-                  <div className="h-10 bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId)
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
   }
 
   return (
-    <section id="whats-on" className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{content.title}</h2>
+    <section id="whats-on" className="bg-white py-12 lg:py-20">
+      <div className="max-w-[1200px] mx-auto px-6">
+        <div className="flex justify-between items-center mb-12">
+          <h2 className="text-[32px] font-bold tracking-[1.5px] text-black animate-fade-in-up">{content.title}</h2>
+          <Button
+            onClick={() => scrollToSection("events-all")}
+            variant="outline"
+            className="text-[11px] tracking-[1px] font-medium border-gray-300 text-gray-700 hover:border-[#1a3d2e] hover:text-[#1a3d2e] px-4 py-2 rounded-none bg-transparent transition-all duration-200 animate-fade-in-up"
+          >
+            View All
+          </Button>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {content.events.map((event, index) => (
-            <Card key={index} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="relative overflow-hidden">
+            <div
+              key={index}
+              className="group cursor-pointer animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.2}s` }}
+            >
+              <div className="overflow-hidden mb-6">
                 <img
-                  src={event.image || "/placeholder.svg"}
+                  src={event.image || "/placeholder.svg?height=320&width=480"}
                   alt={event.title}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-[320px] object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
               </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                  {event.title}
-                </h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">{event.description}</p>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-500 transition-all duration-300 bg-transparent"
-                >
-                  <a href={event.linkHref} className="flex items-center justify-center gap-2">
-                    {event.linkText}
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
+              <h3 className="text-[18px] font-bold mb-3 tracking-[1px] text-black group-hover:text-[#f77f00] transition-colors duration-200">
+                {event.title}
+              </h3>
+              <p className="text-[12px] text-gray-600 mb-4 leading-relaxed">{event.description}</p>
+              <button
+                onClick={() => scrollToSection(event.linkHref.replace("#", ""))}
+                className="text-[12px] text-[#1a3d2e] font-medium hover:text-[#f77f00] transition-colors duration-200 hover:underline"
+              >
+                {event.linkText}
+              </button>
+            </div>
           ))}
         </div>
       </div>

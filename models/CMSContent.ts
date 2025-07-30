@@ -11,8 +11,8 @@ const HeroContentSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-// Events Section Schema (What's On section)
-const EventsSectionSchema = new mongoose.Schema(
+// What's On Section Schema (events-section.tsx)
+const WhatsOnSectionSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, default: "WHAT'S ON" },
     events: [
@@ -22,6 +22,23 @@ const EventsSectionSchema = new mongoose.Schema(
         image: { type: String, required: true },
         linkText: { type: String, required: true },
         linkHref: { type: String, required: true },
+      },
+    ],
+  },
+  { timestamps: true },
+)
+
+// Events Section Schema (eventsSection.tsx)
+const EventsSectionSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, default: "Where Stories Come to Life" },
+    description: { type: String, required: true },
+    buttonText: { type: String, required: true, default: "Explore All Events" },
+    buttonLink: { type: String, required: true, default: "/events" },
+    eventImages: [
+      {
+        src: { type: String, required: true },
+        alt: { type: String, required: true },
       },
     ],
   },
@@ -91,6 +108,7 @@ const DineDrinkContentSchema = new mongoose.Schema(
 
 // Export models
 export const HeroContent = mongoose.models.HeroContent || mongoose.model("HeroContent", HeroContentSchema)
+export const WhatsOnSection = mongoose.models.WhatsOnSection || mongoose.model("WhatsOnSection", WhatsOnSectionSchema)
 export const EventsSection = mongoose.models.EventsSection || mongoose.model("EventsSection", EventsSectionSchema)
 export const BrandSection = mongoose.models.BrandSection || mongoose.model("BrandSection", BrandSectionSchema)
 export const ExperiencesSection =

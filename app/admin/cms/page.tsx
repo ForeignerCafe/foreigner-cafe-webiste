@@ -19,7 +19,7 @@ interface HeroContent {
   videoUrl: string
 }
 
-interface Event {
+interface WhatsOnEvent {
   title: string
   description: string
   image: string
@@ -27,9 +27,22 @@ interface Event {
   linkHref: string
 }
 
+interface WhatsOnSection {
+  title: string
+  events: WhatsOnEvent[]
+}
+
+interface EventImage {
+  src: string
+  alt: string
+}
+
 interface EventsSection {
   title: string
-  events: Event[]
+  description: string
+  buttonText: string
+  buttonLink: string
+  eventImages: EventImage[]
 }
 
 interface StoryElement {
@@ -89,9 +102,16 @@ export default function CMSPage() {
     description: "",
     videoUrl: "",
   })
-  const [eventsSection, setEventsSection] = useState<EventsSection>({
+  const [whatsOnSection, setWhatsOnSection] = useState<WhatsOnSection>({
     title: "",
     events: [],
+  })
+  const [eventsSection, setEventsSection] = useState<EventsSection>({
+    title: "",
+    description: "",
+    buttonText: "",
+    buttonLink: "",
+    eventImages: [],
   })
   const [brandSection, setBrandSection] = useState<BrandSection>({
     storyElements: [],
@@ -111,8 +131,9 @@ export default function CMSPage() {
 
   const fetchAllContent = async () => {
     try {
-      const [heroRes, eventsRes, brandRes, experiencesRes, dineDrinkRes] = await Promise.all([
+      const [heroRes, whatsOnRes, eventsRes, brandRes, experiencesRes, dineDrinkRes] = await Promise.all([
         axiosInstance.get("/api/cms/hero"),
+        axiosInstance.get("/api/cms/whats-on"),
         axiosInstance.get("/api/cms/events"),
         axiosInstance.get("/api/cms/brand-section"),
         axiosInstance.get("/api/cms/experiences"),
@@ -120,6 +141,7 @@ export default function CMSPage() {
       ])
 
       if (heroRes.data.success) setHeroContent(heroRes.data.data)
+      if (whatsOnRes.data.success) setWhatsOnSection(whatsOnRes.data.data)
       if (eventsRes.data.success) setEventsSection(eventsRes.data.data)
       if (brandRes.data.success) setBrandSection(brandRes.data.data)
       if (experiencesRes.data.success) setExperiencesSection(experiencesRes.data.data)
@@ -146,25 +168,63 @@ export default function CMSPage() {
     }
   }
 
-  // Events Section Handlers
-  const handleEventsAddEvent = () => {
-    setEventsSection((prev) => ({
+  // What's On Section Handlers
+  const handleWhatsOnAddEvent = () => {
+    setWhatsOnSection((prev) => ({
       ...prev,
       events: [...prev.events, { title: "", description: "", image: "", linkText: "", linkHref: "" }],
     }))
   }
 
-  const handleEventsRemoveEvent = (index: number) => {
-    setEventsSection((prev) => ({
+  const handleWhatsOnRemoveEvent = (index: number) => {
+    setWhatsOnSection((prev) => ({
       ...prev,
       events: prev.events.filter((_, i) => i !== index),
     }))
   }
 
-  const handleEventsUpdateEvent = (index: number, field: keyof Event, value: string) => {
-    setEventsSection((prev) => ({
+  const handleWhatsOnUpdateEvent = (index: number, field: keyof WhatsOnEvent, value: string) => {
+    setWhatsOnSection((prev) => ({
       ...prev,
       events: prev.events.map((event, i) => (i === index ? { ...event, [field]: value } : event)),
+    }))
+  }
+
+  const handleWhatsOnSave = async () => {
+    setLoading(true)
+    try {
+      const response = await axiosInstance.put("/api/cms/whats-on", whatsOnSection)
+      if (response.data.success) {
+        toast.success("What's On section updated successfully!")
+      } else {
+        toast.error("Failed to update What's On section")
+      }
+    } catch (error) {
+      toast.error("Failed to update What's On section")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Events Section Handlers
+  const handleEventsAddImage = () => {
+    setEventsSection((prev) => ({
+      ...prev,
+      eventImages: [...prev.eventImages, { src: "", alt: "" }],
+    }))
+  }
+
+  const handleEventsRemoveImage = (index: number) => {
+    setEventsSection((prev) => ({
+      ...prev,
+      eventImages: prev.eventImages.filter((_, i) => i !== index),
+    }))
+  }
+
+  const handleEventsUpdateImage = (index: number, field: keyof EventImage, value: string) => {
+    setEventsSection((prev) => ({
+      ...prev,
+      eventImages: prev.eventImages.map((image, i) => (i === index ? { ...image, [field]: value } : image)),
     }))
   }
 
@@ -356,9 +416,10 @@ export default function CMSPage() {
       </div>
 
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="hero">Hero Section</TabsTrigger>
-          <TabsTrigger value="events">What's On</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="hero">Hero</TabsTrigger>
+          <TabsTrigger value="whats-on">What's On</TabsTrigger>
+          <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="brand">Cafe Story</TabsTrigger>
           <TabsTrigger value="experiences">Experiences</TabsTrigger>
           <TabsTrigger value="dine-drink">Dine & Drink</TabsTrigger>
@@ -423,20 +484,20 @@ export default function CMSPage() {
           </Card>
         </TabsContent>
 
-        {/* Events Section (What's On) */}
-        <TabsContent value="events">
+        {/* What's On Section */}
+        <TabsContent value="whats-on">
           <Card>
             <CardHeader>
               <CardTitle>What's On Section</CardTitle>
-              <CardDescription>Manage the events showcase section</CardDescription>
+              <CardDescription>Manage the "What's On" showcase section (events-section.tsx)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="events-title">Section Title</Label>
+                <Label htmlFor="whats-on-title">Section Title</Label>
                 <Input
-                  id="events-title"
-                  value={eventsSection.title}
-                  onChange={(e) => setEventsSection((prev) => ({ ...prev, title: e.target.value }))}
+                  id="whats-on-title"
+                  value={whatsOnSection.title}
+                  onChange={(e) => setWhatsOnSection((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="Enter section title (e.g., WHAT'S ON)"
                 />
               </div>
@@ -444,17 +505,17 @@ export default function CMSPage() {
               <div>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">Events</h3>
-                  <Button onClick={handleEventsAddEvent} size="sm">
+                  <Button onClick={handleWhatsOnAddEvent} size="sm">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Event
                   </Button>
                 </div>
 
-                {eventsSection.events.map((event, index) => (
+                {whatsOnSection.events.map((event, index) => (
                   <div key={index} className="border rounded-lg p-4 mb-4">
                     <div className="flex justify-between items-center mb-3">
                       <h4 className="font-medium">Event {index + 1}</h4>
-                      <Button onClick={() => handleEventsRemoveEvent(index)} variant="destructive" size="sm">
+                      <Button onClick={() => handleWhatsOnRemoveEvent(index)} variant="destructive" size="sm">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -463,7 +524,7 @@ export default function CMSPage() {
                         <Label>Event Title</Label>
                         <Input
                           value={event.title}
-                          onChange={(e) => handleEventsUpdateEvent(index, "title", e.target.value)}
+                          onChange={(e) => handleWhatsOnUpdateEvent(index, "title", e.target.value)}
                           placeholder="Enter event title"
                         />
                       </div>
@@ -471,7 +532,7 @@ export default function CMSPage() {
                         <Label>Event Image URL</Label>
                         <Input
                           value={event.image}
-                          onChange={(e) => handleEventsUpdateEvent(index, "image", e.target.value)}
+                          onChange={(e) => handleWhatsOnUpdateEvent(index, "image", e.target.value)}
                           placeholder="Enter image URL"
                         />
                       </div>
@@ -480,7 +541,7 @@ export default function CMSPage() {
                       <Label>Description</Label>
                       <Textarea
                         value={event.description}
-                        onChange={(e) => handleEventsUpdateEvent(index, "description", e.target.value)}
+                        onChange={(e) => handleWhatsOnUpdateEvent(index, "description", e.target.value)}
                         placeholder="Enter event description"
                         rows={3}
                       />
@@ -490,7 +551,7 @@ export default function CMSPage() {
                         <Label>Link Text</Label>
                         <Input
                           value={event.linkText}
-                          onChange={(e) => handleEventsUpdateEvent(index, "linkText", e.target.value)}
+                          onChange={(e) => handleWhatsOnUpdateEvent(index, "linkText", e.target.value)}
                           placeholder="Enter link text"
                         />
                       </div>
@@ -498,8 +559,105 @@ export default function CMSPage() {
                         <Label>Link URL</Label>
                         <Input
                           value={event.linkHref}
-                          onChange={(e) => handleEventsUpdateEvent(index, "linkHref", e.target.value)}
+                          onChange={(e) => handleWhatsOnUpdateEvent(index, "linkHref", e.target.value)}
                           placeholder="Enter link URL"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Button onClick={handleWhatsOnSave} disabled={loading}>
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save What's On Section
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Events Section */}
+        <TabsContent value="events">
+          <Card>
+            <CardHeader>
+              <CardTitle>Events Section</CardTitle>
+              <CardDescription>Manage the main events section with carousel (eventsSection.tsx)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="events-title">Section Title</Label>
+                  <Input
+                    id="events-title"
+                    value={eventsSection.title}
+                    onChange={(e) => setEventsSection((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter section title"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="events-button-text">Button Text</Label>
+                  <Input
+                    id="events-button-text"
+                    value={eventsSection.buttonText}
+                    onChange={(e) => setEventsSection((prev) => ({ ...prev, buttonText: e.target.value }))}
+                    placeholder="Enter button text"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="events-description">Description</Label>
+                <Textarea
+                  id="events-description"
+                  value={eventsSection.description}
+                  onChange={(e) => setEventsSection((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter section description"
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="events-button-link">Button Link</Label>
+                <Input
+                  id="events-button-link"
+                  value={eventsSection.buttonLink}
+                  onChange={(e) => setEventsSection((prev) => ({ ...prev, buttonLink: e.target.value }))}
+                  placeholder="Enter button link URL"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Event Images</h3>
+                  <Button onClick={handleEventsAddImage} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Image
+                  </Button>
+                </div>
+
+                {eventsSection.eventImages.map((image, index) => (
+                  <div key={index} className="border rounded-lg p-4 mb-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium">Image {index + 1}</h4>
+                      <Button onClick={() => handleEventsRemoveImage(index)} variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Image URL</Label>
+                        <Input
+                          value={image.src}
+                          onChange={(e) => handleEventsUpdateImage(index, "src", e.target.value)}
+                          placeholder="Enter image URL"
+                        />
+                      </div>
+                      <div>
+                        <Label>Alt Text</Label>
+                        <Input
+                          value={image.alt}
+                          onChange={(e) => handleEventsUpdateImage(index, "alt", e.target.value)}
+                          placeholder="Enter alt text"
                         />
                       </div>
                     </div>
