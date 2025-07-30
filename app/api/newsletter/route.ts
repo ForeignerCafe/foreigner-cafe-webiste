@@ -69,6 +69,7 @@ export async function POST(request: Request) {
             to: sub.email,
             subject,
             html,
+            type: "newsletter",
           });
         } catch (err) {
           console.error(
