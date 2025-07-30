@@ -10,7 +10,6 @@
     "seed:admin": "ts-node -r tsconfig-paths/register --project tsconfig.seeder.json scripts/seedAdmin.ts",
     "seed:shop": "tsx scripts/seedShop.ts",
     "seed:analytics": "tsx scripts/seedAnalytics.ts"
-
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -88,6 +87,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.20.3",
+    "ua-parser-js": "^2.0.4",
     "vaul": "latest",
     "zod": "^3.24.1"
   },
