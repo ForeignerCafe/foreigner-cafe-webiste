@@ -1,6 +1,14 @@
 "use client";
 
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import {
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   type ChartConfig,
@@ -18,59 +26,43 @@ interface MonthlyBlogStatsChartProps {
 }
 
 const defaultChartData = [
-  { month: "Mar", blogs: 12, views: 8 },
-  { month: "April", blogs: 10, views: 15 },
-  { month: "May", blogs: 14, views: 26 },
-  { month: "June", blogs: 18, views: 7 },
-  { month: "July", blogs: 10, views: 27 },
+  { month: "Jan", blogs: 17, views: 75 },
+  { month: "Feb", blogs: 12, views: 85 },
+  { month: "Mar", blogs: 14, views: 92 },
+  { month: "Apr", blogs: 18, views: 68 },
+  { month: "May", blogs: 16, views: 103 },
+  { month: "Jun", blogs: 20, views: 89 },
+  { month: "Jul", blogs: 15, views: 97 },
 ];
 
 const chartConfig = {
   views: {
-    label: "Views",
-    color: "hsl(174 74% 41%)", // A teal color matching the image
+    label: "Views (k)",
+    color: "hsl(174 74% 41%)", // A teal color
   },
   blogs: {
     label: "Blogs",
-    color: "hsl(30 98% 50%)", // An orange color matching the image
+    color: "hsl(30 98% 50%)", // An orange color
   },
 } satisfies ChartConfig;
 
-// Helper function to format numbers with K suffix
-const formatNumber = (value: number): string => {
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;
-  }
-  return value.toString();
-};
-
-// Custom tooltip content to show formatted values
+// Custom tooltip content
 const CustomTooltipContent = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{`Month: ${label}`}</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{`${label}`}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {`${entry.dataKey === "views" ? "Views" : "Blogs"}: ${
-              entry.dataKey === "views" ? `${entry.value}k` : entry.value
-            }`}
+            {entry.dataKey === "blogs"
+              ? `Blogs: ${entry.value}`
+              : `Views: ${entry.value}k`}
           </p>
         ))}
       </div>
     );
   }
   return null;
-};
-
-// Custom tick formatter that only formats views axis values
-const customTickFormatter = (value: number, index: number, payload: any) => {
-  // This will be used for the X-axis which shows numeric values
-  // We want to format large numbers (views) but keep small numbers (blogs) as-is
-  if (value >= 1000) {
-    return formatNumber(value);
-  }
-  return value.toString();
 };
 
 export default function MonthlyBlogStatsChart({
@@ -89,62 +81,98 @@ export default function MonthlyBlogStatsChart({
         </CardTitle>
       </CardHeader>
       <CardContent className="px-2 sm:px-6 overflow-x-auto !scrollbar-none">
-        <div className="min-w-[300px] sm:min-w-full">
+        <div className="min-w-[400px] sm:min-w-full">
           <ChartContainer config={chartConfig}>
-            <BarChart
-              width={500}
-              height={200} // Adjusted height for better spacing
-              data={chartData}
-              layout="vertical"
-              margin={{ left: -20, top: 0, bottom: 0 }}
-              barSize={10} // Adjusted bar size
-              barCategoryGap={10} // Adjusted gap between month categories
-              barGap={2} // Small positive gap to prevent overlap between bars of the same category
-            >
-              <CartesianGrid
-                horizontal
-                vertical
-                stroke="#E5E7EB"
-                strokeDasharray="3 3"
-                strokeOpacity={0.3}
-                className="dark:stroke-gray-600 stroke-gray-400"
-              />
-              <YAxis
-                dataKey="month"
-                type="category"
-                tick={{ fill: "#6B7280", fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <XAxis
-                type="number"
-                domain={[0, 40]}
-                tick={{ fill: "#6B7280", fontSize: 12 }}
-                className="dark:[&>g>text]:fill-gray-300"
-                axisLine={{
-                  stroke: "#E5E7EB",
-                  className: "dark:stroke-gray-600",
-                }}
-                tickLine={{
-                  stroke: "#E5E7EB",
-                  className: "dark:stroke-gray-600",
-                }}
-              />
-              <ChartTooltip cursor={false} content={<CustomTooltipContent />} />
-              <Bar dataKey="blogs" fill="var(--color-blogs)" radius={5} />
-              <Bar dataKey="views" fill="var(--color-views)" radius={5} />
-              <Legend
-                verticalAlign="bottom"
-                align="center"
-                height={36}
-                wrapperStyle={{ paddingTop: 10 }}
-                formatter={(value) => (
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {value}
-                  </span>
-                )}
-              />
-            </BarChart>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={chartData}
+                margin={{ left: 20, right: 30, top: 20, bottom: 5 }}
+                barCategoryGap="20%"
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#E5E7EB"
+                  strokeOpacity={0.3}
+                  className="dark:stroke-gray-600"
+                />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: "#6B7280", fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={{
+                    stroke: "#E5E7EB",
+                    className: "dark:stroke-gray-600",
+                  }}
+                />
+                {/* Left Y-axis for Blogs */}
+                <YAxis
+                  yAxisId="blogs"
+                  orientation="left"
+                  tick={{ fill: "#6B7280", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[0, 25]}
+                  label={{
+                    value: "Blogs",
+                    angle: -90,
+                    position: "insideLeft",
+                    style: {
+                      textAnchor: "middle",
+                      fill: "#6B7280",
+                      fontSize: "12px",
+                    },
+                  }}
+                />
+                {/* Right Y-axis for Views */}
+                <YAxis
+                  yAxisId="views"
+                  orientation="right"
+                  tick={{ fill: "#6B7280", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[0, 120]}
+                  tickFormatter={(value) => `${value}k`}
+                  label={{
+                    value: "Views (k)",
+                    angle: 90,
+                    position: "insideRight",
+                    style: {
+                      textAnchor: "middle",
+                      fill: "#6B7280",
+                      fontSize: "12px",
+                    },
+                  }}
+                />
+                <ChartTooltip
+                  content={<CustomTooltipContent />}
+                  cursor={{ fill: "rgba(0,0,0,0.1)" }}
+                />
+                <Bar
+                  yAxisId="blogs"
+                  dataKey="blogs"
+                  fill="var(--color-blogs)"
+                  radius={[2, 2, 0, 0]}
+                  maxBarSize={30}
+                />
+                <Bar
+                  yAxisId="views"
+                  dataKey="views"
+                  fill="var(--color-views)"
+                  radius={[2, 2, 0, 0]}
+                  maxBarSize={30}
+                />
+                <Legend
+                  verticalAlign="bottom"
+                  height={36}
+                  wrapperStyle={{ paddingTop: "20px" }}
+                  formatter={(value) => (
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {value === "views" ? "Views (k)" : "Blogs"}
+                    </span>
+                  )}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </ChartContainer>
         </div>
       </CardContent>
