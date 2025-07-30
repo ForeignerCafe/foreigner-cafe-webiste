@@ -38,7 +38,10 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({
     subscribers: 0,
     blogs: { total: 0, published: 0, draft: 0 },
-    contactRequests: {},
+    contactRequests: { total: 0 },
+    uniqueVisitors: 0,
+    deviceData: [],
+    monthlyBlogStats: [],
   })
 
   const fetchBlogs = useCallback(async () => {
@@ -95,7 +98,7 @@ export default function DashboardPage() {
     {
       icon: <Eye className="text-white" size={20} />,
       bgColor: "bg-[#EF4D68]",
-      value: 3200, // Static or dynamic as needed
+      value: stats.uniqueVisitors,
       label: "Unique Visitors",
     },
   ]
@@ -109,14 +112,18 @@ export default function DashboardPage() {
       </div>
       <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-6 rounded-lg overflow-hidden">
-          <MonthlyBlogStatsChart />
+          <MonthlyBlogStatsChart data={stats.monthlyBlogStats} />
         </div>
         <div className="col-span-1 lg:col-span-4 rounded-lg overflow-hidden">
           <RatioOfDevicesChart
-            chartData={[
-              { name: "Mobile", value: 68, color: "#6366F1" },
-              { name: "Laptop", value: 32, color: "#06AED4" },
-            ]}
+            chartData={
+              stats.deviceData.length > 0
+                ? stats.deviceData
+                : [
+                    { name: "Mobile", value: 68, color: "#6366F1" },
+                    { name: "Desktop", value: 32, color: "#06AED4" },
+                  ]
+            }
           />
         </div>
       </div>

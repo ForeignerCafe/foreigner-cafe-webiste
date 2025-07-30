@@ -4,9 +4,15 @@ import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
+interface MonthlyBlogStatsChartProps {
+  data?: Array<{
+    month: string
+    blogs: number
+    views: number
+  }>
+}
 
-
-const chartData = [
+const defaultChartData = [
   { month: "Mar", blogs: 12, views: 8 },
   { month: "April", blogs: 10, views: 15 },
   { month: "May", blogs: 14, views: 26 },
@@ -25,7 +31,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export default function MonthlyBlogStatsChart() {
+export default function MonthlyBlogStatsChart({ data }: MonthlyBlogStatsChartProps) {
+  const chartData = data && data.length > 0 ? data : defaultChartData
+
   return (
     <Card
       className="bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100 w-full max-w-full overflow-hidden rounded-lg border-0 shadow-sm"

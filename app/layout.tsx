@@ -1,48 +1,51 @@
-import { Toaster } from "@/components/custom-toaster";
-import type React from "react";
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-
-import "./globals.css";
-import { CartProvider } from "@/contexts/cart-context";
-import { CartIcon } from "@/components/cart/cart-icon";
-
-import LenisProvider from "@/components/LenisProvider";
-import Preloader from "@/components/preloader";
-import TawkToChat from "@/components/TawkToChat";
-
-const tradeGothic = localFont({
-  src: "../public/fonts/TradeGothic.otf",
-  variable: "--font-trade-gothic",
-});
+import type React from "react"
+import type { Metadata } from "next"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
+import { CustomToaster } from "@/components/custom-toaster"
+import { CartProvider } from "@/contexts/cart-context"
+import LenisProvider from "@/components/LenisProvider"
+import TawkToChat from "@/components/TawkToChat"
+import AnalyticsTracker from "@/components/analytics-tracker"
 
 export const metadata: Metadata = {
-  title: "Foreigner Cafe - Where Community Meets Craft",
-  description:
-    "More than a coffee shop — we're a space where stories are shared over craft coffee, and culture meets community.",
-    generator: 'v0.dev'
-};
+  title: "Foreigners Cafe",
+  description: "Experience the best cafe culture",
+  generator: "v0.dev",
+}
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
-    <html lang="en">
-      <head></head>
-      <body className={`${tradeGothic.className}`}>
-        <CartProvider>
-         
-            {/* <LenisProvider /> */}
-            <Preloader />
-            <TawkToChat />
-            {children}
-            {/* <CartIcon /> */}
-            <Toaster />
-         
-        </CartProvider>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <style>{`
+html {
+  font-family: ${GeistSans.style.fontFamily};
+  --font-sans: ${GeistSans.variable};
+  --font-mono: ${GeistMono.variable};
+}
+        `}</style>
+      </head>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <CartProvider>
+            <LenisProvider>
+              <AnalyticsTracker />
+              {children}
+              <TawkToChat />
+            </LenisProvider>
+          </CartProvider>
+          <Toaster />
+          <CustomToaster />
+        </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }
