@@ -1,24 +1,29 @@
-"use client"
+"use client";
 
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 interface MonthlyBlogStatsChartProps {
   data?: Array<{
-    month: string
-    blogs: number
-    views: number
-  }>
+    month: string;
+    blogs: number;
+    views: number;
+  }>;
 }
 
 const defaultChartData = [
-  { month: "Mar", blogs: 12, views: 8 },
-  { month: "April", blogs: 10, views: 15 },
-  { month: "May", blogs: 14, views: 26 },
-  { month: "June", blogs: 18, views: 7 },
-  { month: "July", blogs: 10, views: 27 },
-]
+  { month: "Mar", blogs: 12, views: 8000 },
+  { month: "April", blogs: 10, views: 15000 },
+  { month: "May", blogs: 14, views: 26000 },
+  { month: "June", blogs: 18, views: 7000 },
+  { month: "July", blogs: 10, views: 27000 },
+];
 
 const chartConfig = {
   views: {
@@ -29,10 +34,41 @@ const chartConfig = {
     label: "Blogs",
     color: "hsl(30 98% 50%)", // An orange color matching the image
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
-export default function MonthlyBlogStatsChart({ data }: MonthlyBlogStatsChartProps) {
-  const chartData = data && data.length > 0 ? data : defaultChartData
+// Helper function to format numbers with K suffix
+const formatNumber = (value: number): string => {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;
+  }
+  return value.toString();
+};
+
+// Custom tooltip content to show formatted values
+const CustomTooltipContent = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{`Month: ${label}`}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {`${entry.dataKey === "views" ? "Views" : "Blogs"}: ${
+              entry.dataKey === "views"
+                ? formatNumber(entry.value)
+                : entry.value
+            }`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+export default function MonthlyBlogStatsChart({
+  data,
+}: MonthlyBlogStatsChartProps) {
+  const chartData = data && data.length > 0 ? data : defaultChartData;
 
   return (
     <Card
@@ -40,7 +76,9 @@ export default function MonthlyBlogStatsChart({ data }: MonthlyBlogStatsChartPro
       style={{ borderRadius: "8px" }}
     >
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 pt-4 sm:px-6 sm:pt-6">
-        <CardTitle className="text-base font-medium">Monthly Blog Stats</CardTitle>
+        <CardTitle className="text-base font-medium">
+          Monthly Blog Stats
+        </CardTitle>
       </CardHeader>
       <CardContent className="px-2 sm:px-6 overflow-x-auto !scrollbar-none">
         <div className="min-w-[300px] sm:min-w-full">
@@ -72,8 +110,8 @@ export default function MonthlyBlogStatsChart({ data }: MonthlyBlogStatsChartPro
               />
               <XAxis
                 type="number"
-                domain={[0, 40]}
-                ticks={[0, 5, 10, 15, 20, 25, 30, 35, 40]}
+                domain={[0, 40000]}
+                tickFormatter={(value) => formatNumber(value)}
                 tick={{ fill: "#6B7280", fontSize: 12 }}
                 className="dark:[&>g>text]:fill-gray-300"
                 axisLine={{
@@ -85,7 +123,7 @@ export default function MonthlyBlogStatsChart({ data }: MonthlyBlogStatsChartPro
                   className: "dark:stroke-gray-600",
                 }}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+              <ChartTooltip cursor={false} content={<CustomTooltipContent />} />
               <Bar dataKey="blogs" fill="var(--color-blogs)" radius={5} />
               <Bar dataKey="views" fill="var(--color-views)" radius={5} />
               <Legend
@@ -93,12 +131,16 @@ export default function MonthlyBlogStatsChart({ data }: MonthlyBlogStatsChartPro
                 align="center"
                 height={36}
                 wrapperStyle={{ paddingTop: 10 }}
-                formatter={(value) => <span className="text-sm text-gray-600 dark:text-gray-400">{value}</span>}
+                formatter={(value) => (
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {value}
+                  </span>
+                )}
               />
             </BarChart>
           </ChartContainer>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
