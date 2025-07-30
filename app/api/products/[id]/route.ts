@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import mongoose from "mongoose";
-
+import Category from "@/models/Category";
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
