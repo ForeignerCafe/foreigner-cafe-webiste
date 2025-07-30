@@ -40,12 +40,7 @@ export default function RootLayout({
         `}</style>
       </head>
       <body className={`${tradeGothic.className}`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
+       
           <CartProvider>
             {/* <LenisProvider> */}
             <AnalyticsTracker />
@@ -56,7 +51,7 @@ export default function RootLayout({
             {/* </LenisProvider> */}
           </CartProvider>
           <Toaster />
-        </ThemeProvider>
+        
       </body>
     </html>
   );

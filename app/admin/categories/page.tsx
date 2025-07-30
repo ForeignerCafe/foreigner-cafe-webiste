@@ -201,7 +201,7 @@ export default function CategoriesPage() {
               <p className="text-gray-500">No categories found. Create your first category!</p>
             </div>
           ) : (
-            <Table>
+            <Table className="mb-16">
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>

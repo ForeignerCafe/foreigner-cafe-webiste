@@ -15,11 +15,11 @@ interface SendNewsletterModalProps {
 
 export default function SendNewsletterModal({ open, setOpen }: SendNewsletterModalProps) {
   const [subject, setSubject] = useState("")
-  const [template, setTemplate] = useState("")
+  const [template, setTemplate] = useState("custom") // <-- Set to "custom" by default
   const [couponEnabled, setCouponEnabled] = useState(false)
   const [couponCode, setCouponCode] = useState("")
   const [body, setBody] = useState("")
-  const [loading, setLoading] = useState(false) // <-- Added loading state
+  const [loading, setLoading] = useState(false)
 
   const handleSend = async () => {
     if (!subject || !template) {
@@ -40,7 +40,7 @@ export default function SendNewsletterModal({ open, setOpen }: SendNewsletterMod
       payload.couponCode = couponCode
     }
 
-    setLoading(true) // <-- Start loading
+    setLoading(true)
 
     try {
       const res = await axiosInstance.post("/api/newsletter", payload)
@@ -50,7 +50,7 @@ export default function SendNewsletterModal({ open, setOpen }: SendNewsletterMod
       toast.error("Failed to send newsletter")
       console.error(error)
     } finally {
-      setLoading(false) // <-- Stop loading
+      setLoading(false)
     }
   }
 
@@ -73,7 +73,7 @@ export default function SendNewsletterModal({ open, setOpen }: SendNewsletterMod
 
           <div className="space-y-1">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Template</label>
-            <Select value={template} onValueChange={setTemplate}>
+            <Select value={template} onValueChange={setTemplate} disabled> {/* Disabled the select */}
               <SelectTrigger className="w-full dark:bg-[#1f1f1f] dark:border-gray-700 dark:text-white">
                 <SelectValue placeholder="Select Template" />
               </SelectTrigger>

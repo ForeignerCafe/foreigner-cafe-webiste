@@ -6,6 +6,7 @@ import { chrotdtmanTemplate } from "@/lib/mailer/templates/christmas";
 import { diwaliTemplate } from "@/lib/mailer/templates/diwali";
 import { easterTemplate } from "@/lib/mailer/templates/easter";
 import NewsletterLog from "@/models/NewsletterLog";
+import { generalTemplate } from "@/lib/mailer/templates/general";
 
 export async function POST(request: Request) {
   try {
@@ -33,7 +34,11 @@ export async function POST(request: Request) {
       if (!customHtml) {
         return new Response("Custom HTML is required", { status: 400 });
       }
-      html = customHtml;
+      if (couponCode) {
+        html = generalTemplate({ html: customHtml, coupon: couponCode });
+      } else {
+        html = generalTemplate({ html: customHtml });
+      }
     } else {
       const templateFn = templateMap[templateName];
       if (!templateFn) {
@@ -64,6 +69,7 @@ export async function POST(request: Request) {
             to: sub.email,
             subject,
             html,
+            type: "newsletter",
           });
         } catch (err) {
           console.error(

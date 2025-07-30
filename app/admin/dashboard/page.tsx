@@ -225,7 +225,7 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 mb-6">
           {loading ? (
             <TableSkeleton />
           ) : (
