@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ReservationModal } from "./reserveModal";
 import axiosInstance from "@/lib/axios";
-
+import { ReservationModal } from "@/components/reserveModal";
 interface Venue {
   name: string;
   location: string;
@@ -56,6 +55,7 @@ export default function DineDrinkSection() {
       const response = await axiosInstance.get("/api/cms/dine-drink");
       if (response.data.success) {
         setContent(response.data.data);
+        setIsVisible(true);
       }
     } catch (error) {
       console.error("Failed to fetch dine & drink content:", error);
