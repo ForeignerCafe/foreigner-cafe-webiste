@@ -8,7 +8,9 @@
     "lint": "next lint",
     "start": "next start",
     "seed:admin": "ts-node -r tsconfig-paths/register --project tsconfig.seeder.json scripts/seedAdmin.ts",
-    "seed:shop": "tsx scripts/seedShop.ts"
+    "seed:shop": "tsx scripts/seedShop.ts",
+    "seed:analytics": "tsx scripts/seedAnalytics.ts"
+
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
