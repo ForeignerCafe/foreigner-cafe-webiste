@@ -12,7 +12,7 @@ export default function LocationModal({ open, onOpenChange }: LocationModalProps
     <Dialog open={open} onOpenChange={onOpenChange} >
       <DialogContent className=" sm:max-w-[600px] w-[80%] p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl sm:text-3xl font-bold text-center text-[#EC4E20]">
+          <DialogTitle className="text-2xl sm:text-3xl font-bold text-center text-[#EC4E20] uppercase">
             Visit Foreigner Cafe
           </DialogTitle>
           <DialogDescription className="text-center text-muted-foreground text-sm sm:text-base">

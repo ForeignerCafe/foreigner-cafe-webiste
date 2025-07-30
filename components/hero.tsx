@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import axiosInstance from "@/lib/axios"
+import LocationModal from "./location-modal"
 
 interface HeroContent {
   title: string
@@ -12,6 +13,8 @@ interface HeroContent {
 }
 
 export default function Hero() {
+   
+  const [showLocationModal, setShowLocationModal] = useState(false) // State for the modal
   const [content, setContent] = useState<HeroContent>({
     title: "Welcome to Foreigners Cafe",
     subtitle: "Where Stories Begin",
@@ -62,6 +65,12 @@ export default function Hero() {
     )
   }
 
+
+ 
+
+
+
+
   return (
     <section className="relative h-screen overflow-hidden">
       {/* Background Video */}
@@ -95,11 +104,12 @@ export default function Hero() {
             {content.description}
           </p>
           <div className="animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
-            <Button
-              size="lg"
-              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 text-lg font-medium transition-all duration-300 transform hover:scale-105"
+          <Button
+              onClick={() => setShowLocationModal(true)} // Changed onClick to open the modal
+              className={` overflow-hidden bg-[#EC4E20] text-white px-12 py-6 text-lg font-bold tracking-wide transition-all  duration-1500 ease-out delay-700 hover:bg-orange-500 `}
+             
             >
-              Explore Our Menu
+              <span className=" z-10">Visit Us</span>
             </Button>
           </div>
         </div>
@@ -111,6 +121,10 @@ export default function Hero() {
           <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
         </div>
       </div>
+
+      {/* Location Modal */}
+      <LocationModal open={showLocationModal} onOpenChange={setShowLocationModal} />
+      
     </section>
   )
 }
