@@ -6,7 +6,7 @@ export async function GET() {
   try {
     await connectDB()
 
-    let cafeStoryContent = await CafeStoryContent.findOne()
+     let  cafeStoryContent = await CafeStoryContent.findOne()
 
     // Create default content if none exists
     if (!cafeStoryContent) {
