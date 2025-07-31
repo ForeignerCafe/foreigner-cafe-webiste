@@ -57,7 +57,6 @@ export async function sendBulkNewsletter({
           subject,
           html,
         });
-
         results.push({ success: true, count: batch.length, result });
         console.log(`Newsletter batch sent to ${batch.length} subscribers`);
       } catch (error) {
