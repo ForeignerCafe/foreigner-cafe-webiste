@@ -72,7 +72,7 @@ export default function BrandSection() {
 	}
 
 	return (
-		<section className="py-20">
+		<section className="py-20 md:m-10 md:mt-2 md:pt-0 md:pb-0">
 			<div className="container mx-auto px-4  md:px-6">
 				{/* Global Heading */}
 				<div className="flex flex-col items-center justify-center space-y-4 text-center mb-8 md:mb-16">

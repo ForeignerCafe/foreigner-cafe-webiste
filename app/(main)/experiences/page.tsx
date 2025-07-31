@@ -77,7 +77,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>
         <div className="relative z-10 px-4 sm:px-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight  sm:mb-10 mt-14">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight  sm:mb-10 mt-14 uppercase">
             Every Gathering Becomes a Memory
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-xl max-w-2xl mx-auto pb-6 sm:pb-10">

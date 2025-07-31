@@ -109,7 +109,7 @@ export default function Events() {
 
           {/* Image Carousel - Right Column */}
           <div className="relative">
-            <div className="relative h-[400px] overflow-hidden rounded-2xl shadow-2xl">
+            <div className="relative h-[400px] overflow-hidden  shadow-2xl">
               {/* Main Image Display */}
               <div className="relative w-full h-full">
                 {content.eventImages.map((image, index) => (

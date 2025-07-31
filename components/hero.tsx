@@ -51,7 +51,7 @@ export default function Hero() {
 
   if (isLoading) {
     return (
-      <section className="relative h-screen flex items-center justify-center bg-gray-900">
+      <section className="relative h-screen flex items-center justify-center bg-gray-900 ">
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 text-center text-white">
           <div className="animate-pulse">
@@ -92,7 +92,7 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center justify-center">
-        <div className="text-center text-white max-w-4xl mx-auto px-4">
+        <div className="text-center text-white max-w-4xl mx-auto px-4 md:mt-18 mt-12">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in-up">{content.title}</h1>
           <h2 className="text-2xl md:text-3xl font-light mb-8 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
             {content.subtitle}

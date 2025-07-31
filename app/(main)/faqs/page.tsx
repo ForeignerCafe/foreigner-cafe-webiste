@@ -53,7 +53,7 @@ export default function Component() {
 				<div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>{" "}
 				{/* Dark overlay */}
 				<div className="relative z-10 px-4 max-w-4xl mx-auto space-y-6">
-					<h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-8 mt-24">
+					<h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-8 mt-10 uppercase">
 						Got Questions? We’re Here to Help.
 					</h1>
 					<p className="text-base md:text-lg lg:text-xl max-w-2xl mx-auto pb-6">

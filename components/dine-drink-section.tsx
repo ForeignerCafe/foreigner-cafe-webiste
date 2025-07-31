@@ -1,68 +1,69 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import axiosInstance from "@/lib/axios";
-import { ReservationModal } from "@/components/reserveModal";
+import { useState, useEffect, useRef } from "react"
+import Link from "next/link"
+import { MapPin } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import axiosInstance from "@/lib/axios"
+import { ReservationModal } from "@/components/reserveModal"
+
 interface Venue {
-  name: string;
-  location: string;
-  description: string;
-  image: string;
-  link?: string;
-  bookLink?: string;
+  name: string
+  location: string
+  description: string
+  image: string
+  link?: string
+  bookLink?: string
 }
 
 interface DineDrinkContent {
-  venues: Venue[];
+  venues: Venue[]
 }
 
 export default function DineDrinkSection() {
   const [content, setContent] = useState<DineDrinkContent>({
     venues: [],
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
-  const sectionRef = useRef(null);
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
+  const sectionRef = useRef(null)
 
   useEffect(() => {
-    fetchDineDrinkContent();
-  }, []);
+    fetchDineDrinkContent()
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true);
+          setIsVisible(true)
         }
       },
-      { threshold: 0.3 }
-    );
+      { threshold: 0.3 },
+    )
 
     if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+      observer.observe(sectionRef.current)
     }
 
-    return () => observer.disconnect();
-  }, []);
+    return () => observer.disconnect()
+  }, [])
 
   const fetchDineDrinkContent = async () => {
     try {
-      setIsLoading(true);
-      const response = await axiosInstance.get("/api/cms/dine-drink");
+      setIsLoading(true)
+      const response = await axiosInstance.get("/api/cms/dine-drink")
       if (response.data.success) {
-        setContent(response.data.data);
-        setIsVisible(true);
+        setContent(response.data.data)
+        setIsVisible(true)
       }
     } catch (error) {
-      console.error("Failed to fetch dine & drink content:", error);
+      console.error("Failed to fetch dine & drink content:", error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -73,10 +74,7 @@ export default function DineDrinkSection() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="group overflow-hidden rounded-lg animate-pulse"
-              >
+              <div key={i} className="group overflow-hidden rounded-lg animate-pulse">
                 <div className="h-52 sm:h-64 bg-gray-200"></div>
                 <div className="p-4 sm:p-6 bg-white h-[240px] sm:h-[220px]">
                   <div className="flex items-center mb-2">
@@ -93,11 +91,11 @@ export default function DineDrinkSection() {
           </div>
         </div>
       </section>
-    );
+    )
   }
 
   if (content.venues.length === 0) {
-    return null;
+    return null
   }
 
   return (
@@ -120,20 +118,28 @@ export default function DineDrinkSection() {
             <div
               key={index}
               className={`group overflow-hidden rounded-lg transition-all duration-500 transform ${
-                isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
               style={{ transitionDelay: `${index * 150}ms` }}
             >
               {/* Image */}
-              <div className="block overflow-hidden">
-                <img
-                  src={venue.image || "/placeholder.svg"}
-                  alt={venue.name}
-                  className="w-full h-52 sm:h-64 object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-              </div>
+              {venue.link ? (
+                <Link href={venue.link} className="block overflow-hidden">
+                  <img
+                    src={venue.image || "/placeholder.svg"}
+                    alt={venue.name}
+                    className="w-full h-52 sm:h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </Link>
+              ) : (
+                <div className="block overflow-hidden">
+                  <img
+                    src={venue.image || "/placeholder.svg"}
+                    alt={venue.name}
+                    className="w-full h-52 sm:h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+              )}
 
               <div className="p-4 sm:p-6 bg-white flex flex-col h-[240px] sm:h-[220px]">
                 {/* Location */}
@@ -143,14 +149,10 @@ export default function DineDrinkSection() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg sm:text-xl font-bold text-black mb-2 sm:mb-3">
-                  {venue.name}
-                </h3>
+                <h3 className="text-lg sm:text-xl font-bold text-black mb-2 sm:mb-3">{venue.name}</h3>
 
                 {/* Description */}
-                <p className="text-sm text-gray-700 leading-relaxed mb-4 sm:mb-6 flex-grow">
-                  {venue.description}
-                </p>
+                <p className="text-sm text-gray-700 leading-relaxed mb-4 sm:mb-6 flex-grow">{venue.description}</p>
 
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-auto">
@@ -176,10 +178,7 @@ export default function DineDrinkSection() {
         </div>
       </div>
 
-      <ReservationModal
-        open={isReservationModalOpen}
-        onOpenChange={setIsReservationModalOpen}
-      />
+      <ReservationModal open={isReservationModalOpen} onOpenChange={setIsReservationModalOpen} />
     </section>
-  );
+  )
 }
