@@ -1,12 +1,12 @@
 import { connectDB } from "@/lib/db";
 import Subscriber from "@/models/Subscriber";
-import { sendMail } from "@/lib/mailer";
 import { eidTemplate } from "@/lib/mailer/templates/eid";
 import { chrotdtmanTemplate } from "@/lib/mailer/templates/christmas";
 import { diwaliTemplate } from "@/lib/mailer/templates/diwali";
 import { easterTemplate } from "@/lib/mailer/templates/easter";
-import NewsletterLog from "@/models/NewsletterLog";
 import { generalTemplate } from "@/lib/mailer/templates/general";
+import NewsletterQueue from "@/models/NewsletterQueue";
+import NewsletterLog from "@/models/NewsletterLog";
 
 export async function POST(request: Request) {
   try {
@@ -55,6 +55,18 @@ export async function POST(request: Request) {
       html = templateFn(templateParams);
     }
 
+    // Create newsletter queue entry instead of sending immediately
+    const newsletterQueue = new NewsletterQueue({
+      templateName,
+      subject,
+      html,
+      couponCode,
+      totalSubscribers: subscribers.length,
+      status: "pending",
+    });
+    await newsletterQueue.save();
+
+    // Create newsletter log entry
     const newsletterLog = new NewsletterLog({
       templateName,
       subject,
@@ -62,34 +74,17 @@ export async function POST(request: Request) {
     });
     await newsletterLog.save();
 
-    (async () => {
-      for (const sub of subscribers) {
-        try {
-          await sendMail({
-            to: sub.email,
-            subject,
-            html,
-            type: "newsletter",
-          });
-        } catch (err) {
-          console.error(
-            `❌ Failed to send to ${sub.email}:`,
-            err instanceof Error ? err.message : String(err)
-          );
-        }
-      }
-    })();
-
     return Response.json({
       status: "Newsletter queued for sending",
       recipients: subscribers.length,
+      queueId: newsletterQueue._id,
     });
   } catch (error) {
     console.error(
       "POST /api/newsletter error:",
       error instanceof Error ? error.message : String(error)
     );
-    return new Response("Failed to send newsletter", { status: 500 });
+    return new Response("Failed to queue newsletter", { status: 500 });
   }
 }
 
