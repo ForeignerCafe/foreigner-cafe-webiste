@@ -1,6 +1,5 @@
 import { Resend } from "resend";
-import dotenv from "dotenv";
-dotenv.config();
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface SendEmailOptions {
@@ -34,18 +33,55 @@ export async function sendEmail({
   }
 }
 
-export async function sendBulkEmails(emails: SendEmailOptions[]) {
-  const results = [];
+export async function sendBulkNewsletter({
+  subscribers,
+  subject,
+  html,
+}: {
+  subscribers: string[];
+  subject: string;
+  html: string;
+}) {
+  try {
+    // Resend allows up to 100 recipients per email for bulk sending
+    const BATCH_SIZE = 100;
+    const results = [];
 
-  for (const email of emails) {
-    try {
-      const result = await sendEmail(email);
-      results.push({ success: true, result, email: email.to });
-    } catch (error) {
-      console.error(`Failed to send to ${email.to}:`, error);
-      results.push({ success: false, error, email: email.to });
+    for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
+      const batch = subscribers.slice(i, i + BATCH_SIZE);
+
+      try {
+        const result = await resend.emails.send({
+          from: "Foreigner Cafe <newsletter@foreignerscafe.com>",
+          to: batch,
+          subject,
+          html,
+        });
+
+        results.push({ success: true, count: batch.length, result });
+        console.log(`Newsletter batch sent to ${batch.length} subscribers`);
+      } catch (error) {
+        console.error(`Failed to send newsletter batch:`, error);
+        results.push({ success: false, count: batch.length, error });
+      }
     }
-  }
 
-  return results;
+    const totalSent = results
+      .filter((r) => r.success)
+      .reduce((sum, r) => sum + r.count, 0);
+
+    const totalFailed = results
+      .filter((r) => !r.success)
+      .reduce((sum, r) => sum + r.count, 0);
+
+    return {
+      totalSent,
+      totalFailed,
+      totalSubscribers: subscribers.length,
+      results,
+    };
+  } catch (error) {
+    console.error(`Bulk newsletter sending error:`, error);
+    throw error;
+  }
 }

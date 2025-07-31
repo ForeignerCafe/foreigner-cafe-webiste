@@ -1,12 +1,12 @@
 import { connectDB } from "@/lib/db";
 import Subscriber from "@/models/Subscriber";
+import { sendBulkNewsletter } from "@/lib/mailer/resend";
 import { eidTemplate } from "@/lib/mailer/templates/eid";
 import { chrotdtmanTemplate } from "@/lib/mailer/templates/christmas";
 import { diwaliTemplate } from "@/lib/mailer/templates/diwali";
 import { easterTemplate } from "@/lib/mailer/templates/easter";
-import { generalTemplate } from "@/lib/mailer/templates/general";
-import NewsletterQueue from "@/models/NewsletterQueue";
 import NewsletterLog from "@/models/NewsletterLog";
+import { generalTemplate } from "@/lib/mailer/templates/general";
 
 export async function POST(request: Request) {
   try {
@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     }
 
     const subscribers = await Subscriber.find({}, { email: 1 });
+    const subscriberEmails = subscribers.map((sub) => sub.email);
 
     let html = "";
 
@@ -55,17 +56,6 @@ export async function POST(request: Request) {
       html = templateFn(templateParams);
     }
 
-    // Create newsletter queue entry instead of sending immediately
-    const newsletterQueue = new NewsletterQueue({
-      templateName,
-      subject,
-      html,
-      couponCode,
-      totalSubscribers: subscribers.length,
-      status: "pending",
-    });
-    await newsletterQueue.save();
-
     // Create newsletter log entry
     const newsletterLog = new NewsletterLog({
       templateName,
@@ -74,17 +64,31 @@ export async function POST(request: Request) {
     });
     await newsletterLog.save();
 
-    return Response.json({
-      status: "Newsletter queued for sending",
-      recipients: subscribers.length,
-      queueId: newsletterQueue._id,
-    });
+    // Send newsletter using Resend bulk sending
+    try {
+      const sendResult = await sendBulkNewsletter({
+        subscribers: subscriberEmails,
+        subject,
+        html,
+      });
+
+      return Response.json({
+        status: "Newsletter sent successfully",
+        recipients: subscribers.length,
+        sent: sendResult.totalSent,
+        failed: sendResult.totalFailed,
+        logId: newsletterLog._id,
+      });
+    } catch (sendError) {
+      console.error("Failed to send newsletter:", sendError);
+      return new Response("Failed to send newsletter", { status: 500 });
+    }
   } catch (error) {
     console.error(
       "POST /api/newsletter error:",
       error instanceof Error ? error.message : String(error)
     );
-    return new Response("Failed to queue newsletter", { status: 500 });
+    return new Response("Failed to send newsletter", { status: 500 });
   }
 }
 
