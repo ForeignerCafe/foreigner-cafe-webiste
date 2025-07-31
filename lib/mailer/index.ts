@@ -15,10 +15,20 @@ export async function sendMail({
 }: SendMailOptions) {
   const { transporter, from } = getTransporter(type);
 
-  return await transporter.sendMail({
-    from,
-    to,
-    subject,
-    html,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from,
+      to,
+      subject,
+      html,
+    });
+
+    console.log(`Email sent successfully to ${to}`);
+    console.log(`Message ID: ${info.messageId}`);
+
+    return info;
+  } catch (error) {
+    console.error(`Error sending email to ${to}:`, error);
+    throw error;
+  }
 }
