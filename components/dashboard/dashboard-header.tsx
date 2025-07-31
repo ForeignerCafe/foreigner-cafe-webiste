@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
 import { SidebarTrigger } from "../ui/sidebar";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 import { ThemeToggle } from "../theme-toggle";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 import UserProfileDropdown from "./userProfileDropdown";
 import { usePathname } from "next/navigation";
 
 export default function Header() {
   const pathname = usePathname();
-    const router = useRouter()
+  const router = useRouter();
 
   const getTitle = () => {
     switch (pathname) {
@@ -33,6 +33,8 @@ export default function Header() {
         return "Orders Detail";
       case "/admin/products":
         return "Products Detail";
+      case "/admin/cms":
+        return "Content Management";
       default:
         return "Dashboard";
     }
@@ -52,7 +54,7 @@ export default function Header() {
         <div className="flex items-center flex-wrap gap-2 mt-2 md:mt-0">
           <Button
             size="sm"
-             onClick={() => router.push("/admin/add-blog")}
+            onClick={() => router.push("/admin/add-blog")}
             className="bg-orange-500 hover:bg-orange-600 text-white px-2 py-2 rounded-md hidden sm:flex focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none "
           >
             <Plus className="w-4 h-4 mr-2" />

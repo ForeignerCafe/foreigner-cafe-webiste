@@ -64,7 +64,7 @@ export const contactRequestColumns = (
   },
   {
     id: "actions",
-    header: "",
+    header: "Actions",
     cell: ({ row }) => {
       return (
         <DropdownMenu>
@@ -78,13 +78,13 @@ export const contactRequestColumns = (
               View Detail
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleMarkAsAcknowledged(row.original)}>
-              Mark as Acknowledged
+              Mark as Done
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleDeleteClick(row.original._id)}
               className="text-red-600"
             >
-              <Trash2 className="h-4 w-4 mr-2" /> Delete
+              <Trash2 className="h-4 w-4 mr-0.5" /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

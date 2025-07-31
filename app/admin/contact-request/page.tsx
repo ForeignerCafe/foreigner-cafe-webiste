@@ -170,7 +170,7 @@ const ContactRequestsPage = () => {
         </div>
       )}
 
-      <div className="rounded-lg border p-4 shadow-sm">
+      <div className="rounded-lg border p-4 shadow-sm mb-16">
         <h1 className="text-2xl font-semibold mb-4">All Requests</h1>
         {loading ? (
           <Skeleton className="h-48 w-full rounded-md" />

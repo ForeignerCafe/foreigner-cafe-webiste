@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +15,7 @@ import { Plus, Edit, Trash2, Loader2, X, ImageIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
 import Image from "next/image"
+import { DeleteConfirmationModal } from "@/components/dashboard/delete-confirmation-modal"
 
 interface Category {
   _id: string
@@ -51,6 +51,10 @@ export default function ProductsPage() {
     images: [""],
   })
   const [submitting, setSubmitting] = useState(false)
+
+  // Delete confirmation modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
 
   useEffect(() => {
     fetchProducts()
@@ -137,17 +141,30 @@ export default function ProductsPage() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return
+  // Open delete modal
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product)
+    setIsDeleteModalOpen(true)
+  }
 
+  // Confirm delete action
+  const confirmDelete = async () => {
+    if (!productToDelete) return
+   const toastId = toast.loading("Deleting product...")
     try {
-      const response = await axiosInstance.delete(`/api/products/${id}`)
+     
+      const response = await axiosInstance.delete(`/api/products/${productToDelete._id}`)
       if (response.data.success) {
-        toast.success("Product deleted successfully")
+        toast.success("Product deleted successfully", {
+          id: toastId,
+        })
         fetchProducts()
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to delete product")
+    } finally {
+      setIsDeleteModalOpen(false)
+      setProductToDelete(null)
     }
   }
 
@@ -321,7 +338,7 @@ export default function ProductsPage() {
         </Dialog>
       </div>
 
-      <Card>
+      <Card className="mb-16">
         <CardHeader>
           <CardTitle>All Products</CardTitle>
         </CardHeader>
@@ -349,7 +366,7 @@ export default function ProductsPage() {
                     <TableCell>
                       {product.images[0] ? (
                         <Image
-                          src={product.images[0] || "/placeholder.svg"}
+                          src={product.images[0]}
                           alt={product.title}
                           width={50}
                           height={50}
@@ -378,7 +395,7 @@ export default function ProductsPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleDelete(product._id)}
+                          onClick={() => handleDeleteClick(product)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -392,6 +409,15 @@ export default function ProductsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Product"
+        description={`Are you sure you want to delete "${productToDelete?.title}"? This action cannot be undone.`}
+      />
     </div>
   )
 }

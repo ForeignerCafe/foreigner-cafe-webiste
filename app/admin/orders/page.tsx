@@ -246,7 +246,7 @@ export default function OrdersPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="mb-16">
           {filteredOrders.length === 0 ? (
             <div className="text-center py-8">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />

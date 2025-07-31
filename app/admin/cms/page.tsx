@@ -139,7 +139,6 @@ export default function CMSPage() {
         axiosInstance.get("/api/cms/experiences"),
         axiosInstance.get("/api/cms/dine-drink"),
       ])
-
       if (heroRes.data.success) setHeroContent(heroRes.data.data)
       if (whatsOnRes.data.success) setWhatsOnSection(whatsOnRes.data.data)
       if (eventsRes.data.success) setEventsSection(eventsRes.data.data)
@@ -175,21 +174,18 @@ export default function CMSPage() {
       events: [...prev.events, { title: "", description: "", image: "", linkText: "", linkHref: "" }],
     }))
   }
-
   const handleWhatsOnRemoveEvent = (index: number) => {
     setWhatsOnSection((prev) => ({
       ...prev,
       events: prev.events.filter((_, i) => i !== index),
     }))
   }
-
   const handleWhatsOnUpdateEvent = (index: number, field: keyof WhatsOnEvent, value: string) => {
     setWhatsOnSection((prev) => ({
       ...prev,
       events: prev.events.map((event, i) => (i === index ? { ...event, [field]: value } : event)),
     }))
   }
-
   const handleWhatsOnSave = async () => {
     setLoading(true)
     try {
@@ -213,21 +209,18 @@ export default function CMSPage() {
       eventImages: [...prev.eventImages, { src: "", alt: "" }],
     }))
   }
-
   const handleEventsRemoveImage = (index: number) => {
     setEventsSection((prev) => ({
       ...prev,
       eventImages: prev.eventImages.filter((_, i) => i !== index),
     }))
   }
-
   const handleEventsUpdateImage = (index: number, field: keyof EventImage, value: string) => {
     setEventsSection((prev) => ({
       ...prev,
       eventImages: prev.eventImages.map((image, i) => (i === index ? { ...image, [field]: value } : image)),
     }))
   }
-
   const handleEventsSave = async () => {
     setLoading(true)
     try {
@@ -265,13 +258,11 @@ export default function CMSPage() {
       ],
     }))
   }
-
   const handleBrandRemoveStoryElement = (id: number) => {
     setBrandSection((prev) => ({
       storyElements: prev.storyElements.filter((el) => el.id !== id),
     }))
   }
-
   const handleBrandUpdateStoryElement = (id: number, field: string, value: any) => {
     setBrandSection((prev) => ({
       storyElements: prev.storyElements.map((el) =>
@@ -283,7 +274,6 @@ export default function CMSPage() {
       ),
     }))
   }
-
   const handleBrandSave = async () => {
     setLoading(true)
     try {
@@ -319,35 +309,30 @@ export default function CMSPage() {
       ],
     }))
   }
-
   const handleExperiencesRemoveExperience = (id: number) => {
     setExperiencesSection((prev) => ({
       ...prev,
       experiences: prev.experiences.filter((exp) => exp.id !== id),
     }))
   }
-
   const handleExperiencesUpdateExperience = (id: number, field: keyof Experience, value: string | number) => {
     setExperiencesSection((prev) => ({
       ...prev,
       experiences: prev.experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp)),
     }))
   }
-
   const handleExperiencesAddTestimonial = () => {
     setExperiencesSection((prev) => ({
       ...prev,
       testimonials: [...prev.testimonials, { quote: "", name: "", avatar: "" }],
     }))
   }
-
   const handleExperiencesRemoveTestimonial = (index: number) => {
     setExperiencesSection((prev) => ({
       ...prev,
       testimonials: prev.testimonials.filter((_, i) => i !== index),
     }))
   }
-
   const handleExperiencesUpdateTestimonial = (index: number, field: keyof Testimonial, value: string) => {
     setExperiencesSection((prev) => ({
       ...prev,
@@ -356,7 +341,6 @@ export default function CMSPage() {
       ),
     }))
   }
-
   const handleExperiencesSave = async () => {
     setLoading(true)
     try {
@@ -379,19 +363,16 @@ export default function CMSPage() {
       venues: [...prev.venues, { name: "", location: "", description: "", image: "" }],
     }))
   }
-
   const handleDineDrinkRemoveVenue = (index: number) => {
     setDineDrinkContent((prev) => ({
       venues: prev.venues.filter((_, i) => i !== index),
     }))
   }
-
   const handleDineDrinkUpdateVenue = (index: number, field: keyof Venue, value: string) => {
     setDineDrinkContent((prev) => ({
       venues: prev.venues.map((venue, i) => (i === index ? { ...venue, [field]: value } : venue)),
     }))
   }
-
   const handleDineDrinkSave = async () => {
     setLoading(true)
     try {
@@ -409,14 +390,13 @@ export default function CMSPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Content Management System</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your homepage content sections</p>
+    <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Content Management System</h1>
+        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your homepage content sections</p>
       </div>
-
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3 xs:grid-cols-3 md:grid-cols-6 gap-2 p-2 !rounded-lg bg-muted h-auto text-center items-center">
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="whats-on">What's On</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
@@ -427,14 +407,14 @@ export default function CMSPage() {
 
         {/* Hero Section */}
         <TabsContent value="hero">
-          <Card>
+          <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Hero Section</CardTitle>
               <CardDescription>
                 Manage the main hero section of your homepage including the background video
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
                 <Label htmlFor="hero-title">Title</Label>
                 <Input
@@ -476,7 +456,7 @@ export default function CMSPage() {
                 />
                 <p className="text-sm text-gray-500 mt-1">Use local paths like /videos/hero.mp4 or external URLs</p>
               </div>
-              <Button onClick={handleHeroSave} disabled={loading}>
+              <Button onClick={handleHeroSave} disabled={loading} className="w-full md:w-auto">
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Hero Content
               </Button>
@@ -486,7 +466,7 @@ export default function CMSPage() {
 
         {/* What's On Section */}
         <TabsContent value="whats-on">
-          <Card>
+          <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>What's On Section</CardTitle>
               <CardDescription>Manage the "What's On" showcase section (events-section.tsx)</CardDescription>
@@ -501,8 +481,7 @@ export default function CMSPage() {
                   placeholder="Enter section title (e.g., WHAT'S ON)"
                 />
               </div>
-
-              <div>
+              <div className="space-y-4">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">Events</h3>
                   <Button onClick={handleWhatsOnAddEvent} size="sm">
@@ -510,16 +489,15 @@ export default function CMSPage() {
                     Add Event
                   </Button>
                 </div>
-
                 {whatsOnSection.events.map((event, index) => (
-                  <div key={index} className="border rounded-lg p-4 mb-4">
+                  <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
                     <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-medium">Event {index + 1}</h4>
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">Event {index + 1}</h4>
                       <Button onClick={() => handleWhatsOnRemoveEvent(index)} variant="destructive" size="sm">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <Label>Event Title</Label>
                         <Input
@@ -546,7 +524,7 @@ export default function CMSPage() {
                         rows={3}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label>Link Text</Label>
                         <Input
@@ -567,8 +545,7 @@ export default function CMSPage() {
                   </div>
                 ))}
               </div>
-
-              <Button onClick={handleWhatsOnSave} disabled={loading}>
+              <Button onClick={handleWhatsOnSave} disabled={loading} className="w-full md:w-auto">
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save What's On Section
               </Button>
@@ -578,13 +555,13 @@ export default function CMSPage() {
 
         {/* Events Section */}
         <TabsContent value="events">
-          <Card>
+          <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Events Section</CardTitle>
               <CardDescription>Manage the main events section with carousel (eventsSection.tsx)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="events-title">Section Title</Label>
                   <Input
@@ -604,7 +581,6 @@ export default function CMSPage() {
                   />
                 </div>
               </div>
-
               <div>
                 <Label htmlFor="events-description">Description</Label>
                 <Textarea
@@ -615,7 +591,6 @@ export default function CMSPage() {
                   rows={4}
                 />
               </div>
-
               <div>
                 <Label htmlFor="events-button-link">Button Link</Label>
                 <Input
@@ -625,8 +600,7 @@ export default function CMSPage() {
                   placeholder="Enter button link URL"
                 />
               </div>
-
-              <div>
+              <div className="space-y-4">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">Event Images</h3>
                   <Button onClick={handleEventsAddImage} size="sm">
@@ -634,16 +608,15 @@ export default function CMSPage() {
                     Add Image
                   </Button>
                 </div>
-
                 {eventsSection.eventImages.map((image, index) => (
-                  <div key={index} className="border rounded-lg p-4 mb-4">
+                  <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
                     <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-medium">Image {index + 1}</h4>
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">Image {index + 1}</h4>
                       <Button onClick={() => handleEventsRemoveImage(index)} variant="destructive" size="sm">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label>Image URL</Label>
                         <Input
@@ -664,8 +637,7 @@ export default function CMSPage() {
                   </div>
                 ))}
               </div>
-
-              <Button onClick={handleEventsSave} disabled={loading}>
+              <Button onClick={handleEventsSave} disabled={loading} className="w-full md:w-auto">
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Events Section
               </Button>
@@ -675,7 +647,7 @@ export default function CMSPage() {
 
         {/* Brand Section (Cafe Story) */}
         <TabsContent value="brand">
-          <Card>
+          <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Cafe Story Section</CardTitle>
               <CardDescription>Manage your cafe's story elements with images and videos</CardDescription>
@@ -688,17 +660,15 @@ export default function CMSPage() {
                   Add Story Element
                 </Button>
               </div>
-
               {brandSection.storyElements.map((element) => (
-                <div key={element.id} className="border rounded-lg p-4">
+                <div key={element.id} className="border rounded-lg p-4 shadow-sm bg-background">
                   <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium">Story Element {element.id}</h4>
+                    <h4 className="font-medium text-gray-80:0 dark:text-gray-200">Story Element {element.id}</h4>
                     <Button onClick={() => handleBrandRemoveStoryElement(element.id)} variant="destructive" size="sm">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <Label>Title</Label>
                       <Input
@@ -714,7 +684,7 @@ export default function CMSPage() {
                         onValueChange={(value) => handleBrandUpdateStoryElement(element.id, "layout", value)}
                       >
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Select layout" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="left">Media Left, Text Right</SelectItem>
@@ -723,7 +693,6 @@ export default function CMSPage() {
                       </Select>
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <Label>Story Text</Label>
                     <Textarea
@@ -733,9 +702,8 @@ export default function CMSPage() {
                       rows={4}
                     />
                   </div>
-
-                  <div className="border-t pt-4">
-                    <h5 className="font-medium mb-3 flex items-center gap-2">
+                  <div className="border-t pt-4 mt-4">
+                    <h5 className="font-medium mb-3 flex items-center gap-2 text-gray-800 dark:text-gray-200">
                       {element.media.type === "image" ? (
                         <ImageIcon className="w-4 h-4" />
                       ) : (
@@ -743,7 +711,7 @@ export default function CMSPage() {
                       )}
                       Media Settings
                     </h5>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <Label>Media Type</Label>
                         <Select
@@ -751,7 +719,7 @@ export default function CMSPage() {
                           onValueChange={(value) => handleBrandUpdateStoryElement(element.id, "media.type", value)}
                         >
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder="Select media type" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="image">Image</SelectItem>
@@ -768,7 +736,7 @@ export default function CMSPage() {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label>Alt Text</Label>
                         <Input
@@ -789,8 +757,7 @@ export default function CMSPage() {
                   </div>
                 </div>
               ))}
-
-              <Button onClick={handleBrandSave} disabled={loading}>
+              <Button onClick={handleBrandSave} disabled={loading} className="w-full md:w-auto">
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Cafe Story Section
               </Button>
@@ -800,14 +767,14 @@ export default function CMSPage() {
 
         {/* Experiences Section */}
         <TabsContent value="experiences">
-          <Card>
+          <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Experiences Section</CardTitle>
               <CardDescription>Manage experiences and testimonials</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Experiences */}
-              <div>
+              <div className="space-y-4">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">Experiences</h3>
                   <Button onClick={handleExperiencesAddExperience} size="sm">
@@ -815,11 +782,10 @@ export default function CMSPage() {
                     Add Experience
                   </Button>
                 </div>
-
                 {experiencesSection.experiences.map((experience) => (
-                  <div key={experience.id} className="border rounded-lg p-4 mb-4">
+                  <div key={experience.id} className="border rounded-lg p-4 shadow-sm bg-background">
                     <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-medium">Experience {experience.id}</h4>
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">Experience {experience.id}</h4>
                       <Button
                         onClick={() => handleExperiencesRemoveExperience(experience.id)}
                         variant="destructive"
@@ -828,7 +794,7 @@ export default function CMSPage() {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <Label>Experience Title</Label>
                         <Input
@@ -857,7 +823,7 @@ export default function CMSPage() {
                         rows={3}
                       />
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <Label>Alt Text</Label>
                         <Input
@@ -888,7 +854,7 @@ export default function CMSPage() {
               </div>
 
               {/* Testimonials */}
-              <div className="border-t pt-6">
+              <div className="border-t pt-6 space-y-4">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">Testimonials</h3>
                   <Button onClick={handleExperiencesAddTestimonial} size="sm">
@@ -896,11 +862,10 @@ export default function CMSPage() {
                     Add Testimonial
                   </Button>
                 </div>
-
                 {experiencesSection.testimonials.map((testimonial, index) => (
-                  <div key={index} className="border rounded-lg p-4 mb-4">
+                  <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
                     <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-medium">Testimonial {index + 1}</h4>
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">Testimonial {index + 1}</h4>
                       <Button onClick={() => handleExperiencesRemoveTestimonial(index)} variant="destructive" size="sm">
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -914,7 +879,7 @@ export default function CMSPage() {
                         rows={3}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label>Customer Name</Label>
                         <Input
@@ -935,8 +900,7 @@ export default function CMSPage() {
                   </div>
                 ))}
               </div>
-
-              <Button onClick={handleExperiencesSave} disabled={loading}>
+              <Button onClick={handleExperiencesSave} disabled={loading} className="w-full md:w-auto">
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Experiences Section
               </Button>
@@ -946,7 +910,7 @@ export default function CMSPage() {
 
         {/* Dine & Drink Section */}
         <TabsContent value="dine-drink">
-          <Card>
+          <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Dine & Drink Section</CardTitle>
               <CardDescription>Manage your dining venues and bars</CardDescription>
@@ -959,16 +923,15 @@ export default function CMSPage() {
                   Add Venue
                 </Button>
               </div>
-
               {dineDrinkContent.venues.map((venue, index) => (
-                <div key={index} className="border rounded-lg p-4">
+                <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
                   <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium">Venue {index + 1}</h4>
+                    <h4 className="font-medium text-gray-800 dark:text-gray-200">Venue {index + 1}</h4>
                     <Button onClick={() => handleDineDrinkRemoveVenue(index)} variant="destructive" size="sm">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <Label>Venue Name</Label>
                       <Input
@@ -986,7 +949,7 @@ export default function CMSPage() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label>Description</Label>
                       <Textarea
@@ -1007,7 +970,7 @@ export default function CMSPage() {
                   </div>
                 </div>
               ))}
-              <Button onClick={handleDineDrinkSave} disabled={loading}>
+              <Button onClick={handleDineDrinkSave} disabled={loading} className="w-full md:w-auto">
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Dine & Drink Content
               </Button>

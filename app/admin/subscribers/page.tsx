@@ -95,7 +95,7 @@ export default function SubscribersPage() {
           <h1 className="text-xl sm:text-2xl font-semibold">All Subscribers</h1>
         </div>
 
-        <div className="mt-2">
+        <div className="mt-2 mb-16">
           {loading ? (
             <TableSkeleton />
           ) : (
