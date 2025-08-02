@@ -1,24 +1,24 @@
 // app/(main)/blogs/[slug]/page.tsx
-export const dynamic = "force-dynamic"
-export const dynamicParams = true
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
-import type { Metadata } from "next"
-import Image from "next/image"
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { Calendar, Tag, Eye } from "lucide-react"
-import axiosInstance from "@/lib/axios"
-import AnalyticsTracker from "@/components/analytics-tracker"
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Calendar, Tag, Eye } from "lucide-react";
+import axiosInstance from "@/lib/axios";
+import AnalyticsTracker from "@/components/analytics-tracker";
 
 interface Blog {
-  _id: string
-  title: string
-  slug: string
-  shortCaption: string
-  body: string
-  mainImage?: string
-  publishedAt: string
-  tags: string[]
+  _id: string;
+  title: string;
+  slug: string;
+  shortCaption: string;
+  body: string;
+  mainImage?: string;
+  publishedAt: string;
+  tags: string[];
 }
 
 async function getBlog(slug: string): Promise<Blog | null> {
@@ -27,48 +27,50 @@ async function getBlog(slug: string): Promise<Blog | null> {
       headers: {
         "Cache-Control": "no-store",
       },
-    })
-    return res.data
+    });
+    return res.data;
   } catch (error) {
-    console.error("Error fetching blog:", error)
-    return null
+    console.error("Error fetching blog:", error);
+    return null;
   }
 }
 
 async function getBlogViews(slug: string): Promise<number> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/analytics/blog-views/${slug}`,
+      `${
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+      }/api/analytics/blog-views/${slug}`,
       {
         cache: "no-store",
-      },
-    )
-    const data = await res.json()
-    return data.totalViews || 0
+      }
+    );
+    const data = await res.json();
+    return data.totalViews || 0;
   } catch (error) {
-    console.error("Error fetching blog views:", error)
-    return 0
+    console.error("Error fetching blog views:", error);
+    return 0;
   }
 }
 
 // Dynamic Metadata
 export async function generateMetadata(props: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const params = await props.params
-  const blog = await getBlog(params.slug)
+  const params = await props.params;
+  const blog = await getBlog(params.slug);
 
   if (!blog) {
     return {
-      title: "Blog Not Found | Foreigners Cafe",
+      title: "Blog Not Found | Foreigner Cafe",
       description: "The requested blog post could not be found.",
-    }
+    };
   }
 
-  const imageUrl = blog.mainImage || "/placeholder.svg?height=630&width=1200"
+  const imageUrl = blog.mainImage || "/placeholder.svg?height=630&width=1200";
 
   return {
-    title: `${blog.title} | Foreigners Cafe Blog`,
+    title: `${blog.title} | Foreigner Cafe Blog`,
     description: blog.shortCaption,
     keywords: blog.tags.join(", "),
     openGraph: {
@@ -92,18 +94,18 @@ export async function generateMetadata(props: {
       description: blog.shortCaption,
       images: [imageUrl],
     },
-  }
+  };
 }
 
 // Page Component
 export default async function BlogDetailPage(props: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }) {
-  const params = await props.params
-  const blog = await getBlog(params.slug)
-  const initialViewCount = await getBlogViews(params.slug)
+  const params = await props.params;
+  const blog = await getBlog(params.slug);
+  const initialViewCount = await getBlogViews(params.slug);
 
-  if (!blog) notFound()
+  if (!blog) notFound();
 
   return (
     <main className="min-h-screen bg-white ">
@@ -112,15 +114,25 @@ export default async function BlogDetailPage(props: {
       {blog.mainImage && (
         <section className="relative h-[500px] md:h-[600px] w-full flex items-center justify-center mb-12">
           {/* Background image */}
-          <Image src={blog.mainImage || "/placeholder.svg"} alt={blog.title} fill className="object-cover" priority />
+          <Image
+            src={blog.mainImage || "/placeholder.svg"}
+            alt={blog.title}
+            fill
+            className="object-cover"
+            priority
+          />
 
           {/* Overlay */}
           <div className="absolute inset-0 bg-black/50 z-0" />
 
           {/* Text Content */}
           <div className="relative z-10 text-center text-white px-4">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">{blog.title}</h1>
-            <p className="text-lg md:text-xl max-w-3xl mx-auto drop-shadow-md">{blog.shortCaption}</p>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">
+              {blog.title}
+            </h1>
+            <p className="text-lg md:text-xl max-w-3xl mx-auto drop-shadow-md">
+              {blog.shortCaption}
+            </p>
           </div>
         </section>
       )}
@@ -128,7 +140,9 @@ export default async function BlogDetailPage(props: {
       <article className="container mx-auto px-4 pb-16">
         <div className="max-w-6xl mx-auto">
           <header className="mb-8">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{blog.title}</h1>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              {blog.title}
+            </h1>
 
             <p className="text-xl text-gray-600 mb-6">{blog.shortCaption}</p>
 
@@ -152,7 +166,10 @@ export default async function BlogDetailPage(props: {
               <div className="flex items-center flex-wrap gap-2">
                 <Tag className="w-4 h-4 text-gray-400" />
                 {blog.tags.map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-orange-100 text-orange-800 text-sm rounded-full">
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-orange-100 text-orange-800 text-sm rounded-full"
+                  >
                     {tag}
                   </span>
                 ))}
@@ -180,19 +197,33 @@ export default async function BlogDetailPage(props: {
 
       <section className="bg-gray-50 py-16">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Explore More Stories</h2>
-          <p className="text-gray-600 mb-8">Discover more exciting content from Foreigners Cafe</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Explore More Stories
+          </h2>
+          <p className="text-gray-600 mb-8">
+            Discover more exciting content from Foreigner Cafe
+          </p>
           <Link
             href="/blogs"
             className="inline-flex items-center bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors"
           >
             View All Blogs
-            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-4 h-4 ml-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </Link>
         </div>
       </section>
     </main>
-  )
+  );
 }

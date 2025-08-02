@@ -35,7 +35,7 @@ export default function HomePage() {
       {/* <EventsSection /> */}
       {/* <PromoSection /> */}
       <FAQsSection />
-      <InfoSection />
+      {/* <InfoSection /> */}
     </main>
   );
 }
