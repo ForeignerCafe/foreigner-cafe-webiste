@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -119,7 +119,7 @@ const cateringData = [
     alt: "Corporate Catering",
     title: "CELEBRATION CATERING",
     description:
-      "Planning an intimate dinner, a baby shower, or an anniversary brunch? Our catering turns any moment into a memory with sweet details, and extra  charm your guests will remember.",
+      "Planning an intimate dinner, a baby shower, or an anniversary brunch? Our catering turns any moment into a memory with sweet details, and extra  charm your guests will remember.",
   },
   {
     id: 4,
@@ -135,20 +135,62 @@ export default function Component() {
   const [currentLunchPackIndex, setCurrentLunchPackIndex] = useState(0)
   const [currentCakeIndex, setCurrentCakeIndex] = useState(0)
 
+  // Refs for focus management
+  const lunchPackPrevRef = useRef<HTMLButtonElement>(null)
+  const lunchPackNextRef = useRef<HTMLButtonElement>(null)
+  const cakePrevRef = useRef<HTMLButtonElement>(null)
+  const cakeNextRef = useRef<HTMLButtonElement>(null)
+
   const handlePrevLunchPack = () => {
     setCurrentLunchPackIndex((prevIndex) => Math.max(0, prevIndex - 1))
+    // Maintain focus and scroll to the button after state update
+    setTimeout(() => {
+      lunchPackPrevRef.current?.focus()
+      lunchPackPrevRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      })
+    }, 100)
   }
 
   const handleNextLunchPack = () => {
     setCurrentLunchPackIndex((prevIndex) => Math.min(allLunchPacks.length - 3, prevIndex + 1))
+    // Maintain focus and scroll to the button after state update
+    setTimeout(() => {
+      lunchPackNextRef.current?.focus()
+      lunchPackNextRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      })
+    }, 100)
   }
 
   const handlePrevCake = () => {
     setCurrentCakeIndex((prevIndex) => Math.max(0, prevIndex - 1))
+    // Maintain focus and scroll to the button after state update
+    setTimeout(() => {
+      cakePrevRef.current?.focus()
+      cakePrevRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      })
+    }, 100)
   }
 
   const handleNextCake = () => {
     setCurrentCakeIndex((prevIndex) => Math.min(allCakeRange.length - 3, prevIndex + 1))
+    // Maintain focus and scroll to the button after state update
+    setTimeout(() => {
+      cakeNextRef.current?.focus()
+      cakeNextRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      })
+    }, 100)
   }
 
   const visibleLunchPacks = allLunchPacks.slice(currentLunchPackIndex, currentLunchPackIndex + 3)
@@ -159,7 +201,8 @@ export default function Component() {
       {/* Hero Section - Updated with proper spacing */}
       <section
         id="home"
-        className="flex flex-col md:flex-row h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] w-full sm:mt-0 ">
+        className="flex flex-col md:flex-row h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] w-full sm:mt-0 "
+      >
         {/* Left Hero Half - Cake Menu */}
         <div className="relative w-full md:w-1/2 h-1/2 md:h-full overflow-hidden">
           <Image
@@ -175,13 +218,14 @@ export default function Component() {
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">CAKE MENU</h1>
               <Button
                 onClick={() =>
-										window.open(
-											"https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
-											"_blank",
-											"noopener,noreferrer"
-										)
-									}
-                className="hover:scale-110 hover:bg-[#EC4E20] hover:text-black hover:border-none mt-4 sm:mt-6 bg-transparent border border-white text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg rounded-[0.4rem]">
+                  window.open(
+                    "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
+                    "_blank",
+                    "noopener,noreferrer",
+                  )
+                }
+                className="hover:scale-110 hover:bg-[#EC4E20] hover:text-black hover:border-none mt-4 sm:mt-6 bg-transparent border border-white text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg rounded-[0.4rem]"
+              >
                 ORDER NOW
               </Button>
             </div>
@@ -202,19 +246,21 @@ export default function Component() {
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">FULL MENU</h1>
               <Button
                 onClick={() =>
-										window.open(
-											"https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
-											"_blank",
-											"noopener,noreferrer"
-										)
-									}
-                className="hover:scale-110 hover:bg-[#EC4E20] hover:text-black hover:border-none mt-4 sm:mt-6 bg-transparent border border-white text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg rounded-[0.4rem]">
+                  window.open(
+                    "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
+                    "_blank",
+                    "noopener,noreferrer",
+                  )
+                }
+                className="hover:scale-110 hover:bg-[#EC4E20] hover:text-black hover:border-none mt-4 sm:mt-6 bg-transparent border border-white text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg rounded-[0.4rem]"
+              >
                 ORDER NOW
               </Button>
             </div>
           </div>
         </div>
       </section>
+
       {/* Customer Catering Section */}
       <section className="pt-8 sm:pt-12 md:pt-16 lg:pt-[8rem] bg-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-16 flex flex-col md:flex-row items-center gap-6 sm:gap-8 md:gap-12 lg:gap-20">
@@ -259,8 +305,7 @@ export default function Component() {
             </a>
           </div>
         </div>
-		  </section>
-		  
+      </section>
 
       {/* Boxes & Lunch Packs Section - With Carousel Controls */}
       <section className="mt-0 py-8 sm:py-12 md:py-20 lg:py-20">
@@ -272,7 +317,10 @@ export default function Component() {
           <div className="relative mt-6 sm:mt-10">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {visibleLunchPacks.map((item) => (
-                <Card key={item.id} className="flex flex-col items-center shadow-lg rounded-3xl bg-white transition-transform duration-500 ease-in-out hover:scale-105">
+                <Card
+                  key={item.id}
+                  className="flex flex-col items-center shadow-lg rounded-3xl bg-white transition-transform duration-500 ease-in-out hover:scale-105"
+                >
                   <Image
                     src={item.image || "/placeholder.svg"}
                     alt={item.title}
@@ -291,6 +339,7 @@ export default function Component() {
             </div>
             <div className="flex justify-center mt-6 sm:mt-8 space-x-4">
               <Button
+                ref={lunchPackPrevRef}
                 size="icon"
                 className="rounded-full border border-[#EC4E20] w-8 h-8 sm:w-10 sm:h-10 text-[#EC4E20] hover:bg-transparent hover:text-[#EC4E20] cursor-pointer disabled:opacity-50 disabled:border-gray-600 disabled:text-gray-600 bg-transparent"
                 onClick={handlePrevLunchPack}
@@ -299,6 +348,7 @@ export default function Component() {
                 <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <Button
+                ref={lunchPackNextRef}
                 size="icon"
                 className="rounded-full border border-[#EC4E20] w-8 h-8 sm:w-10 sm:h-10 text-[#EC4E20] hover:bg-transparent hover:text-[#EC4E20] cursor-pointer disabled:opacity-50 disabled:border-gray-600 disabled:text-gray-600 bg-transparent"
                 onClick={handleNextLunchPack}
@@ -309,8 +359,8 @@ export default function Component() {
             </div>
           </div>
         </div>
-		  </section>
-		  
+      </section>
+
       {/* All Cake Range Section - With Carousel Controls */}
       <section className="bg-white py-8 sm:py-12 md:py-16 lg:py-2">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-16 text-center">
@@ -321,7 +371,10 @@ export default function Component() {
           <div className="relative mt-6 sm:mt-10">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {visibleCakeRange.map((item) => (
-                <Card key={item.id} className="flex flex-col items-center shadow-lg rounded-3xl bg-white transition-transform duration-500 ease-in-out hover:scale-105 rounded-b-3xl ">
+                <Card
+                  key={item.id}
+                  className="flex flex-col items-center shadow-lg rounded-3xl bg-white transition-transform duration-500 ease-in-out hover:scale-105 rounded-b-3xl "
+                >
                   <Image
                     src={item.image || "/placeholder.svg"}
                     alt={item.title}
@@ -340,6 +393,7 @@ export default function Component() {
             </div>
             <div className="flex justify-center mt-6 sm:mt-8 space-x-4">
               <Button
+                ref={cakePrevRef}
                 variant="secondary"
                 size="icon"
                 className="rounded-full border border-[#EC4E20] w-8 h-8 sm:w-10 sm:h-10 text-[#EC4E20] hover:bg-transparent hover:text-[#EC4E20] cursor-pointer disabled:opacity-50 disabled:border-gray-600 disabled:text-gray-600 bg-transparent"
@@ -349,6 +403,7 @@ export default function Component() {
                 <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <Button
+                ref={cakeNextRef}
                 size="icon"
                 className="rounded-full border border-[#EC4E20] w-8 h-8 sm:w-10 sm:h-10 text-[#EC4E20] hover:bg-transparent hover:text-[#EC4E20] cursor-pointer disabled:opacity-50 disabled:border-gray-600 disabled:text-gray-600 bg-transparent"
                 onClick={handleNextCake}
@@ -359,8 +414,7 @@ export default function Component() {
             </div>
           </div>
         </div>
-		  </section>
-		  
+      </section>
 
       {/* Catering, Your Way Section */}
       <section className="py-8 sm:py-12 md:py-16 lg:py-16 ">

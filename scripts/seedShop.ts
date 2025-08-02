@@ -173,7 +173,7 @@ const products = [
 
   // Merchandise
   {
-    title: "Foreigners Cafe Mug",
+    title: "Foreigner Cafe Mug",
     description:
       "Premium ceramic mug with our signature logo. Perfect for your morning coffee. Dishwasher safe.",
     price: 15.99,
@@ -187,7 +187,7 @@ const products = [
   {
     title: "Cafe T-Shirt",
     description:
-      "Comfortable cotton t-shirt with vintage Foreigners Cafe design. Available in multiple sizes.",
+      "Comfortable cotton t-shirt with vintage Foreigner Cafe design. Available in multiple sizes.",
     price: 22.99,
     stock: 60,
     images: [

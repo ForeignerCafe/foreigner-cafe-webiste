@@ -78,7 +78,7 @@ export default function Component() {
         className="relative w-full min-h-screen overflow-hidden">
         <Image src="/images/events.webp" alt="Restaurant interior" fill className="object-cover" priority />
         <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-center px-4 mt-0 pt-0 sm:mt-[2rem] sm:pt-[2rem] md:mt-[4rem] md:pt-[3rem]">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight max-w-4xl mt-20">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight max-w-4xl mt-20 uppercase">
             Events at Foreigner Cafe
           </h1>
           <p className="mt-4 text-lg md:text-xl text-white/90 max-w-2xl">
