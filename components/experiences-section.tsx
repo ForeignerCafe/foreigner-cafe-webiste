@@ -121,7 +121,7 @@ export default function ExperiencesSection() {
 							</p>
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-							{content.experiences.slice(0,3)map((experience) => (
+							{content.experiences.slice(0, 3).map((experience) => (
 								<Card
 									key={experience.id}
 									className="group overflow-hidden hover:shadow-xl transition-all duration-300">
