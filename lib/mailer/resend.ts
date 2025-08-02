@@ -13,7 +13,7 @@ export async function sendEmail({
   to,
   subject,
   html,
-  from = "Foreigner Cafe <noreply@foreignerscafe.com>",
+  from = "Foreigner Cafe <noreply@foreignercafe.com>",
 }: SendEmailOptions) {
   try {
     const result = await resend.emails.send({
@@ -52,7 +52,7 @@ export async function sendBulkNewsletter({
 
       try {
         const result = await resend.emails.send({
-          from: "Foreigner Cafe <newsletter@foreignerscafe.com>",
+          from: "Foreigner Cafe <newsletter@foreignercafe.com>",
           to: batch,
           subject,
           html,

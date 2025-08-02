@@ -47,15 +47,15 @@ async function getBlogs(): Promise<Blog[]> {
 }
 
 export const metadata: Metadata = {
-  title: "Blog | Foreigners Cafe - Stories, Updates & Community",
+  title: "Blog | Foreigner Cafe - Stories, Updates & Community",
   description:
-    "Discover the latest stories, updates, and community highlights from Foreigners Cafe. Read about our events, menu updates, and the vibrant community that makes us special.",
+    "Discover the latest stories, updates, and community highlights from Foreigner Cafe. Read about our events, menu updates, and the vibrant community that makes us special.",
   keywords:
-    "Foreigners Cafe blog, cafe stories, community updates, events, menu highlights",
+    "Foreigner Cafe blog, cafe stories, community updates, events, menu highlights",
   openGraph: {
-    title: "Blog | Foreigners Cafe",
+    title: "Blog | Foreigner Cafe",
     description:
-      "Discover the latest stories, updates, and community highlights from Foreigners Cafe.",
+      "Discover the latest stories, updates, and community highlights from Foreigner Cafe.",
     type: "website",
     url: "/blogs",
     images: [
@@ -63,15 +63,15 @@ export const metadata: Metadata = {
         url: "/placeholder.svg?height=630&width=1200",
         width: 1200,
         height: 630,
-        alt: "Foreigners Cafe Blog",
+        alt: "Foreigner Cafe Blog",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blog | Foreigners Cafe",
+    title: "Blog | Foreigner Cafe",
     description:
-      "Discover the latest stories, updates, and community highlights from Foreigners Cafe.",
+      "Discover the latest stories, updates, and community highlights from Foreigner Cafe.",
     images: ["/placeholder.svg?height=630&width=1200"],
   },
 };
@@ -98,7 +98,7 @@ export default async function BlogsPage() {
           </h1>
           <p className="text-xl max-w-2xl mx-auto drop-shadow-md">
             Discover the latest stories, updates, and community highlights from
-            Foreigners Cafe
+            Foreigner Cafe
           </p>
         </div>
       </section>
