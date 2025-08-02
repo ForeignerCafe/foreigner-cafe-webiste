@@ -17,7 +17,7 @@ export default function WebsiteLayout({
       <Preloader />
       <Navigation /> 
       {children}
-      <CartIcon />
+      {/* <CartIcon /> */}
       <Footer />
       <TawkToChat />
       </CartProvider>

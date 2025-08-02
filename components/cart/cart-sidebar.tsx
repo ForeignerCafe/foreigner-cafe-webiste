@@ -19,6 +19,7 @@ import { Plus, Minus, Trash2, ShoppingBag, Loader2, Tag } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import axiosInstance from "@/lib/axios";
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -64,44 +65,60 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   };
 
   const handleApplyCoupon = async () => {
-    if (!couponCode) {
-      setCouponMessage("Please enter a coupon code.");
-      return;
-    }
+  if (!couponCode) {
+    setCouponMessage("Please enter a coupon code.");
+    return;
+  }
 
-    setSubmitting(true);
-    setCouponMessage("");
-    setAppliedDiscount(0);
+  setSubmitting(true);
+  setCouponMessage("");
+  setAppliedDiscount(0);
 
-    try {
-      const response = await fetch("/api/shop/apply-coupon", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ couponCode, totalAmount: getTotalPrice() }),
-      });
+  try {
+    const response = await axiosInstance.post("/api/shop/apply-coupon", {
+      couponCode,
+      totalAmount: getTotalPrice(),
+    });
 
-      const data = await response.json();
+    const data = response.data;
+    const status = response.status;
 
-      if (data.success) {
-        setAppliedDiscount(data.discountApplied); // Changed from discountAmount
-        setCouponMessage(
-          `Coupon applied! You saved $${data.discountApplied.toFixed(2)}`
-        ); // Changed from discountAmount
+    switch (status) {
+      case 200:
+        setAppliedDiscount(data.discountApplied);
+        setCouponMessage(`Coupon applied! You saved $${data.discountApplied.toFixed(2)}`);
         toast.success("Coupon applied successfully!");
-      } else {
-        setCouponMessage(data.message || "Invalid or expired coupon.");
-        toast.error(data.message || "Failed to apply coupon.");
-      }
-    } catch (error) {
-      console.error("Apply coupon error:", error);
-      setCouponMessage("An error occurred while applying the coupon.");
-      toast.error("An unexpected error occurred.");
-    } finally {
-      setSubmitting(false);
+        break;
+      case 400:
+        if (data.message === "Coupon is inactive.") {
+          setCouponMessage("This coupon is no longer active.");
+          toast.error("Coupon is inactive.");
+        } else if (data.message === "Coupon has expired.") {
+          setCouponMessage("This coupon has expired.");
+          toast.error("Coupon expired.");
+        } else {
+          setCouponMessage(data.message || "Invalid request.");
+          toast.error(data.message || "Failed to apply coupon.");
+        }
+        break;
+      case 404:
+        setCouponMessage("Invalid coupon code. Please try again.");
+        toast.error("Invalid coupon.");
+        break;
+      default:
+        setCouponMessage("Something went wrong. Please try again.");
+        toast.error("Unexpected error.");
+        break;
     }
-  };
+  } catch (error) {
+    console.error("Apply coupon error:", error);
+    setCouponMessage("An error occurred while applying the coupon.");
+    toast.error("An unexpected error occurred.");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
