@@ -299,7 +299,7 @@ export default function CouponsPage() {
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 p-2 font-body">
               {/* Coupon Code */}
               <div className="space-y-1 sm:space-y-2">
-                <Label htmlFor="code" className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+                <Label htmlFor="code" className="text-sm  font-medium text-gray-700 dark:text-gray-300">
                   Coupon Code *
                 </Label>
                 <Input
@@ -321,7 +321,7 @@ export default function CouponsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Coupon Type */}
                 <div className="space-y-1 sm:space-y-2">
-                  <Label htmlFor="type" className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+                  <Label htmlFor="type" className="text-sm  font-medium text-gray-700 dark:text-gray-300">
                     Coupon Type *
                   </Label>
                   <Select
@@ -342,7 +342,7 @@ export default function CouponsPage() {
                       </SelectItem>
                       <SelectItem 
                         value="fixed" 
-                        className="focus:bg-orange-50 dark:focus:bg-[#333336] transition-colors duration-150 text-sm sm:text-base"
+                        className="focus:bg-orange-50 dark:focus:bg-[#333336] transition-colors duration-150 text-sm"
                       >
                         Fixed Amount
                       </SelectItem>
@@ -352,7 +352,7 @@ export default function CouponsPage() {
 
                 {/* Value */}
                 <div className="space-y-1 sm:space-y-2">
-                  <Label htmlFor="value" className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+                  <Label htmlFor="value" className="text-sm  font-medium text-gray-700 dark:text-gray-300">
                     Value *
                   </Label>
                   <Input
@@ -377,7 +377,7 @@ export default function CouponsPage() {
 
               {/* Expiration Date */}
               <div className="space-y-1 sm:space-y-2">
-                <Label htmlFor="expirationDate" className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+                <Label htmlFor="expirationDate" className="text-sm  font-medium text-gray-700 dark:text-gray-300">
                   Expiration Date (Optional)
                 </Label>
                 <div className="relative">
@@ -408,7 +408,7 @@ export default function CouponsPage() {
                   }
                   className="h-4 w-4 sm:h-5 sm:w-5 rounded border-gray-300 dark:border-gray-600 text-orange-500 focus:ring-orange-500 transition-colors duration-200"
                 />
-                <Label htmlFor="isActive" className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
+                <Label htmlFor="isActive" className="text-sm  font-medium text-gray-700 dark:text-gray-300">
                   Active
                 </Label>
               </div>
@@ -419,14 +419,14 @@ export default function CouponsPage() {
                   type="button"
                   variant="outline"
                   onClick={handleCloseDialog}
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#333336] transition-colors duration-200 text-sm sm:text-base"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#333336] transition-colors duration-200 text-sm "
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white transition-colors duration-200 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-sm sm:text-base"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white transition-colors duration-200 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-sm "
                 >
                   {submitting ? (
                     <span className="flex items-center">
@@ -465,6 +465,7 @@ export default function CouponsPage() {
         </CardContent>
       </Card>
 
+      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

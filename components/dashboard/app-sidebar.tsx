@@ -13,6 +13,7 @@ import {
   Package,
   ShoppingCart,
   Settings,
+  Percent,
 } from "lucide-react"
 import {
   Sidebar,
@@ -42,6 +43,12 @@ const shopItems = [
   { title: "Categories", url: "/admin/categories", icon: FolderOpen },
   { title: "Products", url: "/admin/products", icon: Package },
   { title: "Orders", url: "/admin/orders", icon: ShoppingCart },
+  {
+      url: "/admin/coupons",
+      icon: Percent,
+      title: "Coupons",
+   
+    },
 ]
 
 const cmsItems = [
