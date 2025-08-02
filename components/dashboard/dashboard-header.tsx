@@ -35,6 +35,8 @@ export default function Header() {
         return "Products Detail";
       case "/admin/cms":
         return "Content Management";
+      case "/admin/coupons":
+        return "Coupons Detail";
       default:
         return "Dashboard";
     }
