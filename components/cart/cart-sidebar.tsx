@@ -19,7 +19,6 @@ import { Plus, Minus, Trash2, ShoppingBag, Loader2, Tag } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import axiosInstance from "@/lib/axios";
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -75,15 +74,17 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   setAppliedDiscount(0);
 
   try {
-    const response = await axiosInstance.post("/api/shop/apply-coupon", {
-      couponCode,
-      totalAmount: getTotalPrice(),
+    const response = await fetch("/api/shop/apply-coupon", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ couponCode, totalAmount: getTotalPrice() }),
     });
 
-    const data = response.data;
-    const status = response.status;
+    const data = await response.json();
 
-    switch (status) {
+    switch (response.status) {
       case 200:
         setAppliedDiscount(data.discountApplied);
         setCouponMessage(`Coupon applied! You saved $${data.discountApplied.toFixed(2)}`);
