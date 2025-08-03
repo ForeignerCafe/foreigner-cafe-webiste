@@ -19,6 +19,22 @@ interface HeroContent {
   videoUrl: string
 }
 
+interface HeroParallaxProduct {
+  id: number
+  title: string
+  link: string
+  thumbnail: string
+}
+
+interface HeroParallaxData {
+  products: HeroParallaxProduct[]
+  rowConfiguration: {
+    firstRowCount: number
+    secondRowCount: number
+    thirdRowCount: number
+  }
+}
+
 interface WhatsOnEvent {
   title: string
   description: string
@@ -94,6 +110,87 @@ interface DineDrinkContent {
   venues: Venue[]
 }
 
+interface FAQ {
+  question: string
+  answer: string
+}
+
+interface FAQsSection {
+  title: string
+  subtitle: string
+  faqs: FAQ[]
+}
+
+interface GalleryImage {
+  id: number
+  src: string
+  alt: string
+  caption?: string
+}
+
+interface GallerySection {
+  id: number
+  name: string
+  description?: string
+  images: GalleryImage[]
+}
+
+interface Gallery {
+  sections: GallerySection[]
+}
+
+interface HeaderNavItem {
+  label: string
+  href?: string
+  action?: string
+  sectionId?: string
+  isExternal?: boolean
+}
+
+interface HeaderContent {
+  logo: string
+  topNavItems: HeaderNavItem[]
+  mainNavItems: HeaderNavItem[]
+  reserveButtonText: string
+}
+
+interface FooterLink {
+  label: string
+  href?: string
+  action?: string
+  sectionId?: string
+}
+
+interface FooterSection {
+  title: string
+  links: FooterLink[]
+}
+
+interface SocialMedia {
+  platform: string
+  url: string
+  icon: string
+}
+
+interface FooterContent {
+  sections: FooterSection[]
+  contactInfo: {
+    address: string
+    phone: string
+    email: string
+    hours: {
+      weekdays: string
+      weekends: string
+    }
+  }
+  socialMedia: SocialMedia[]
+  newsletterSection: {
+    title: string
+    description: string
+  }
+  copyright: string
+}
+
 export default function CMSPage() {
   const [loading, setLoading] = useState(false)
   const [heroContent, setHeroContent] = useState<HeroContent>({
@@ -101,6 +198,14 @@ export default function CMSPage() {
     subtitle: "",
     description: "",
     videoUrl: "",
+  })
+  const [heroParallaxData, setHeroParallaxData] = useState<HeroParallaxData>({
+    products: [],
+    rowConfiguration: {
+      firstRowCount: 8,
+      secondRowCount: 8,
+      thirdRowCount: 9,
+    },
   })
   const [whatsOnSection, setWhatsOnSection] = useState<WhatsOnSection>({
     title: "",
@@ -123,6 +228,38 @@ export default function CMSPage() {
   const [dineDrinkContent, setDineDrinkContent] = useState<DineDrinkContent>({
     venues: [],
   })
+  const [faqsSection, setFaqsSection] = useState<FAQsSection>({
+    title: "",
+    subtitle: "",
+    faqs: [],
+  })
+  const [gallery, setGallery] = useState<Gallery>({
+    sections: [],
+  })
+  const [headerContent, setHeaderContent] = useState<HeaderContent>({
+    logo: "",
+    topNavItems: [],
+    mainNavItems: [],
+    reserveButtonText: "",
+  })
+  const [footerContent, setFooterContent] = useState<FooterContent>({
+    sections: [],
+    contactInfo: {
+      address: "",
+      phone: "",
+      email: "",
+      hours: {
+        weekdays: "",
+        weekends: "",
+      },
+    },
+    socialMedia: [],
+    newsletterSection: {
+      title: "",
+      description: "",
+    },
+    copyright: "",
+  })
 
   // Fetch all content on component mount
   useEffect(() => {
@@ -131,20 +268,43 @@ export default function CMSPage() {
 
   const fetchAllContent = async () => {
     try {
-      const [heroRes, whatsOnRes, eventsRes, brandRes, experiencesRes, dineDrinkRes] = await Promise.all([
+      const [
+        heroRes,
+        heroParallaxRes,
+        whatsOnRes,
+        eventsRes,
+        brandRes,
+        experiencesRes,
+        dineDrinkRes,
+        faqsRes,
+        galleryRes,
+        headerRes,
+        footerRes,
+      ] = await Promise.all([
         axiosInstance.get("/api/cms/hero"),
+        axiosInstance.get("/api/cms/hero-parallax"),
         axiosInstance.get("/api/cms/whats-on"),
         axiosInstance.get("/api/cms/events"),
         axiosInstance.get("/api/cms/brand-section"),
         axiosInstance.get("/api/cms/experiences"),
         axiosInstance.get("/api/cms/dine-drink"),
+        axiosInstance.get("/api/cms/faqs"),
+        axiosInstance.get("/api/cms/gallery"),
+        axiosInstance.get("/api/cms/header"),
+        axiosInstance.get("/api/cms/footer"),
       ])
+
       if (heroRes.data.success) setHeroContent(heroRes.data.data)
+      if (heroParallaxRes.data.success) setHeroParallaxData(heroParallaxRes.data.data)
       if (whatsOnRes.data.success) setWhatsOnSection(whatsOnRes.data.data)
       if (eventsRes.data.success) setEventsSection(eventsRes.data.data)
       if (brandRes.data.success) setBrandSection(brandRes.data.data)
       if (experiencesRes.data.success) setExperiencesSection(experiencesRes.data.data)
       if (dineDrinkRes.data.success) setDineDrinkContent(dineDrinkRes.data.data)
+      if (faqsRes.data.success) setFaqsSection(faqsRes.data.data)
+      if (galleryRes.data.success) setGallery(galleryRes.data.data)
+      if (headerRes.data.success) setHeaderContent(headerRes.data.data)
+      if (footerRes.data.success) setFooterContent(footerRes.data.data)
     } catch (error) {
       toast.error("Failed to fetch content")
     }
@@ -162,6 +322,45 @@ export default function CMSPage() {
       }
     } catch (error) {
       toast.error("Failed to update hero content")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Hero Parallax Handlers
+  const handleHeroParallaxAddProduct = () => {
+    const newId = Math.max(...heroParallaxData.products.map((p) => p.id), 0) + 1
+    setHeroParallaxData((prev) => ({
+      ...prev,
+      products: [...prev.products, { id: newId, title: "", link: "", thumbnail: "" }],
+    }))
+  }
+
+  const handleHeroParallaxRemoveProduct = (id: number) => {
+    setHeroParallaxData((prev) => ({
+      ...prev,
+      products: prev.products.filter((p) => p.id !== id),
+    }))
+  }
+
+  const handleHeroParallaxUpdateProduct = (id: number, field: keyof HeroParallaxProduct, value: string | number) => {
+    setHeroParallaxData((prev) => ({
+      ...prev,
+      products: prev.products.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
+    }))
+  }
+
+  const handleHeroParallaxSave = async () => {
+    setLoading(true)
+    try {
+      const response = await axiosInstance.put("/api/cms/hero-parallax", heroParallaxData)
+      if (response.data.success) {
+        toast.success("Hero Parallax updated successfully!")
+      } else {
+        toast.error("Failed to update Hero Parallax")
+      }
+    } catch (error) {
+      toast.error("Failed to update Hero Parallax")
     } finally {
       setLoading(false)
     }
@@ -389,20 +588,266 @@ export default function CMSPage() {
     }
   }
 
+  // FAQs Section Handlers
+  const handleFAQsAddFAQ = () => {
+    setFaqsSection((prev) => ({
+      ...prev,
+      faqs: [...prev.faqs, { question: "", answer: "" }],
+    }))
+  }
+  const handleFAQsRemoveFAQ = (index: number) => {
+    setFaqsSection((prev) => ({
+      ...prev,
+      faqs: prev.faqs.filter((_, i) => i !== index),
+    }))
+  }
+  const handleFAQsUpdateFAQ = (index: number, field: keyof FAQ, value: string) => {
+    setFaqsSection((prev) => ({
+      ...prev,
+      faqs: prev.faqs.map((faq, i) => (i === index ? { ...faq, [field]: value } : faq)),
+    }))
+  }
+  const handleFAQsSave = async () => {
+    setLoading(true)
+    try {
+      const response = await axiosInstance.put("/api/cms/faqs", faqsSection)
+      if (response.data.success) {
+        toast.success("FAQs section updated successfully!")
+      } else {
+        toast.error("Failed to update FAQs section")
+      }
+    } catch (error) {
+      toast.error("Failed to update FAQs section")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Gallery Handlers
+  const handleGalleryAddSection = () => {
+    const newId = Math.max(...gallery.sections.map((s) => s.id), 0) + 1
+    setGallery((prev) => ({
+      sections: [...prev.sections, { id: newId, name: "", description: "", images: [] }],
+    }))
+  }
+  const handleGalleryRemoveSection = (id: number) => {
+    setGallery((prev) => ({
+      sections: prev.sections.filter((s) => s.id !== id),
+    }))
+  }
+  const handleGalleryUpdateSection = (id: number, field: string, value: string) => {
+    setGallery((prev) => ({
+      sections: prev.sections.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
+    }))
+  }
+  const handleGalleryAddImage = (sectionId: number) => {
+    setGallery((prev) => ({
+      sections: prev.sections.map((s) =>
+        s.id === sectionId
+          ? {
+              ...s,
+              images: [
+                ...s.images,
+                { id: Math.max(...s.images.map((img) => img.id), 0) + 1, src: "", alt: "", caption: "" },
+              ],
+            }
+          : s,
+      ),
+    }))
+  }
+  const handleGalleryRemoveImage = (sectionId: number, imageId: number) => {
+    setGallery((prev) => ({
+      sections: prev.sections.map((s) =>
+        s.id === sectionId ? { ...s, images: s.images.filter((img) => img.id !== imageId) } : s,
+      ),
+    }))
+  }
+  const handleGalleryUpdateImage = (
+    sectionId: number,
+    imageId: number,
+    field: keyof GalleryImage,
+    value: string | number,
+  ) => {
+    setGallery((prev) => ({
+      sections: prev.sections.map((s) =>
+        s.id === sectionId
+          ? { ...s, images: s.images.map((img) => (img.id === imageId ? { ...img, [field]: value } : img)) }
+          : s,
+      ),
+    }))
+  }
+  const handleGallerySave = async () => {
+    setLoading(true)
+    try {
+      const response = await axiosInstance.put("/api/cms/gallery", gallery)
+      if (response.data.success) {
+        toast.success("Gallery updated successfully!")
+      } else {
+        toast.error("Failed to update gallery")
+      }
+    } catch (error) {
+      toast.error("Failed to update gallery")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Header Handlers
+  const handleHeaderAddTopNavItem = () => {
+    setHeaderContent((prev) => ({
+      ...prev,
+      topNavItems: [...prev.topNavItems, { label: "", href: "", isExternal: false }],
+    }))
+  }
+  const handleHeaderRemoveTopNavItem = (index: number) => {
+    setHeaderContent((prev) => ({
+      ...prev,
+      topNavItems: prev.topNavItems.filter((_, i) => i !== index),
+    }))
+  }
+  const handleHeaderUpdateTopNavItem = (index: number, field: keyof HeaderNavItem, value: string | boolean) => {
+    setHeaderContent((prev) => ({
+      ...prev,
+      topNavItems: prev.topNavItems.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    }))
+  }
+  const handleHeaderAddMainNavItem = () => {
+    setHeaderContent((prev) => ({
+      ...prev,
+      mainNavItems: [...prev.mainNavItems, { label: "", action: "navigate", href: "" }],
+    }))
+  }
+  const handleHeaderRemoveMainNavItem = (index: number) => {
+    setHeaderContent((prev) => ({
+      ...prev,
+      mainNavItems: prev.mainNavItems.filter((_, i) => i !== index),
+    }))
+  }
+  const handleHeaderUpdateMainNavItem = (index: number, field: keyof HeaderNavItem, value: string) => {
+    setHeaderContent((prev) => ({
+      ...prev,
+      mainNavItems: prev.mainNavItems.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    }))
+  }
+  const handleHeaderSave = async () => {
+    setLoading(true)
+    try {
+      const response = await axiosInstance.put("/api/cms/header", headerContent)
+      if (response.data.success) {
+        toast.success("Header content updated successfully!")
+      } else {
+        toast.error("Failed to update header content")
+      }
+    } catch (error) {
+      toast.error("Failed to update header content")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Footer Handlers
+  const handleFooterAddSection = () => {
+    setFooterContent((prev) => ({
+      ...prev,
+      sections: [...prev.sections, { title: "", links: [] }],
+    }))
+  }
+  const handleFooterRemoveSection = (index: number) => {
+    setFooterContent((prev) => ({
+      ...prev,
+      sections: prev.sections.filter((_, i) => i !== index),
+    }))
+  }
+  const handleFooterUpdateSection = (index: number, field: string, value: string) => {
+    setFooterContent((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section, i) => (i === index ? { ...section, [field]: value } : section)),
+    }))
+  }
+  const handleFooterAddLink = (sectionIndex: number) => {
+    setFooterContent((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section, i) =>
+        i === sectionIndex
+          ? { ...section, links: [...section.links, { label: "", action: "navigate", href: "" }] }
+          : section,
+      ),
+    }))
+  }
+  const handleFooterRemoveLink = (sectionIndex: number, linkIndex: number) => {
+    setFooterContent((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section, i) =>
+        i === sectionIndex ? { ...section, links: section.links.filter((_, li) => li !== linkIndex) } : section,
+      ),
+    }))
+  }
+  const handleFooterUpdateLink = (sectionIndex: number, linkIndex: number, field: keyof FooterLink, value: string) => {
+    setFooterContent((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section, i) =>
+        i === sectionIndex
+          ? {
+              ...section,
+              links: section.links.map((link, li) => (li === linkIndex ? { ...link, [field]: value } : link)),
+            }
+          : section,
+      ),
+    }))
+  }
+  const handleFooterAddSocialMedia = () => {
+    setFooterContent((prev) => ({
+      ...prev,
+      socialMedia: [...prev.socialMedia, { platform: "", url: "", icon: "" }],
+    }))
+  }
+  const handleFooterRemoveSocialMedia = (index: number) => {
+    setFooterContent((prev) => ({
+      ...prev,
+      socialMedia: prev.socialMedia.filter((_, i) => i !== index),
+    }))
+  }
+  const handleFooterUpdateSocialMedia = (index: number, field: keyof SocialMedia, value: string) => {
+    setFooterContent((prev) => ({
+      ...prev,
+      socialMedia: prev.socialMedia.map((social, i) => (i === index ? { ...social, [field]: value } : social)),
+    }))
+  }
+  const handleFooterSave = async () => {
+    setLoading(true)
+    try {
+      const response = await axiosInstance.put("/api/cms/footer", footerContent)
+      if (response.data.success) {
+        toast.success("Footer content updated successfully!")
+      } else {
+        toast.error("Failed to update footer content")
+      }
+    } catch (error) {
+      toast.error("Failed to update footer content")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Content Management System</h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your homepage content sections</p>
+        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your website content sections</p>
       </div>
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 xs:grid-cols-3 md:grid-cols-6 gap-2 p-2 !rounded-lg bg-muted h-auto text-center items-center">
+        <TabsList className="grid w-full grid-cols-2 xs:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 p-2 !rounded-lg bg-muted h-auto text-center items-center">
           <TabsTrigger value="hero">Hero</TabsTrigger>
+          <TabsTrigger value="hero-parallax">Parallax</TabsTrigger>
           <TabsTrigger value="whats-on">What's On</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="brand">Cafe Story</TabsTrigger>
           <TabsTrigger value="experiences">Experiences</TabsTrigger>
           <TabsTrigger value="dine-drink">Dine & Drink</TabsTrigger>
+          <TabsTrigger value="faqs">FAQs</TabsTrigger>
+          <TabsTrigger value="gallery">Gallery</TabsTrigger>
+          <TabsTrigger value="header">Header</TabsTrigger>
+          <TabsTrigger value="footer">Footer</TabsTrigger>
         </TabsList>
 
         {/* Hero Section */}
@@ -459,6 +904,130 @@ export default function CMSPage() {
               <Button onClick={handleHeroSave} disabled={loading} className="w-full md:w-auto">
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Hero Content
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Hero Parallax Section */}
+        <TabsContent value="hero-parallax">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Hero Parallax Products</CardTitle>
+              <CardDescription>Manage the parallax scrolling products section</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Row Configuration */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="text-lg font-semibold mb-4">Row Configuration</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>First Row Count</Label>
+                    <Input
+                      type="number"
+                      value={heroParallaxData.rowConfiguration.firstRowCount}
+                      onChange={(e) =>
+                        setHeroParallaxData((prev) => ({
+                          ...prev,
+                          rowConfiguration: {
+                            ...prev.rowConfiguration,
+                            firstRowCount: Number.parseInt(e.target.value) || 0,
+                          },
+                        }))
+                      }
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <Label>Second Row Count</Label>
+                    <Input
+                      type="number"
+                      value={heroParallaxData.rowConfiguration.secondRowCount}
+                      onChange={(e) =>
+                        setHeroParallaxData((prev) => ({
+                          ...prev,
+                          rowConfiguration: {
+                            ...prev.rowConfiguration,
+                            secondRowCount: Number.parseInt(e.target.value) || 0,
+                          },
+                        }))
+                      }
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <Label>Third Row Count</Label>
+                    <Input
+                      type="number"
+                      value={heroParallaxData.rowConfiguration.thirdRowCount}
+                      onChange={(e) =>
+                        setHeroParallaxData((prev) => ({
+                          ...prev,
+                          rowConfiguration: {
+                            ...prev.rowConfiguration,
+                            thirdRowCount: Number.parseInt(e.target.value) || 0,
+                          },
+                        }))
+                      }
+                      min="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Products */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Products</h3>
+                  <Button onClick={handleHeroParallaxAddProduct} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Product
+                  </Button>
+                </div>
+                {heroParallaxData.products.map((product) => (
+                  <div key={product.id} className="border rounded-lg p-4 shadow-sm bg-background">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">Product {product.id}</h4>
+                      <Button
+                        onClick={() => handleHeroParallaxRemoveProduct(product.id)}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label>Title</Label>
+                        <Input
+                          value={product.title}
+                          onChange={(e) => handleHeroParallaxUpdateProduct(product.id, "title", e.target.value)}
+                          placeholder="Enter product title"
+                        />
+                      </div>
+                      <div>
+                        <Label>Link</Label>
+                        <Input
+                          value={product.link}
+                          onChange={(e) => handleHeroParallaxUpdateProduct(product.id, "link", e.target.value)}
+                          placeholder="Enter product link"
+                        />
+                      </div>
+                      <div>
+                        <Label>Thumbnail URL</Label>
+                        <Input
+                          value={product.thumbnail}
+                          onChange={(e) => handleHeroParallaxUpdateProduct(product.id, "thumbnail", e.target.value)}
+                          placeholder="Enter thumbnail URL"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleHeroParallaxSave} disabled={loading} className="w-full md:w-auto">
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Hero Parallax
               </Button>
             </CardContent>
           </Card>
@@ -663,7 +1232,7 @@ export default function CMSPage() {
               {brandSection.storyElements.map((element) => (
                 <div key={element.id} className="border rounded-lg p-4 shadow-sm bg-background">
                   <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium text-gray-80:0 dark:text-gray-200">Story Element {element.id}</h4>
+                    <h4 className="font-medium text-gray-800 dark:text-gray-200">Story Element {element.id}</h4>
                     <Button onClick={() => handleBrandRemoveStoryElement(element.id)} variant="destructive" size="sm">
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -973,6 +1542,645 @@ export default function CMSPage() {
               <Button onClick={handleDineDrinkSave} disabled={loading} className="w-full md:w-auto">
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Dine & Drink Content
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* FAQs Section */}
+        <TabsContent value="faqs">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>FAQs Section</CardTitle>
+              <CardDescription>Manage frequently asked questions</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label htmlFor="faqs-title">Section Title</Label>
+                  <Input
+                    id="faqs-title"
+                    value={faqsSection.title}
+                    onChange={(e) => setFaqsSection((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter section title"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="faqs-subtitle">Section Subtitle</Label>
+                  <Input
+                    id="faqs-subtitle"
+                    value={faqsSection.subtitle}
+                    onChange={(e) => setFaqsSection((prev) => ({ ...prev, subtitle: e.target.value }))}
+                    placeholder="Enter section subtitle"
+                  />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">FAQs</h3>
+                  <Button onClick={handleFAQsAddFAQ} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add FAQ
+                  </Button>
+                </div>
+                {faqsSection.faqs.map((faq, index) => (
+                  <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">FAQ {index + 1}</h4>
+                      <Button onClick={() => handleFAQsRemoveFAQ(index)} variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Question</Label>
+                        <Input
+                          value={faq.question}
+                          onChange={(e) => handleFAQsUpdateFAQ(index, "question", e.target.value)}
+                          placeholder="Enter question"
+                        />
+                      </div>
+                      <div>
+                        <Label>Answer</Label>
+                        <Textarea
+                          value={faq.answer}
+                          onChange={(e) => handleFAQsUpdateFAQ(index, "answer", e.target.value)}
+                          placeholder="Enter answer"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleFAQsSave} disabled={loading} className="w-full md:w-auto">
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save FAQs Section
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Gallery Section */}
+        <TabsContent value="gallery">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Gallery</CardTitle>
+              <CardDescription>Manage gallery sections and images</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Gallery Sections</h3>
+                <Button onClick={handleGalleryAddSection} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Section
+                </Button>
+              </div>
+              {gallery.sections.map((section) => (
+                <div key={section.id} className="border rounded-lg p-4 shadow-sm bg-background">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-medium text-gray-800 dark:text-gray-200">
+                      Section: {section.name || `Section ${section.id}`}
+                    </h4>
+                    <Button onClick={() => handleGalleryRemoveSection(section.id)} variant="destructive" size="sm">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <Label>Section Name</Label>
+                      <Input
+                        value={section.name}
+                        onChange={(e) => handleGalleryUpdateSection(section.id, "name", e.target.value)}
+                        placeholder="Enter section name"
+                      />
+                    </div>
+                    <div>
+                      <Label>Description (optional)</Label>
+                      <Input
+                        value={section.description || ""}
+                        onChange={(e) => handleGalleryUpdateSection(section.id, "description", e.target.value)}
+                        placeholder="Enter section description"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Images for this section */}
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <h5 className="font-medium text-gray-700">Images</h5>
+                      <Button onClick={() => handleGalleryAddImage(section.id)} size="sm" variant="outline">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Image
+                      </Button>
+                    </div>
+                    {section.images.map((image) => (
+                      <div key={image.id} className="border rounded p-3 mb-3 bg-gray-50">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium">Image {image.id}</span>
+                          <Button
+                            onClick={() => handleGalleryRemoveImage(section.id, image.id)}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-xs">Image URL</Label>
+                            <Input
+                              value={image.src}
+                              onChange={(e) => handleGalleryUpdateImage(section.id, image.id, "src", e.target.value)}
+                              placeholder="Enter image URL"
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Alt Text</Label>
+                            <Input
+                              value={image.alt}
+                              onChange={(e) => handleGalleryUpdateImage(section.id, image.id, "alt", e.target.value)}
+                              placeholder="Enter alt text"
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Caption (optional)</Label>
+                            <Input
+                              value={image.caption || ""}
+                              onChange={(e) =>
+                                handleGalleryUpdateImage(section.id, image.id, "caption", e.target.value)
+                              }
+                              placeholder="Enter caption"
+                              className="text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <Button onClick={handleGallerySave} disabled={loading} className="w-full md:w-auto">
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Gallery
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Header Section */}
+        <TabsContent value="header">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Header/Navigation</CardTitle>
+              <CardDescription>Manage header content and navigation items</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label htmlFor="header-logo">Logo Text</Label>
+                <Input
+                  id="header-logo"
+                  value={headerContent.logo}
+                  onChange={(e) => setHeaderContent((prev) => ({ ...prev, logo: e.target.value }))}
+                  placeholder="Enter logo text"
+                />
+              </div>
+              <div>
+                <Label htmlFor="header-reserve-button">Reserve Button Text</Label>
+                <Input
+                  id="header-reserve-button"
+                  value={headerContent.reserveButtonText}
+                  onChange={(e) => setHeaderContent((prev) => ({ ...prev, reserveButtonText: e.target.value }))}
+                  placeholder="Enter reserve button text"
+                />
+              </div>
+
+              {/* Top Navigation Items */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Top Navigation Items</h3>
+                  <Button onClick={handleHeaderAddTopNavItem} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Top Nav Item
+                  </Button>
+                </div>
+                {headerContent.topNavItems.map((item, index) => (
+                  <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">Top Nav Item {index + 1}</h4>
+                      <Button onClick={() => handleHeaderRemoveTopNavItem(index)} variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label>Label</Label>
+                        <Input
+                          value={item.label}
+                          onChange={(e) => handleHeaderUpdateTopNavItem(index, "label", e.target.value)}
+                          placeholder="Enter label"
+                        />
+                      </div>
+                      <div>
+                        <Label>URL/Href</Label>
+                        <Input
+                          value={item.href || ""}
+                          onChange={(e) => handleHeaderUpdateTopNavItem(index, "href", e.target.value)}
+                          placeholder="Enter URL"
+                        />
+                      </div>
+                      <div>
+                        <Label>Is External Link</Label>
+                        <Select
+                          value={item.isExternal ? "true" : "false"}
+                          onValueChange={(value) => handleHeaderUpdateTopNavItem(index, "isExternal", value === "true")}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="false">Internal Link</SelectItem>
+                            <SelectItem value="true">External Link</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Main Navigation Items */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Main Navigation Items</h3>
+                  <Button onClick={handleHeaderAddMainNavItem} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Main Nav Item
+                  </Button>
+                </div>
+                {headerContent.mainNavItems.map((item, index) => (
+                  <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">Main Nav Item {index + 1}</h4>
+                      <Button onClick={() => handleHeaderRemoveMainNavItem(index)} variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label>Label</Label>
+                        <Input
+                          value={item.label}
+                          onChange={(e) => handleHeaderUpdateMainNavItem(index, "label", e.target.value)}
+                          placeholder="Enter label"
+                        />
+                      </div>
+                      <div>
+                        <Label>Action Type</Label>
+                        <Select
+                          value={item.action || "navigate"}
+                          onValueChange={(value) => handleHeaderUpdateMainNavItem(index, "action", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="scroll">Scroll to Section</SelectItem>
+                            <SelectItem value="navigate">Navigate to Page</SelectItem>
+                            <SelectItem value="external">External Link</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>URL/Href (for navigate/external)</Label>
+                        <Input
+                          value={item.href || ""}
+                          onChange={(e) => handleHeaderUpdateMainNavItem(index, "href", e.target.value)}
+                          placeholder="Enter URL"
+                        />
+                      </div>
+                      <div>
+                        <Label>Section ID (for scroll)</Label>
+                        <Input
+                          value={item.sectionId || ""}
+                          onChange={(e) => handleHeaderUpdateMainNavItem(index, "sectionId", e.target.value)}
+                          placeholder="Enter section ID"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Button onClick={handleHeaderSave} disabled={loading} className="w-full md:w-auto">
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Header Content
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Footer Section */}
+        <TabsContent value="footer">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Footer Content</CardTitle>
+              <CardDescription>Manage footer sections, contact info, and social media</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Contact Information */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label>Address</Label>
+                    <Textarea
+                      value={footerContent.contactInfo.address}
+                      onChange={(e) =>
+                        setFooterContent((prev) => ({
+                          ...prev,
+                          contactInfo: { ...prev.contactInfo, address: e.target.value },
+                        }))
+                      }
+                      placeholder="Enter address"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Phone</Label>
+                      <Input
+                        value={footerContent.contactInfo.phone}
+                        onChange={(e) =>
+                          setFooterContent((prev) => ({
+                            ...prev,
+                            contactInfo: { ...prev.contactInfo, phone: e.target.value },
+                          }))
+                        }
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                    <div>
+                      <Label>Email</Label>
+                      <Input
+                        value={footerContent.contactInfo.email}
+                        onChange={(e) =>
+                          setFooterContent((prev) => ({
+                            ...prev,
+                            contactInfo: { ...prev.contactInfo, email: e.target.value },
+                          }))
+                        }
+                        placeholder="Enter email"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Weekday Hours</Label>
+                    <Input
+                      value={footerContent.contactInfo.hours.weekdays}
+                      onChange={(e) =>
+                        setFooterContent((prev) => ({
+                          ...prev,
+                          contactInfo: {
+                            ...prev.contactInfo,
+                            hours: { ...prev.contactInfo.hours, weekdays: e.target.value },
+                          },
+                        }))
+                      }
+                      placeholder="Enter weekday hours"
+                    />
+                  </div>
+                  <div>
+                    <Label>Weekend Hours</Label>
+                    <Input
+                      value={footerContent.contactInfo.hours.weekends}
+                      onChange={(e) =>
+                        setFooterContent((prev) => ({
+                          ...prev,
+                          contactInfo: {
+                            ...prev.contactInfo,
+                            hours: { ...prev.contactInfo.hours, weekends: e.target.value },
+                          },
+                        }))
+                      }
+                      placeholder="Enter weekend hours"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Sections */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Footer Sections</h3>
+                  <Button onClick={handleFooterAddSection} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Section
+                  </Button>
+                </div>
+                {footerContent.sections.map((section, sectionIndex) => (
+                  <div key={sectionIndex} className="border rounded-lg p-4 shadow-sm bg-background">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">
+                        Section: {section.title || `Section ${sectionIndex + 1}`}
+                      </h4>
+                      <Button onClick={() => handleFooterRemoveSection(sectionIndex)} variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="mb-4">
+                      <Label>Section Title</Label>
+                      <Input
+                        value={section.title}
+                        onChange={(e) => handleFooterUpdateSection(sectionIndex, "title", e.target.value)}
+                        placeholder="Enter section title"
+                      />
+                    </div>
+
+                    {/* Links for this section */}
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-medium text-gray-700">Links</h5>
+                        <Button onClick={() => handleFooterAddLink(sectionIndex)} size="sm" variant="outline">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Link
+                        </Button>
+                      </div>
+                      {section.links.map((link, linkIndex) => (
+                        <div key={linkIndex} className="border rounded p-3 mb-3 bg-gray-50">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium">Link {linkIndex + 1}</span>
+                            <Button
+                              onClick={() => handleFooterRemoveLink(sectionIndex, linkIndex)}
+                              variant="destructive"
+                              size="sm"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div>
+                              <Label className="text-xs">Label</Label>
+                              <Input
+                                value={link.label}
+                                onChange={(e) =>
+                                  handleFooterUpdateLink(sectionIndex, linkIndex, "label", e.target.value)
+                                }
+                                placeholder="Enter link label"
+                                className="text-sm"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Action Type</Label>
+                              <Select
+                                value={link.action || "navigate"}
+                                onValueChange={(value) =>
+                                  handleFooterUpdateLink(sectionIndex, linkIndex, "action", value)
+                                }
+                              >
+                                <SelectTrigger className="text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="scroll">Scroll to Section</SelectItem>
+                                  <SelectItem value="navigate">Navigate to Page</SelectItem>
+                                  <SelectItem value="external">External Link</SelectItem>
+                                  <SelectItem value="modal">Open Modal</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs">URL/Href (for navigate/external)</Label>
+                              <Input
+                                value={link.href || ""}
+                                onChange={(e) =>
+                                  handleFooterUpdateLink(sectionIndex, linkIndex, "href", e.target.value)
+                                }
+                                placeholder="Enter URL"
+                                className="text-sm"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Section ID (for scroll)</Label>
+                              <Input
+                                value={link.sectionId || ""}
+                                onChange={(e) =>
+                                  handleFooterUpdateLink(sectionIndex, linkIndex, "sectionId", e.target.value)
+                                }
+                                placeholder="Enter section ID"
+                                className="text-sm"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Social Media */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Social Media</h3>
+                  <Button onClick={handleFooterAddSocialMedia} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Social Media
+                  </Button>
+                </div>
+                {footerContent.socialMedia.map((social, index) => (
+                  <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-gray-800 dark:text-gray-200">Social Media {index + 1}</h4>
+                      <Button onClick={() => handleFooterRemoveSocialMedia(index)} variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label>Platform</Label>
+                        <Input
+                          value={social.platform}
+                          onChange={(e) => handleFooterUpdateSocialMedia(index, "platform", e.target.value)}
+                          placeholder="Enter platform name"
+                        />
+                      </div>
+                      <div>
+                        <Label>URL</Label>
+                        <Input
+                          value={social.url}
+                          onChange={(e) => handleFooterUpdateSocialMedia(index, "url", e.target.value)}
+                          placeholder="Enter social media URL"
+                        />
+                      </div>
+                      <div>
+                        <Label>Icon Name</Label>
+                        <Input
+                          value={social.icon}
+                          onChange={(e) => handleFooterUpdateSocialMedia(index, "icon", e.target.value)}
+                          placeholder="Enter icon name (e.g., Facebook, Instagram)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Newsletter Section */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="text-lg font-semibold mb-4">Newsletter Section</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Newsletter Title</Label>
+                    <Input
+                      value={footerContent.newsletterSection.title}
+                      onChange={(e) =>
+                        setFooterContent((prev) => ({
+                          ...prev,
+                          newsletterSection: { ...prev.newsletterSection, title: e.target.value },
+                        }))
+                      }
+                      placeholder="Enter newsletter title"
+                    />
+                  </div>
+                  <div>
+                    <Label>Newsletter Description</Label>
+                    <Input
+                      value={footerContent.newsletterSection.description}
+                      onChange={(e) =>
+                        setFooterContent((prev) => ({
+                          ...prev,
+                          newsletterSection: { ...prev.newsletterSection, description: e.target.value },
+                        }))
+                      }
+                      placeholder="Enter newsletter description"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Copyright */}
+              <div>
+                <Label htmlFor="footer-copyright">Copyright Text</Label>
+                <Input
+                  id="footer-copyright"
+                  value={footerContent.copyright}
+                  onChange={(e) => setFooterContent((prev) => ({ ...prev, copyright: e.target.value }))}
+                  placeholder="Enter copyright text"
+                />
+              </div>
+
+              <Button onClick={handleFooterSave} disabled={loading} className="w-full md:w-auto">
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Footer Content
               </Button>
             </CardContent>
           </Card>
