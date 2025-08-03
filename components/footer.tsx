@@ -1,53 +1,55 @@
-"use client"
-import { useState, useEffect } from "react"
-import { ReservationModal } from "./reserveModal"
-import { useRouter } from "next/navigation"
-import { Facebook, Instagram, Globe } from "lucide-react"
-import toast from "react-hot-toast"
-import axiosInstance from "@/lib/axios"
+"use client";
+import { useState, useEffect } from "react";
+import { ReservationModal } from "./reserveModal";
+import { useRouter } from "next/navigation";
+import { Facebook, Instagram, Globe } from "lucide-react";
+import toast from "react-hot-toast";
+import axiosInstance from "@/lib/axios";
 
 interface FooterLink {
-  label: string
-  href?: string
-  action?: string
-  sectionId?: string
+  label: string;
+  href?: string;
+  action?: string;
+  sectionId?: string;
 }
 
 interface FooterSection {
-  title: string
-  links: FooterLink[]
+  title: string;
+  links: FooterLink[];
 }
 
 interface SocialMedia {
-  platform: string
-  url: string
-  icon: string
+  platform: string;
+  url: string;
+  icon: string;
 }
 
 interface FooterContent {
-  sections: FooterSection[]
+  sections: FooterSection[];
   contactInfo: {
-    address: string
-    phone: string
-    email: string
+    address: string;
+    phone: string;
+    email: string;
     hours: {
-      weekdays: string
-      weekends: string
-    }
-  }
-  socialMedia: SocialMedia[]
+      weekdays: string;
+      weekends: string;
+    };
+  };
+  socialMedia: SocialMedia[];
   newsletterSection: {
-    title: string
-    description: string
-  }
-  copyright: string
+    title: string;
+    description: string;
+  };
+  copyright: string;
 }
 
 export default function Footer() {
-  const [email, setEmail] = useState("")
-  const router = useRouter()
-  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
-  const [modalType, setModalType] = useState<"reservation" | "contact">("reservation")
+  const [email, setEmail] = useState("");
+  const router = useRouter();
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"reservation" | "contact">(
+    "reservation"
+  );
   const [footerContent, setFooterContent] = useState<FooterContent>({
     sections: [],
     contactInfo: {
@@ -65,97 +67,97 @@ export default function Footer() {
       description: "Receive The Foreigner Cafe news directly to you.",
     },
     copyright: "",
-  })
-  const [isLoading, setIsLoading] = useState(true)
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchFooterContent()
-  }, [])
+    fetchFooterContent();
+  }, []);
 
   const fetchFooterContent = async () => {
     try {
-      setIsLoading(true)
-      const response = await axiosInstance.get("/api/cms/footer")
+      setIsLoading(true);
+      const response = await axiosInstance.get("/api/cms/footer");
       if (response.data.success) {
-        setFooterContent(response.data.data)
+        setFooterContent(response.data.data);
       }
     } catch (error) {
-      console.error("Failed to fetch footer content:", error)
+      console.error("Failed to fetch footer content:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
+    const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" })
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }
+  };
 
   const openReservationModal = () => {
-    setModalType("reservation")
-    setIsReservationModalOpen(true)
-  }
+    setModalType("reservation");
+    setIsReservationModalOpen(true);
+  };
 
   const openContactModal = () => {
-    setModalType("contact")
-    setIsReservationModalOpen(true)
-  }
+    setModalType("contact");
+    setIsReservationModalOpen(true);
+  };
 
   const handleLinkAction = (link: FooterLink) => {
     if (link.action === "scroll" && link.sectionId) {
-      scrollToSection(link.sectionId)
+      scrollToSection(link.sectionId);
     } else if (link.action === "navigate" && link.href) {
-      router.push(link.href)
+      router.push(link.href);
     } else if (link.action === "external" && link.href) {
-      window.open(link.href, "_blank", "noopener,noreferrer")
+      window.open(link.href, "_blank", "noopener,noreferrer");
     } else if (link.action === "modal") {
-      openContactModal()
+      openContactModal();
     } else if (link.href) {
-      router.push(link.href)
+      router.push(link.href);
     }
-  }
+  };
 
   const getSocialIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {
       case "facebook":
-        return <Facebook className="w-5 h-5" />
+        return <Facebook className="w-5 h-5" />;
       case "instagram":
-        return <Instagram className="w-5 h-5" />
+        return <Instagram className="w-5 h-5" />;
       case "globe":
       case "google":
-        return <Globe className="w-5 h-5" />
+        return <Globe className="w-5 h-5" />;
       default:
-        return <Globe className="w-5 h-5" />
+        return <Globe className="w-5 h-5" />;
     }
-  }
+  };
 
   const handleSubscribe = async () => {
-    const toastId = toast.loading("Subscribing...")
+    const toastId = toast.loading("Subscribing...");
     if (!email) {
-      toast.error("Please enter a valid email", { id: toastId })
-      return
+      toast.error("Please enter a valid email", { id: toastId });
+      return;
     }
     try {
       const res = await fetch("/api/subscribers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      })
+      });
       if (res.ok) {
-        setEmail("")
-        toast.success("Subscribed successfully!", { id: toastId })
+        setEmail("");
+        toast.success("Subscribed successfully!", { id: toastId });
       } else if (res.status === 409) {
-        toast.error("Already subscribed!", { id: toastId })
+        toast.error("Already subscribed!", { id: toastId });
       } else {
-        toast.error("Subscription failed!", { id: toastId })
+        toast.error("Subscription failed!", { id: toastId });
       }
     } catch (error) {
-      console.error("Subscription error:", error)
-      toast.error("Something went wrong.", { id: toastId })
+      console.error("Subscription error:", error);
+      toast.error("Something went wrong.", { id: toastId });
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -175,7 +177,7 @@ export default function Footer() {
           </div>
         </div>
       </footer>
-    )
+    );
   }
 
   return (
@@ -184,8 +186,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
           {/* Dynamic Footer Sections */}
           {footerContent.sections.map((section, index) => (
-            <div key={index} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-              <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">{section.title}</h4>
+            <div
+              key={index}
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">
+                {section.title}
+              </h4>
               {section.title === "LOCATION & HOURS" ? (
                 // Special handling for location & hours section
                 <div className="space-y-4 text-sm text-gray-300">
@@ -193,8 +201,12 @@ export default function Footer() {
                     <p>{footerContent.contactInfo.address}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-white">{footerContent.contactInfo.hours.weekdays}</p>
-                    <p className="font-medium text-white">{footerContent.contactInfo.hours.weekends}</p>
+                    <p className="font-medium text-white">
+                      {footerContent.contactInfo.hours.weekdays}
+                    </p>
+                    <p className="font-medium text-white">
+                      {footerContent.contactInfo.hours.weekends}
+                    </p>
                   </div>
                   <div>
                     <p>{footerContent.contactInfo.phone}</p>
@@ -219,11 +231,16 @@ export default function Footer() {
           ))}
 
           {/* Newsletter */}
-          <div className="animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "0.3s" }}
+          >
             <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">
               {footerContent.newsletterSection.title}
             </h4>
-            <p className="text-sm text-gray-300 mb-6 leading-relaxed">{footerContent.newsletterSection.description}</p>
+            <p className="text-sm text-gray-300 mb-6 leading-relaxed">
+              {footerContent.newsletterSection.description}
+            </p>
             <div className="flex mb-6">
               <input
                 type="email"
@@ -244,7 +261,9 @@ export default function Footer() {
               {footerContent.socialMedia.map((social, index) => (
                 <button
                   key={index}
-                  onClick={() => window.open(social.url, "_blank", "noopener,noreferrer")}
+                  onClick={() =>
+                    window.open(social.url, "_blank", "noopener,noreferrer")
+                  }
                   aria-label={`Visit Foreigner Cafe ${social.platform}`}
                   className="w-10 h-10 bg-gray-800 hover:bg-orange text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
                 >
@@ -288,7 +307,17 @@ export default function Footer() {
             </div>
           </div>
           <div className="text-center mt-8">
-            <p className="text-xs text-gray-500 tracking-wide">{footerContent.copyright}</p>
+            <p className="text-xs text-gray-500 tracking-wide">
+              {footerContent.copyright + "| Website By "}
+              <a
+                href="https://cybitronix.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange"
+              >
+                Cybitronix
+              </a>
+            </p>
           </div>
         </div>
       </div>
@@ -299,5 +328,5 @@ export default function Footer() {
         isContactForm={modalType === "contact"}
       />
     </footer>
-  )
+  );
 }
