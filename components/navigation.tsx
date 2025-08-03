@@ -1,267 +1,415 @@
 "use client"
-
 import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Menu, Phone, MapPin, Clock } from "lucide-react"
+import { Menu, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { ContactModal } from "@/components/ContactModal"
-import { LocationModal } from "@/components/location-modal"
-import { ReserveModal } from "@/components/reserveModal"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { ReservationModal } from "./reserveModal"
 
-interface NavItem {
-  label: string
-  href?: string
-  action?: string
-  sectionId?: string
-  isExternal?: boolean
-}
-
-interface HeaderContent {
-  logo: string
-  topNavItems: NavItem[]
-  mainNavItems: NavItem[]
-  reserveButtonText: string
-}
-
-export function Navigation() {
+export default function Navigation() {
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [headerContent, setHeaderContent] = useState<HeaderContent | null>(null)
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
-  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
+  const [isTopHeaderHidden, setIsTopHeaderHidden] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [activeTab, setActiveTab] = useState<string | null>(null)
+  const [topNavActiveItem, setTopNavActiveItem] = useState<string>("DINE")
+  const [modalType, setModalType] = useState<"reservation" | "contact">("reservation")
+
+  const topHeaderHeight = 65
+  const mainNavHeight = 64
+  const progressBarHeight = 1
+  const router = useRouter()
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
+      const scrollTop = window.scrollY
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      const scrollPercent = docHeight > 0 ? scrollTop / docHeight : 0
+      setIsScrolled(scrollTop > 50)
+      setIsTopHeaderHidden(scrollTop > topHeaderHeight)
+      setScrollProgress(scrollPercent)
     }
 
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  }, [topHeaderHeight])
 
-  useEffect(() => {
-    fetchHeaderContent()
-  }, [])
-
-  const fetchHeaderContent = async () => {
-    try {
-      const response = await fetch("/api/cms/header")
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          setHeaderContent(data.data)
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch header content:", error)
+  const scrollToSection = (sectionId: string, offset = 80) => {
+    const element = document.getElementById(sectionId)
+    if (element) {
+      const topPosition = element.getBoundingClientRect().top + window.scrollY - offset
+      window.scrollTo({
+        top: topPosition,
+        behavior: "smooth",
+      })
     }
   }
 
-  const handleNavClick = (item: NavItem) => {
-    if (item.action === "scroll" && item.sectionId) {
-      const element = document.getElementById(item.sectionId)
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" })
-      }
-    } else if (item.action === "modal") {
-      if (item.sectionId === "contact") {
-        setIsContactModalOpen(true)
-      } else if (item.sectionId === "location") {
-        setIsLocationModalOpen(true)
-      }
-    }
-    setIsOpen(false)
+  const openReservationModal = () => {
+    setModalType("reservation")
+    setIsReservationModalOpen(true)
   }
 
-  const handleReserveClick = () => {
-    setIsReserveModalOpen(true)
-    setIsOpen(false)
+  const openContactModal = () => {
+    setModalType("contact")
+    setIsReservationModalOpen(true)
   }
 
-  if (!headerContent) {
-    return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="text-xl font-bold">FOREIGNER CAFE</div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-gray-700 hover:text-orange-500 transition-colors">
-                Home
-              </Link>
-              <Link href="/about" className="text-gray-700 hover:text-orange-500 transition-colors">
-                About
-              </Link>
-              <Link href="/menu" className="text-gray-700 hover:text-orange-500 transition-colors">
-                Menu
-              </Link>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white">RESERVE</Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-    )
+  // Navigation items for desktop - conditionally includes About Us based on topNavActiveItem
+  const navItems = [
+    {
+      label: "HOME",
+      id: "hero",
+      action: () => {
+        scrollToSection("home")
+      },
+    },
+    {
+      label: "MENU",
+      id: "menu",
+      action: () =>
+        window.open(
+          "https://mhm-timber.s3.amazonaws.com/public/member/r9bJd/lurgtAi7r1j5/morningbreakfastmenuexamplecompressed.pdf",
+          "_blank",
+          "noopener,noreferrer",
+        ),
+    },
+    ...(topNavActiveItem === "DINE"
+      ? [
+          {
+            label: "ABOUT US",
+            id: "aboutUs",
+            action: () => {
+              scrollToSection("story")
+            },
+          },
+        ]
+      : []),
+    {
+      label: "EXPERIENCES",
+      id: "contact",
+      action: () => router.push("/experiences"),
+    },
+    { label: "FAQS", id: "faqs", action: () => router.push("/faqs") },
+  ]
+
+  // Combined navigation items for mobile sheet - now properly synced with topNavActiveItem
+  const mobileNavItems = [
+    {
+      label: "DINE",
+      action: () => {
+        setTopNavActiveItem("DINE")
+        window.location.href = "/"
+      },
+      isTopNavItem: true,
+    },
+    {
+      label: "EVENTS",
+      action: () => {
+        setTopNavActiveItem("EVENTS")
+        router.push("/events")
+      },
+      isTopNavItem: true,
+    },
+    {
+      label: "SHOP",
+      action: () => {
+        setTopNavActiveItem("SHOP")
+        window.open("https://order.toasttab.com/online/foreigner-60-east-3rd-avenue", "_blank", "noopener,noreferrer")
+      },
+      isTopNavItem: true,
+    },
+    {
+      label: "CATERING",
+      action: () => {
+        setTopNavActiveItem("CATERING")
+        router.push("/catering")
+      },
+      isTopNavItem: true,
+    },
+    {
+      label: "GIFT VOUCHERS",
+      action: () => {
+        setTopNavActiveItem("GIFT VOUCHERS")
+        window.open("https://www.toasttab.com/foreigner-60-east-3rd-avenue/giftcards", "_blank", "noopener,noreferrer")
+      },
+      isTopNavItem: true,
+    },
+    // Divider for visual separation
+    { label: "---", action: () => {}, isDivider: true },
+    // Secondary navigation items that depend on topNavActiveItem
+    {
+      label: "HOME",
+      action: () => {
+        scrollToSection("home")
+      },
+    },
+    {
+      label: "MENU",
+      action: () =>
+        window.open(
+          "https://mhm-timber.s3.amazonaws.com/public/member/r9bJd/lurgtAi7r1j5/morningbreakfastmenuexamplecompressed.pdf",
+          "_blank",
+          "noopener,noreferrer",
+        ),
+    },
+    // Conditionally show ABOUT US only when DINE is selected
+    ...(topNavActiveItem === "DINE" ? [{ label: "ABOUT US", action: () => scrollToSection("story") }] : []),
+    { label: "EXPERIENCES", action: () => router.push("/experiences") },
+    { label: "FAQS", action: () => router.push("/faqs") },
+    {
+      label: "CONTACT US",
+      action: () => {
+        openContactModal()
+      },
+    },
+  ]
+
+  const handleTabClick = (id: string, action: () => void) => {
+    setActiveTab(id)
+    action()
+  }
+
+  const handleTopNavClick = (item: string) => {
+    setTopNavActiveItem(item)
   }
 
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? "bg-white shadow-lg py-2" : "bg-white/95 backdrop-blur-sm py-4"
+      {/* Progress bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-black/10">
+        <div
+          className="h-full bg-orange transition-all duration-150 ease-out"
+          style={{ width: `${scrollProgress * 100}%` }}
+        />
+      </div>
+
+      {/* Top Header - Hidden on small/medium screens, visible on large screens */}
+      <header
+        className={`fixed top-1 left-0 right-0 z-40 w-full transition-all duration-500 hidden lg:block ${
+          isTopHeaderHidden ? "opacity-0 h-0 pointer-events-none" : "opacity-100 h-auto"
         }`}
       >
-        {/* Top Bar */}
-        <div className="border-b border-gray-200 py-2">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between text-sm">
-              <div className="hidden md:flex items-center space-x-6 text-gray-600">
-                <div className="flex items-center space-x-1">
-                  <Phone className="w-4 h-4" />
-                  <span>+1 (555) 123-4567</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <MapPin className="w-4 h-4" />
-                  <span>123 Coffee Street, Brew City</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Clock className="w-4 h-4" />
-                  <span>Mon-Fri: 7AM-9PM</span>
-                </div>
+        {/* Top thin border */}
+        <div className="h-[1px] bg-gray-700" />
+        {/* Main header content - Top navigation bar */}
+        <div className="flex h-10">
+          {/* Left section: DINE */}
+          <div
+            className={`flex items-center px-6 font-medium text-sm tracking-wide uppercase h-full ${
+              topNavActiveItem === "DINE"
+                ? "bg-[#EC4E20] text-white"
+                : "bg-[#F8F8F8] text-[#A0A0A0] hover:text-gray-700"
+            }`}
+          >
+            <Link href="/" className="hover:opacity-80 transition-opacity" onClick={() => handleTopNavClick("DINE")}>
+              DINE
+            </Link>
+          </div>
+          {/* Right section: Navigation links and Action buttons */}
+          <div className="flex-1  bg-[#F8F8F8] flex items-center justify-between px-6 h-full">
+            {/* Navigation links */}
+            <nav className="flex space-x-0 text-[#A0A0A0] font-medium text-sm tracking-wide uppercase">
+              <div
+                className={`px-6 h-10 flex items-center ${
+                  topNavActiveItem === "EVENTS" ? "bg-[#EC4E20] text-white" : "hover:text-gray-700"
+                }`}
+              >
+                <Link href="/events" className="transition-colors" onClick={() => handleTopNavClick("EVENTS")}>
+                  EVENTS
+                </Link>
               </div>
-              <div className="flex items-center space-x-4">
-                {headerContent.topNavItems.map((item, index) => (
-                  <div key={index}>
-                    {item.isExternal ? (
-                      <a
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-orange-500 transition-colors"
-                      >
-                        {item.label}
-                      </a>
-                    ) : (
-                      <Link href={item.href || "#"} className="text-gray-600 hover:text-orange-500 transition-colors">
-                        {item.label}
-                      </Link>
-                    )}
-                  </div>
-                ))}
+              <div
+                className={`px-6 h-10 flex items-center ${
+                  topNavActiveItem === "SHOP" ? "bg-[#EC4E20] text-white" : "hover:text-gray-700"
+                }`}
+              >
+                <a
+                  href="https://order.toasttab.com/online/foreigner-60-east-3rd-avenue"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors"
+                  onClick={() => handleTopNavClick("SHOP")}
+                >
+                  SHOP
+                </a>
               </div>
+              <div
+                className={`px-6 h-10 flex items-center ${
+                  topNavActiveItem === "CATERING" ? "bg-[#EC4E20] text-white" : "hover:text-gray-700"
+                }`}
+              >
+                <Link href="/catering" className="transition-colors" onClick={() => handleTopNavClick("CATERING")}>
+                  CATERING
+                </Link>
+              </div>
+              <div
+                className={`px-6 h-10 flex items-center ${
+                  topNavActiveItem === "GIFT VOUCHERS"
+                    ? "bg-[#EC4E20] text-white"
+                    : "hover:text-gray-700 focus:outline-none"
+                }`}
+              >
+                <a
+                  href="https://www.toasttab.com/foreigner-60-east-3rd-avenue/giftcards"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors"
+                  onClick={() => handleTopNavClick("GIFT VOUCHERS")}
+                >
+                  GIFT VOUCHERS
+                </a>
+              </div>
+            </nav>
+            {/* Action buttons */}
+            <div className="flex items-center space-x-6 text-[#A0A0A0] font-medium text-sm tracking-wide uppercase">
+              <button
+                className={`px-6 h-10 flex items-center space-x-2 hover:text-gray-700 transition-colors focus:outline-none ${
+                  topNavActiveItem === "CONTACT US" ? "bg-[#EC4E20] text-white" : ""
+                }`}
+                onClick={() => {
+                  openContactModal()
+                  handleTopNavClick("CONTACT US")
+                }}
+              >
+                <User className="w-3 h-3" />
+                <span>CONTACT US</span>
+              </button>
             </div>
           </div>
         </div>
+        {/* Bottom message bar */}
+        <div className="bg-[#EC4E20] text-white text-center py-3 text-xs font-medium tracking-wide uppercase"></div>
+      </header>
 
-        {/* Main Navigation */}
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+      {/* Main navigation */}
+      <nav
+        className={`fixed left-0 right-0 z-40 transition-all duration-500 top-1 ${
+          isScrolled ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50" : "bg-transparent"
+        } ${isTopHeaderHidden ? "lg:top-1" : "lg:top-[66px]"}`}
+      >
+        <div className="max-w-7xl mx-auto container-padding">
+          <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/" className="text-2xl font-bold text-gray-900 hover:text-orange-500 transition-colors">
-              {headerContent.logo}
-            </Link>
-
+            <div className="flex-shrink-0">
+              <button
+                onClick={() => scrollToSection("home")}
+                className={`text-2xl font-display font-bold transition-all duration-300 hover:scale-110 focus:outline-none ${
+                  isScrolled ? "text-black hover:text-orange" : "text-white hover:text-orange"
+                }`}
+              >
+                FOREIGNER CAFE
+              </button>
+            </div>
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
-              {headerContent.mainNavItems.map((item, index) => (
-                <div key={index}>
-                  {item.action === "navigate" ? (
-                    <Link
-                      href={item.href || "#"}
-                      className="text-gray-700 hover:text-orange-500 transition-colors font-medium"
-                    >
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() => handleNavClick(item)}
-                      className="text-gray-700 hover:text-orange-500 transition-colors font-medium"
-                    >
-                      {item.label}
-                    </button>
-                  )}
-                </div>
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleTabClick(item.id, item.action)}
+                  className={`text-sm font-medium tracking-wide transition-all duration-200 hover:scale-110 relative group focus:outline-none ${
+                    isScrolled ? "text-black/80 hover:text-orange" : "text-white/80 hover:text-orange"
+                  } ${activeTab === item.id ? "text-orange" : ""}`}
+                >
+                  {item.label}
+                  <span
+                    className={`absolute -bottom-1 left-0 h-0.5 bg-orange transition-all duration-300 ${
+                      activeTab === item.id ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
-
-            {/* Reserve Button & Mobile Menu */}
-            <div className="flex items-center space-x-4">
+            {/* Reserve Button (Desktop) */}
+            <div className="hidden lg:block">
               <Button
-                onClick={handleReserveClick}
-                className="hidden md:inline-flex bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium transition-colors"
+                onClick={openReservationModal}
+                className={`text-sm font-bold tracking-wide transition-all duration-300   hover:scale-110 hover:shadow-lg focus:outline-none ${
+                  isScrolled
+                    ? "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
+                    : "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
+                }`}
               >
-                {headerContent.reserveButtonText}
+                RESERVE
               </Button>
-
-              {/* Mobile Menu Button */}
+            </div>
+            {/* Mobile menu button (Sheet Trigger) */}
+            <div className="lg:hidden ">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden">
-                    <Menu className="h-6 w-6" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`p-2 transition-all duration-300 hover:scale-110 focus:outline-none ${
+                      isScrolled ? "text-black hover:text-orange" : "text-white hover:text-orange"
+                    }`}
+                  >
+                    {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                    <span className="sr-only">Toggle navigation menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                  <div className="flex flex-col space-y-6 mt-6">
-                    <div className="text-2xl font-bold text-gray-900">{headerContent.logo}</div>
+                <SheetContent side="right" className="w-[20rem] h-[30rem] bg-white p-8 overflow-y-auto">
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Mobile Navigation Menu</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-col space-y-6 pt-12">
+                    {/* Current active section indicator */}
+                    {/* <div className="mb-4 pb-4 border-b border-gray-200">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">Current Section</p>
+                      <p className="text-sm font-bold text-orange">{topNavActiveItem}</p>
+                    </div> */}
 
-                    {/* Mobile Navigation Items */}
-                    <div className="flex flex-col space-y-4">
-                      {headerContent.mainNavItems.map((item, index) => (
-                        <div key={index}>
-                          {item.action === "navigate" ? (
-                            <Link
-                              href={item.href || "#"}
-                              onClick={() => setIsOpen(false)}
-                              className="text-lg text-gray-700 hover:text-orange-500 transition-colors font-medium block py-2"
-                            >
-                              {item.label}
-                            </Link>
-                          ) : (
-                            <button
-                              onClick={() => handleNavClick(item)}
-                              className="text-lg text-gray-700 hover:text-orange-500 transition-colors font-medium block py-2 text-left w-full"
-                            >
-                              {item.label}
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    {mobileNavItems.map((item, index) => {
+                      // Handle divider
+                      if (item.isDivider) {
+                        return <div key={index} className="border-t border-gray-200 my-2" />
+                      }
 
-                    {/* Mobile Reserve Button */}
+                      // Handle top nav items with special styling
+                      if (item.isTopNavItem) {
+                        return (
+                          <button
+                            key={item.label}
+                            onClick={() => {
+                              item.action()
+                              setIsOpen(false)
+                            }}
+                            className={`block text-left text-sm font-bold tracking-wide transition-colors hover:translate-x-2 ${
+                              topNavActiveItem === item.label ? "text-orange" : "text-gray-800 hover:text-orange"
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        )
+                      }
+
+                      // Handle regular nav items
+                      return (
+                        <button
+                          key={item.label}
+                          onClick={() => {
+                            item.action()
+                            setIsOpen(false)
+                          }}
+                          className="block text-left text-sm font-semibold tracking-wide text-gray-600 hover:text-orange transition-colors hover:translate-x-2"
+                        >
+                          {item.label}
+                        </button>
+                      )
+                    })}
+
                     <Button
-                      onClick={handleReserveClick}
-                      className="bg-orange-500 hover:bg-orange-600 text-white w-full py-3 rounded-full font-medium"
+                      onClick={() => {
+                        openReservationModal()
+                        setIsOpen(false)
+                      }}
+                      className="bg-orange text-white text-sm rounded-xl tracking-wide mt-6 hover:bg-black transition-all duration-300 w-[130px]"
                     >
-                      {headerContent.reserveButtonText}
+                      RESERVE
                     </Button>
-
-                    {/* Mobile Top Nav Items */}
-                    <div className="border-t pt-6 space-y-3">
-                      {headerContent.topNavItems.map((item, index) => (
-                        <div key={index}>
-                          {item.isExternal ? (
-                            <a
-                              href={item.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => setIsOpen(false)}
-                              className="text-gray-600 hover:text-orange-500 transition-colors block py-1"
-                            >
-                              {item.label}
-                            </a>
-                          ) : (
-                            <Link
-                              href={item.href || "#"}
-                              onClick={() => setIsOpen(false)}
-                              className="text-gray-600 hover:text-orange-500 transition-colors block py-1"
-                            >
-                              {item.label}
-                            </Link>
-                          )}
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -270,10 +418,11 @@ export function Navigation() {
         </div>
       </nav>
 
-      {/* Modals */}
-      <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
-      <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
-      <ReserveModal isOpen={isReserveModalOpen} onClose={() => setIsReserveModalOpen(false)} />
+      <ReservationModal
+        open={isReservationModalOpen}
+        onOpenChange={setIsReservationModalOpen}
+        isContactForm={modalType === "contact"}
+      />
     </>
   )
 }

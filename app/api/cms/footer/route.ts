@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
 import { FooterContent } from "@/models/CMSContent"
 
@@ -8,60 +8,79 @@ export async function GET() {
 
     let footerContent = await FooterContent.findOne()
 
+    // Create default content if none exists
     if (!footerContent) {
       footerContent = await FooterContent.create({
         sections: [
           {
-            title: "Quick Links",
+            title: "ABOUT US",
             links: [
-              { label: "Home", href: "/", action: "navigate" },
-              { label: "About Us", href: "/about", action: "navigate" },
-              { label: "Menu", href: "/menu", action: "navigate" },
-              { label: "Events", href: "/events", action: "navigate" },
-              { label: "Catering", href: "/catering", action: "navigate" },
+              { label: "Our Story", action: "scroll", sectionId: "story" },
+              {
+                label: "Location",
+                action: "external",
+                href: "https://www.google.com/maps/place/foreigner+cafe+san+mateo",
+              },
+              { label: "Contact Us", action: "modal" },
             ],
           },
           {
-            title: "Services",
-            links: [
-              { label: "Dine In", href: "/dine-in", action: "navigate" },
-              { label: "Takeaway", href: "/takeaway", action: "navigate" },
-              { label: "Delivery", href: "/delivery", action: "navigate" },
-              { label: "Private Events", href: "/private-events", action: "navigate" },
-              { label: "Corporate Catering", href: "/corporate-catering", action: "navigate" },
-            ],
+            title: "LOCATION & HOURS",
+            links: [], // This will be handled by contactInfo
           },
           {
-            title: "Support",
+            title: "SERVICES",
             links: [
-              { label: "Contact Us", action: "modal", sectionId: "contact" },
-              { label: "FAQs", href: "/faqs", action: "navigate" },
-              { label: "Privacy Policy", href: "/privacy", action: "navigate" },
-              { label: "Terms of Service", href: "/terms", action: "navigate" },
-              { label: "Accessibility", href: "/accessibility", action: "navigate" },
+              {
+                label: "Takeaway",
+                action: "external",
+                href: "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
+              },
+              {
+                label: "Delivery",
+                action: "external",
+                href: "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
+              },
+              {
+                label: "Gift Cards",
+                action: "external",
+                href: "https://www.toasttab.com/foreigner-60-east-3rd-avenue/giftcards",
+              },
+              { label: "Events", action: "navigate", href: "/events" },
             ],
           },
         ],
         contactInfo: {
-          address: "123 Coffee Street, Brew City, BC 12345",
-          phone: "+1 (555) 123-4567",
-          email: "hello@foreignercafe.com",
+          address: "Foreigner Cafe, 60 E 3rd Ave Ste 108, San Mateo, CA 94401, United States",
+          phone: "+1 (650) 620 1888",
+          email: "service@foreignercafe.com",
           hours: {
-            weekdays: "Monday - Friday: 7:00 AM - 9:00 PM",
-            weekends: "Saturday - Sunday: 8:00 AM - 10:00 PM",
+            weekdays: "Mon-Fri: 8:00am - 4:00pm",
+            weekends: "Sat-Sun: 8:30am - 4:00pm",
           },
         },
         socialMedia: [
-          { platform: "Facebook", url: "https://facebook.com/foreignercafe", icon: "facebook" },
-          { platform: "Instagram", url: "https://instagram.com/foreignercafe", icon: "instagram" },
-          { platform: "Twitter", url: "https://twitter.com/foreignercafe", icon: "twitter" },
-          { platform: "LinkedIn", url: "https://linkedin.com/company/foreignercafe", icon: "linkedin" },
+          {
+            platform: "Facebook",
+            url: "https://www.facebook.com/foreignercafe/",
+            icon: "Facebook",
+          },
+          {
+            platform: "Instagram",
+            url: "https://www.instagram.com/foreignercafe/?hl=en",
+            icon: "Instagram",
+          },
+          {
+            platform: "Google",
+            url: "https://www.google.com/maps/place/Foreigner+Cafe/@37.5637466,-122.3247235,17z",
+            icon: "Globe",
+          },
         ],
         newsletterSection: {
-          title: "Stay Connected",
-          description: "Subscribe to our newsletter for the latest updates, special offers, and community events.",
+          title: "STAY CONNECTED",
+          description: "Receive The Foreigner Cafe news directly to you.",
         },
-        copyright: "© 2024 Foreigner Cafe. All rights reserved.",
+        copyright: `© ${new Date().getFullYear()} The Foreigner Cafe. Website by Cybitronix`,
       })
     }
 
@@ -72,12 +91,19 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     await connectDB()
 
     const body = await request.json()
     const { sections, contactInfo, socialMedia, newsletterSection, copyright } = body
+
+    if (!sections || !contactInfo || !socialMedia) {
+      return NextResponse.json(
+        { success: false, message: "Sections, contactInfo, and socialMedia are required" },
+        { status: 400 },
+      )
+    }
 
     let footerContent = await FooterContent.findOne()
 
@@ -85,8 +111,8 @@ export async function PUT(request: Request) {
       footerContent.sections = sections
       footerContent.contactInfo = contactInfo
       footerContent.socialMedia = socialMedia
-      footerContent.newsletterSection = newsletterSection
-      footerContent.copyright = copyright
+      footerContent.newsletterSection = newsletterSection || footerContent.newsletterSection
+      footerContent.copyright = copyright || footerContent.copyright
       await footerContent.save()
     } else {
       footerContent = await FooterContent.create({

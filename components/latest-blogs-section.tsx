@@ -1,153 +1,164 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, User } from "lucide-react"
+import Link from "next/link";
+import Image from "next/image";
+import { Calendar } from "lucide-react";
 
 interface Blog {
-  _id: string
-  title: string
-  slug: string
-  excerpt: string
-  featuredImage: string
-  category: {
-    name: string
-    slug: string
-  }
-  author: {
-    name: string
-    email: string
-  }
-  publishedAt: string
-  readTime: number
-  tags: string[]
+  _id: string;
+  title: string;
+  slug: string;
+  shortCaption: string;
+  mainImage?: string;
+  publishedAt: string;
+  tags: string[];
 }
 
-export default function LatestBlogsSection() {
-  const [blogs, setBlogs] = useState<Blog[]>([])
-  const [loading, setLoading] = useState(true)
+async function getLatestBlogs(): Promise<Blog[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`
+      : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const url = `${baseUrl}/blog/public`;
 
-  useEffect(() => {
-    fetchBlogs()
-  }, [])
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  const fetchBlogs = async () => {
-    try {
-      const response = await fetch("/api/blog/public")
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          setBlogs(data.blogs.slice(0, 3)) // Get latest 3 blogs
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch blogs:", error)
-    } finally {
-      setLoading(false)
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
+
+    const data = await res.json();
+    const blogs = data.blogs || [];
+
+    // Return only the latest 5 blogs
+    return blogs.slice(0, 5);
+  } catch (error) {
+    console.error("Error fetching latest blogs:", error);
+    return [];
+  }
+}
+
+export default async function LatestBlogsSection() {
+  const blogs = await getLatestBlogs();
+
+  if (blogs.length === 0) {
+    return null;
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
-  }
-
-  if (loading) {
-    return (
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <div className="w-64 h-8 bg-gray-200 animate-pulse rounded mx-auto mb-4" />
-            <div className="w-96 h-4 bg-gray-200 animate-pulse rounded mx-auto" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="w-full h-48 bg-gray-200 animate-pulse" />
-                <div className="p-6 space-y-4">
-                  <div className="w-32 h-6 bg-gray-200 animate-pulse rounded" />
-                  <div className="w-full h-4 bg-gray-200 animate-pulse rounded" />
-                  <div className="w-3/4 h-4 bg-gray-200 animate-pulse rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
+  const largeBlogs = blogs.slice(0, 2);
+  const smallBlogs = blogs.slice(2, 5);
 
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Latest Stories</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover the latest news, stories, and insights from our community and beyond.
-          </p>
+    <section className="bg-white py-6 md:py-12 lg:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold text-black">
+            LATEST BLOGS
+          </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogs.map((blog) => (
-            <Card key={blog._id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
-              <div className="relative h-48 overflow-hidden">
-                <Image
-                  src={blog.featuredImage || "/placeholder.svg?height=300&width=400"}
-                  alt={blog.title}
-                  fill
-                  className="object-cover transition-transform duration-300 hover:scale-105"
-                />
+
+        {/* Top Row: Large Blog Cards with specific desktop widths */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+          {largeBlogs.map((blog, index) => (
+            <div
+              key={blog._id}
+              className={`group ${
+                index === 0 ? "lg:col-span-5" : "lg:col-span-7"
+              }`}
+            >
+              <Link href={`/blogs/${blog.slug}`}>
+                <div className="overflow-hidden mb-6 relative h-64">
+                  <Image
+                    src={
+                      blog.mainImage ||
+                      "/placeholder.svg?height=300&width=600&query=blog+post"
+                    }
+                    alt={blog.title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+              </Link>
+              <div className="flex items-center text-sm text-gray-500 mb-3">
+                <Calendar className="w-4 h-4 mr-2" />
+                {new Date(blog.publishedAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
               </div>
-              <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <Badge variant="secondary">{blog.category?.name || "General"}</Badge>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {blog.readTime} min read
-                  </div>
-                </div>
-                <CardTitle className="text-xl line-clamp-2">{blog.title}</CardTitle>
-                <CardDescription className="line-clamp-3">{blog.excerpt}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center">
-                    <User className="w-4 h-4 mr-1" />
-                    {blog.author?.name || "Anonymous"}
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    {formatDate(blog.publishedAt)}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {blog.tags.slice(0, 3).map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <Button asChild className="w-full">
-                  <Link href={`/blogs/${blog.slug}`}>Read More</Link>
-                </Button>
-              </CardContent>
-            </Card>
+              <Link href={`/blogs/${blog.slug}`}>
+                <h3 className="text-xl font-bold text-black mb-3 hover:text-orange-600 transition-colors">
+                  {blog.title}
+                </h3>
+              </Link>
+              <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                {blog.shortCaption}
+              </p>
+              <Link
+                href={`/blogs/${blog.slug}`}
+                className="text-sm text-orange-600 font-medium hover:text-orange-700 transition-colors duration-200 hover:underline"
+              >
+                Read More
+              </Link>
+            </div>
           ))}
         </div>
-        {blogs.length > 0 && (
-          <div className="text-center mt-12">
-            <Button asChild variant="outline" size="lg">
-              <Link href="/blogs">View All Stories</Link>
-            </Button>
-          </div>
-        )}
+
+        {/* Bottom Row: Small Blog Cards with Overlay */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {smallBlogs.map((blog) => (
+            <div
+              key={blog._id}
+              className="group relative overflow-hidden rounded-lg"
+            >
+              <Link href={`/blogs/${blog.slug}`}>
+                <div className="relative h-64 w-full">
+                  <Image
+                    src={
+                      blog.mainImage ||
+                      "/placeholder.svg?height=256&width=400&query=blog+post"
+                    }
+                    alt={blog.title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+                  <h3 className="text-lg font-bold text-white">{blog.title}</h3>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        {/* View All Blogs Link */}
+        <div className="text-center mt-12">
+          <Link
+            href="/blogs"
+            className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors duration-200"
+          >
+            View All Stories
+            <svg
+              className="w-5 h-5 ml-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </Link>
+        </div>
       </div>
     </section>
-  )
+  );
 }

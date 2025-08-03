@@ -1,177 +1,110 @@
-"use client"
+"use client";
+import { Button } from "@/components/ui/button";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
+import Image from "next/image";
 
-import { useState, useEffect } from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+export default function Component() {
+	const faqs = [
+		{
+			question: "What types of events can I host at Foreigner Cafe?",
+			answer:
+				"Foreigner Cafe is the perfect setting for a wide range of events. From intimate birthday gatherings and baby showers, to elegant bridal events, corporate meetings, and versatile spaces can be tailored to suit your occasion.",
+		},
+		{
+			question: "Do you deliver catering orders?",
+			answer:
+				"Yes, we offer catering services for various events. Please contact us directly to discuss your specific needs and delivery options.",
+		},
+		{
+			question: "What's your cancellation policy for bookings or events?",
+			answer:
+				"Our cancellation policy varies depending on the type and size of the booking. We recommend reviewing the terms and conditions provided during the booking process or contacting our team for detailed information.",
+		},
+		{
+			question: "How far in advance should I place a catering order?",
+			answer:
+				"To ensure the best service and availability, we recommend placing catering orders at least 48-72 hours in advance. For larger events, more notice may be required.",
+		},
+	];
 
-interface FAQ {
-  question: string
-  answer: string
-}
+	 const scrollToSection = (sectionId: string) => {
+		const element = document.getElementById(sectionId);
+		if (element) {
+			element.scrollIntoView({ behavior: "smooth", block: "start" });
+		}
+	};
 
-interface FAQsContent {
-  title: string
-  subtitle: string
-  faqs: FAQ[]
-}
+	return (
+		<main className="flex flex-col min-h-screen">
+			{/* Hero Section */}
+			<section className="relative h-[600px] md:h-[700px] lg:h-[800px] flex items-center justify-center text-center text-white overflow-hidden">
+				<Image
+					src="/images/faqs.webp"
+					alt="People gathering under string lights"
+					fill
+					className="object-cover"
+					priority
+				/>
+				<div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>{" "}
+				{/* Dark overlay */}
+				<div className="relative z-10 px-4 max-w-4xl mx-auto space-y-6">
+					<h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-8 mt-10 uppercase">
+						Got Questions? We’re Here to Help.
+					</h1>
+					<p className="text-base md:text-lg lg:text-xl max-w-2xl mx-auto pb-6">
+						From planning your perfect event to finding the right cake we’ve
+						gathered the answers to your most asked questions, all in one place.
+					</p>
+					<Button
+						  onClick={() => scrollToSection("faq")}
+						className="hover:scale-110  bg-[#EC4E20] hover:bg-[#f97316] hover:text-black text-white px-8 py-3 text-lg   ">
+						Learn More
+					</Button>
+				</div>
+			</section>
 
-export default function FAQsPage() {
-  const [faqsContent, setFaqsContent] = useState<FAQsContent | null>(null)
-  const [openIndex, setOpenIndex] = useState<number | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    fetchFAQsContent()
-  }, [])
-
-  const fetchFAQsContent = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch("/api/cms/faqs")
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          setFaqsContent(data.data)
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch FAQs content:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const toggleFAQ = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index)
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white pt-32 pb-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <div className="animate-pulse">
-              <div className="h-12 bg-gray-300 rounded w-64 mx-auto mb-4"></div>
-              <div className="h-6 bg-gray-300 rounded w-96 mx-auto mb-8"></div>
-            </div>
-          </div>
-          <div className="max-w-3xl mx-auto space-y-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-16 bg-gray-300 rounded-lg"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!faqsContent) {
-    return (
-      <div className="min-h-screen bg-white pt-32 pb-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">FAQs</h1>
-            <p className="text-gray-600">FAQ content is currently unavailable.</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-white pt-32 pb-20">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-          >
-            {faqsContent.title}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
-          >
-            {faqsContent.subtitle}
-          </motion.p>
-        </div>
-
-        {/* FAQs */}
-        <div className="max-w-3xl mx-auto">
-          <div className="space-y-4">
-            {faqsContent.faqs.map((faq, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <button
-                  onClick={() => toggleFAQ(index)}
-                  className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
-                >
-                  <span className="font-semibold text-gray-900 pr-4 text-lg">{faq.question}</span>
-                  <div className="flex-shrink-0">
-                    {openIndex === index ? (
-                      <ChevronUp className="w-6 h-6 text-orange-500" />
-                    ) : (
-                      <ChevronDown className="w-6 h-6 text-gray-400" />
-                    )}
-                  </div>
-                </button>
-                <AnimatePresence>
-                  {openIndex === index && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-5 text-gray-600 leading-relaxed text-base">{faq.answer}</div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Contact CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="text-center mt-16 p-8 bg-orange-50 rounded-lg"
-        >
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Still have questions?</h3>
-          <p className="text-gray-600 mb-6">
-            Can't find the answer you're looking for? Please chat with our friendly team.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="mailto:hello@foreignercafe.com"
-              className="inline-flex items-center justify-center px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
-            >
-              Send us an email
-            </a>
-            <a
-              href="tel:+15551234567"
-              className="inline-flex items-center justify-center px-6 py-3 border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 transition-colors font-medium"
-            >
-              Call us now
-            </a>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  )
+			{/* FAQs Section */}
+			<section
+				id="faq"
+				className="w-full py-12 md:py-20 lg:py-24 bg-white">
+                <div className="container mx-auto px-4 md:px-6 max-w-4xl">
+                    <div className="text-center mb-10 md:mb-12">
+                        <h2 className="text-5xl font-bold text-black mb-4">FAQS</h2>
+                        <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
+                            We&apos;ve compiled the most common queries about our cafe,
+                            catering, and experiences to make things easier for you.
+                        </p>
+                    </div>
+                    
+                    <Accordion type="single" collapsible className="w-full">
+                        {faqs.map((faq, index) => (
+                            <AccordionItem
+                                key={index}
+                                value={`item-${index + 1}`}
+                                className="border-b border-gray-200 last:border-b-0 py-4"
+                            >
+                                <AccordionTrigger className="flex justify-between items-center w-full text-left text-lg md:text-xl font-medium text-gray-800 hover:no-underline hover:text-[#EC4E20] focus:no-underline focus:ring-0 focus:outline-none transition-colors duration-200">
+                                    <span className="flex items-center gap-2">
+                                        <span className="text-gray-500 text-base md:text-lg">
+                                            {index + 1}.
+                                        </span>
+                                        {faq.question}
+                                    </span>
+                                    
+                                </AccordionTrigger>
+                                <AccordionContent className="pt-4 pb-2 text-gray-600 text-base md:text-md leading-relaxed pl-6">
+                                    {faq.answer}
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                </div>
+            </section>
+		</main>
+	);
 }

@@ -6,21 +6,19 @@ export async function GET() {
   try {
     await connectDB()
 
-    let heroParallaxData = await HeroParallaxProducts.findOne()
+    let heroParallaxProducts = await HeroParallaxProducts.findOne()
 
     // Create default content if none exists
-    if (!heroParallaxData) {
-      heroParallaxData = await HeroParallaxProducts.create({
-        products: [
-          { id: 1, title: "Artisan Coffee", link: "/shop", thumbnail: "/placeholder.svg?height=400&width=300" },
-          { id: 2, title: "Fresh Pastries", link: "/shop", thumbnail: "/placeholder.svg?height=400&width=300" },
-          { id: 3, title: "Cozy Atmosphere", link: "/gallery", thumbnail: "/placeholder.svg?height=400&width=300" },
-          { id: 4, title: "Community Events", link: "/events", thumbnail: "/placeholder.svg?height=400&width=300" },
-          { id: 5, title: "Private Dining", link: "/catering", thumbnail: "/placeholder.svg?height=400&width=300" },
-          { id: 6, title: "Gift Cards", link: "/shop", thumbnail: "/placeholder.svg?height=400&width=300" },
-          { id: 7, title: "Specialty Drinks", link: "/shop", thumbnail: "/placeholder.svg?height=400&width=300" },
-          { id: 8, title: "Local Art", link: "/gallery", thumbnail: "/placeholder.svg?height=400&width=300" },
-        ],
+    if (!heroParallaxProducts) {
+      const defaultProducts = Array.from({ length: 25 }, (_, i) => ({
+        id: i + 1,
+        title: `Product ${i + 1}`,
+        link: "https://example.com",
+        thumbnail: "/placeholder.svg?height=400&width=400",
+      }))
+
+      heroParallaxProducts = await HeroParallaxProducts.create({
+        products: defaultProducts,
         rowConfiguration: {
           firstRowCount: 8,
           secondRowCount: 8,
@@ -29,10 +27,10 @@ export async function GET() {
       })
     }
 
-    return NextResponse.json({ success: true, data: heroParallaxData })
+    return NextResponse.json({ success: true, data: heroParallaxProducts })
   } catch (error) {
-    console.error("Error fetching hero parallax data:", error)
-    return NextResponse.json({ success: false, message: "Failed to fetch hero parallax data" }, { status: 500 })
+    console.error("Error fetching hero parallax products:", error)
+    return NextResponse.json({ success: false, message: "Failed to fetch hero parallax products" }, { status: 500 })
   }
 }
 
@@ -43,29 +41,30 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { products, rowConfiguration } = body
 
-    if (!products || !rowConfiguration || !Array.isArray(products)) {
-      return NextResponse.json(
-        { success: false, message: "Products array and rowConfiguration are required" },
-        { status: 400 },
-      )
+    if (!products || !Array.isArray(products)) {
+      return NextResponse.json({ success: false, message: "Products array is required" }, { status: 400 })
     }
 
-    let heroParallaxData = await HeroParallaxProducts.findOne()
+    let heroParallaxProducts = await HeroParallaxProducts.findOne()
 
-    if (heroParallaxData) {
-      heroParallaxData.products = products
-      heroParallaxData.rowConfiguration = rowConfiguration
-      await heroParallaxData.save()
+    if (heroParallaxProducts) {
+      heroParallaxProducts.products = products
+      heroParallaxProducts.rowConfiguration = rowConfiguration || heroParallaxProducts.rowConfiguration
+      await heroParallaxProducts.save()
     } else {
-      heroParallaxData = await HeroParallaxProducts.create({
+      heroParallaxProducts = await HeroParallaxProducts.create({
         products,
-        rowConfiguration,
+        rowConfiguration: rowConfiguration || {
+          firstRowCount: 8,
+          secondRowCount: 8,
+          thirdRowCount: 9,
+        },
       })
     }
 
-    return NextResponse.json({ success: true, data: heroParallaxData })
+    return NextResponse.json({ success: true, data: heroParallaxProducts })
   } catch (error) {
-    console.error("Error updating hero parallax data:", error)
-    return NextResponse.json({ success: false, message: "Failed to update hero parallax data" }, { status: 500 })
+    console.error("Error updating hero parallax products:", error)
+    return NextResponse.json({ success: false, message: "Failed to update hero parallax products" }, { status: 500 })
   }
 }

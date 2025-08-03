@@ -1,75 +1,43 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { MapPin, Phone, Clock, ExternalLink } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface LocationModalProps {
-  isOpen: boolean
-  onClose: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function LocationModal({ isOpen, onClose }: LocationModalProps) {
-  const locationInfo = {
-    address: "123 Coffee Street, Brew City, BC 12345",
-    phone: "+1 (555) 123-4567",
-    hours: {
-      weekdays: "Monday - Friday: 7:00 AM - 9:00 PM",
-      weekends: "Saturday - Sunday: 8:00 AM - 10:00 PM",
-    },
-    mapUrl: "https://maps.google.com/?q=123+Coffee+Street+Brew+City",
-  }
-
+export default function LocationModal({ open, onOpenChange }: LocationModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange} >
+      <DialogContent className=" sm:max-w-[600px] w-[80%] p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-orange-500" />
-            Our Location
+          <DialogTitle className="text-2xl sm:text-3xl font-bold text-center text-[#EC4E20] uppercase">
+            Visit Foreigner Cafe
           </DialogTitle>
+          <DialogDescription className="text-center text-muted-foreground text-sm sm:text-base">
+            Find us at our cozy spot and enjoy our craft.
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Address</p>
-                <p className="text-gray-600">{locationInfo.address}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Phone className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Phone</p>
-                <a
-                  href={`tel:${locationInfo.phone}`}
-                  className="text-orange-500 hover:text-orange-600 transition-colors"
-                >
-                  {locationInfo.phone}
-                </a>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Clock className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Hours</p>
-                <p className="text-gray-600">{locationInfo.hours.weekdays}</p>
-                <p className="text-gray-600">{locationInfo.hours.weekends}</p>
-              </div>
-            </div>
+        <div className=" grid gap-3 sm:gap-4 py-3 sm:py-4">
+          <div className="text-center">
+            <h3 className="font-semibold text-sm sm:text-md">Our Location:</h3>
+            <p className="text-gray-600 text-sm sm:text-md">60 E 3rd Ave Ste 108, San Mateo, CA 94401</p>
+            <p className="text-gray-600 text-xs sm:text-sm">Open Daily: 7:00 AM - 8:00 PM</p>
           </div>
-
-          <div className="flex gap-3">
-            <Button onClick={() => window.open(locationInfo.mapUrl, "_blank")} className="flex-1">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              View on Map
-            </Button>
-            <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
-              Close
-            </Button>
+          {/* Responsive Google Map Embed */}
+          <div className="relative w-full aspect-video rounded-[0.5rem] overflow-hidden shadow-lg border border-gray-200">
+            <iframe
+             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3154.8234567890123!2d-122.32500000000001!3d37.5630000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808f9ffb12544205%3A0x5e89d06013ecbdc!2sForeigner%20Cafe!5e0!3m2!1sen!2sus!4v1678901234567!5m2!1sen!2sus"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              aria-label="Google Map of Foreigner Cafe location"
+              className="rounded-lg"
+            />
           </div>
         </div>
       </DialogContent>

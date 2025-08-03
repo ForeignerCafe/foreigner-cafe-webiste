@@ -1,187 +1,174 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import Image from "next/image"
 import Link from "next/link"
-import { Calendar, Clock, User, ArrowRight } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Calendar, Tag } from "lucide-react"
 
 interface Blog {
   _id: string
   title: string
   slug: string
-  excerpt: string
-  featuredImage?: string
-  category?: {
-    name: string
-    slug: string
-  }
-  author?: {
-    name: string
-  }
+  shortCaption: string
+  mainImage?: string
   publishedAt: string
-  readTime?: number
-  tags?: string[]
+  tags: string[]
 }
 
-export function LatestBlogsBento() {
-  const [blogs, setBlogs] = useState<Blog[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+async function getLatestBlogs(): Promise<Blog[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`
+      : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+    const url = `${baseUrl}/blog/public`
 
-  useEffect(() => {
-    fetchBlogs()
-  }, [])
-
-  const fetchBlogs = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch("/api/blog/public")
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && Array.isArray(data.blogs)) {
-          setBlogs(data.blogs.slice(0, 6)) // Get latest 6 blogs
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch blogs:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
-  }
 
-  if (isLoading) {
-    return (
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-300 rounded w-96 mx-auto mb-8"></div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-64 bg-gray-300 rounded-lg mb-4"></div>
-                <div className="h-6 bg-gray-300 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-full mb-4"></div>
-                <div className="h-4 bg-gray-300 rounded w-2/3"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`)
+    }
+
+    const data = await res.json()
+    const blogs = data.blogs || []
+
+    // Return only the latest 5 blogs
+    return blogs.slice(0, 5)
+  } catch (error) {
+    console.error("Error fetching latest blogs:", error)
+    return []
   }
+}
+
+export default async function LatestBlogsBento() {
+  const blogs = await getLatestBlogs()
 
   if (blogs.length === 0) {
-    return (
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Latest from Our Blog</h2>
-            <p className="text-gray-600">No blog posts available at the moment.</p>
-          </div>
-        </div>
-      </section>
-    )
+    return null
   }
+
+  const [featuredBlog, ...otherBlogs] = blogs
 
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Latest from Our Blog</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Latest Stories</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Stay updated with our latest stories, coffee tips, and community highlights
+            Discover the latest updates, stories, and highlights from our community
           </p>
         </div>
 
-        {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {blogs.map((blog, index) => (
-            <Card
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {/* Featured Blog - Takes up 2 columns on large screens */}
+          {featuredBlog && (
+            <article className="lg:col-span-2 lg:row-span-2 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <Link href={`/blogs/${featuredBlog.slug}`}>
+                <div className="relative h-64 lg:h-80 w-full">
+                  <Image
+                    src={
+                      featuredBlog.mainImage ||
+                      "/placeholder.svg?height=400&width=600&query=featured+blog+post" ||
+                      "/placeholder.svg"
+                    }
+                    alt={featuredBlog.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <div className="flex items-center text-sm mb-3">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      {new Date(featuredBlog.publishedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 group-hover:text-orange-300 transition-colors">
+                      {featuredBlog.title}
+                    </h3>
+                    <p className="text-gray-200 line-clamp-2 mb-4">{featuredBlog.shortCaption}</p>
+                    {featuredBlog.tags?.length > 0 && (
+                      <div className="flex items-center flex-wrap gap-2">
+                        <Tag className="w-4 h-4" />
+                        {featuredBlog.tags.slice(0, 2).map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            </article>
+          )}
+
+          {/* Other Blogs - Smaller cards */}
+          {otherBlogs.map((blog, index) => (
+            <article
               key={blog._id}
-              className={`group overflow-hidden hover:shadow-xl transition-all duration-300 ${
-                index === 0 ? "md:col-span-2 md:row-span-2" : ""
+              className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group ${
+                index === 0 ? "lg:col-span-2" : "lg:col-span-1"
               }`}
             >
-              <div className="relative overflow-hidden">
-                <img
-                  src={blog.featuredImage || "/placeholder.svg?height=300&width=400"}
-                  alt={blog.title}
-                  className={`w-full object-cover group-hover:scale-105 transition-transform duration-300 ${
-                    index === 0 ? "h-64 md:h-80" : "h-48"
-                  }`}
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
-                {blog.category && (
-                  <Badge className="absolute top-4 left-4 bg-orange-500 text-white">{blog.category.name}</Badge>
-                )}
-              </div>
-              <CardContent className={`p-6 ${index === 0 ? "md:p-8" : ""}`}>
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatDate(blog.publishedAt)}</span>
-                  </div>
-                  {blog.readTime && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{blog.readTime} min read</span>
-                    </div>
-                  )}
-                  {blog.author && (
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      <span>{blog.author.name}</span>
-                    </div>
-                  )}
+              <Link href={`/blogs/${blog.slug}`}>
+                <div className="relative h-48 w-full">
+                  <Image
+                    src={
+                      blog.mainImage || "/placeholder.svg?height=300&width=400&query=blog+post" || "/placeholder.svg"
+                    }
+                    alt={blog.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <h3
-                  className={`font-bold text-gray-900 mb-3 group-hover:text-orange-500 transition-colors ${
-                    index === 0 ? "text-2xl md:text-3xl" : "text-xl"
-                  }`}
-                >
-                  <Link href={`/blogs/${blog.slug}`}>{blog.title}</Link>
-                </h3>
-                <p className={`text-gray-600 mb-4 leading-relaxed ${index === 0 ? "text-lg" : ""}`}>{blog.excerpt}</p>
-                {blog.tags && blog.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {blog.tags.slice(0, 3).map((tag, tagIndex) => (
-                      <Badge key={tagIndex} variant="secondary" className="text-xs">
+              </Link>
+              <div className="p-6">
+                <div className="flex items-center text-sm text-gray-500 mb-3">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  {new Date(blog.publishedAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </div>
+                <Link href={`/blogs/${blog.slug}`}>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors line-clamp-2">
+                    {blog.title}
+                  </h3>
+                </Link>
+                <p className="text-gray-600 text-sm line-clamp-2 mb-4">{blog.shortCaption}</p>
+                {blog.tags?.length > 0 && (
+                  <div className="flex items-center flex-wrap gap-2">
+                    <Tag className="w-3 h-3 text-gray-400" />
+                    {blog.tags.slice(0, 2).map((tag, tagIndex) => (
+                      <span key={tagIndex} className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
                         {tag}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
                 )}
-                <Link href={`/blogs/${blog.slug}`}>
-                  <Button variant="ghost" className="p-0 h-auto text-orange-500 hover:text-orange-600">
-                    Read More
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+              </div>
+            </article>
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="text-center">
-          <Link href="/blogs">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3">
-              View All Blog Posts
-            </Button>
+        {/* View All Blogs Link */}
+        <div className="text-center mt-12">
+          <Link
+            href="/blogs"
+            className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors duration-200"
+          >
+            View All Stories
+            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </Link>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
 import { HeaderContent } from "@/models/CMSContent"
 
@@ -8,27 +8,33 @@ export async function GET() {
 
     let headerContent = await HeaderContent.findOne()
 
+    // Create default content if none exists
     if (!headerContent) {
       headerContent = await HeaderContent.create({
         logo: "FOREIGNER CAFE",
         topNavItems: [
+          { label: "DINE", href: "/", isExternal: false },
+          { label: "EVENTS", href: "/events", isExternal: false },
+          { label: "SHOP", href: "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue", isExternal: true },
+          { label: "CATERING", href: "/catering", isExternal: false },
           {
-            label: "Order Online",
-            href: "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
+            label: "GIFT VOUCHERS",
+            href: "https://www.toasttab.com/foreigner-60-east-3rd-avenue/giftcards",
             isExternal: true,
           },
-          { label: "Careers", href: "/careers" },
-          { label: "Gift Cards", href: "/gift-cards" },
         ],
         mainNavItems: [
-          { label: "Home", href: "/", action: "navigate" },
-          { label: "About", href: "/about", action: "navigate" },
-          { label: "Menu", href: "/menu", action: "navigate" },
-          { label: "Events", href: "/events", action: "navigate" },
-          { label: "Catering", href: "/catering", action: "navigate" },
-          { label: "Contact", action: "modal", sectionId: "contact" },
+          { label: "HOME", action: "scroll", sectionId: "home" },
+          {
+            label: "MENU",
+            action: "external",
+            href: "https://mhm-timber.s3.amazonaws.com/public/member/r9bJd/lurgtAi7r1j5/morningbreakfastmenuexamplecompressed.pdf",
+          },
+          { label: "ABOUT US", action: "scroll", sectionId: "story" },
+          { label: "EXPERIENCES", action: "navigate", href: "/experiences" },
+          { label: "FAQS", action: "navigate", href: "/faqs" },
         ],
-        reserveButtonText: "RESERVE TABLE",
+        reserveButtonText: "RESERVE",
       })
     }
 
@@ -39,12 +45,19 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     await connectDB()
 
     const body = await request.json()
     const { logo, topNavItems, mainNavItems, reserveButtonText } = body
+
+    if (!logo || !topNavItems || !mainNavItems) {
+      return NextResponse.json(
+        { success: false, message: "Logo, topNavItems, and mainNavItems are required" },
+        { status: 400 },
+      )
+    }
 
     let headerContent = await HeaderContent.findOne()
 
@@ -52,14 +65,14 @@ export async function PUT(request: Request) {
       headerContent.logo = logo
       headerContent.topNavItems = topNavItems
       headerContent.mainNavItems = mainNavItems
-      headerContent.reserveButtonText = reserveButtonText
+      headerContent.reserveButtonText = reserveButtonText || "RESERVE"
       await headerContent.save()
     } else {
       headerContent = await HeaderContent.create({
         logo,
         topNavItems,
         mainNavItems,
-        reserveButtonText,
+        reserveButtonText: reserveButtonText || "RESERVE",
       })
     }
 

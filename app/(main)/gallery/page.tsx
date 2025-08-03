@@ -1,153 +1,161 @@
-import type { Metadata } from "next"
-import Image from "next/image"
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import axiosInstance from "@/lib/axios"
 
 interface GalleryImage {
-  url: string
+  id: number
+  src: string
   alt: string
-  caption: string
+  caption?: string
 }
 
 interface GallerySection {
-  title: string
-  description: string
+  id: number
+  name: string
+  description?: string
   images: GalleryImage[]
 }
 
-interface GalleryContent {
-  title: string
-  subtitle: string
+interface GalleryData {
   sections: GallerySection[]
 }
 
-async function getGalleryContent(): Promise<GalleryContent | null> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`
-      : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-    const url = `${baseUrl}/cms/gallery`
+export default function GalleryPage() {
+  const [galleryData, setGalleryData] = useState<GalleryData>({ sections: [] })
+  const [isLoading, setIsLoading] = useState(true)
+  const [selectedSection, setSelectedSection] = useState<number | null>(null)
 
-    const res = await fetch(url, {
-      cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+  useEffect(() => {
+    fetchGalleryData()
+  }, [])
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`)
+  const fetchGalleryData = async () => {
+    try {
+      setIsLoading(true)
+      const response = await axiosInstance.get("/api/cms/gallery")
+      if (response.data.success) {
+        setGalleryData(response.data.data)
+        if (response.data.data.sections.length > 0) {
+          setSelectedSection(response.data.data.sections[0].id)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch gallery data:", error)
+    } finally {
+      setIsLoading(false)
     }
-
-    const data = await res.json()
-    return data.content
-  } catch (error) {
-    console.error("Error fetching gallery content:", error)
-    return null
   }
-}
 
-export const metadata: Metadata = {
-  title: "Gallery | Foreigner Cafe - Photos & Moments",
-  description: "Explore our gallery showcasing the ambiance, delicious food, and memorable moments at Foreigner Cafe.",
-  keywords: "Foreigner Cafe gallery, cafe photos, food photography, ambiance, interior",
-  openGraph: {
-    title: "Gallery | Foreigner Cafe",
-    description:
-      "Explore our gallery showcasing the ambiance, delicious food, and memorable moments at Foreigner Cafe.",
-    type: "website",
-    url: "/gallery",
-    images: [
-      {
-        url: "/placeholder.svg?height=630&width=1200",
-        width: 1200,
-        height: 630,
-        alt: "Foreigner Cafe Gallery",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Gallery | Foreigner Cafe",
-    description:
-      "Explore our gallery showcasing the ambiance, delicious food, and memorable moments at Foreigner Cafe.",
-    images: ["/placeholder.svg?height=630&width=1200"],
-  },
-}
+  const selectedSectionData = galleryData.sections.find((section) => section.id === selectedSection)
 
-export default async function GalleryPage() {
-  const galleryContent = await getGalleryContent()
-
-  if (!galleryContent) {
+  if (isLoading) {
     return (
-      <main className="min-h-screen bg-white">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Gallery</h1>
-            <p className="text-gray-600">Gallery content is currently unavailable.</p>
+      <div className="min-h-screen bg-gray-50 pt-32 pb-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Skeleton className="h-12 w-64 mx-auto mb-4" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-10 w-32" />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Skeleton key={i} className={`rounded-lg ${i % 3 === 0 ? "md:row-span-2 h-96" : "h-48"}`} />
+            ))}
           </div>
         </div>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section
-        className="relative bg-cover bg-center bg-no-repeat h-[400px] flex items-center justify-center"
-        style={{
-          backgroundImage: "url('/placeholder.svg?height=400&width=1200')",
-        }}
-      >
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/50 z-0" />
-
-        {/* Text content */}
-        <div className="relative z-10 text-center text-white px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg">{galleryContent.title}</h1>
-          <p className="text-xl max-w-2xl mx-auto drop-shadow-md">{galleryContent.subtitle}</p>
+    <div className="min-h-screen bg-gray-50 pt-32 pb-20">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 uppercase">Gallery</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">Explore moments and memories from our cafe</p>
         </div>
-      </section>
 
-      {/* Gallery Sections */}
-      <div className="container mx-auto px-4 py-16">
-        {galleryContent.sections.map((section, sectionIndex) => (
-          <section key={sectionIndex} className="mb-16">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{section.title}</h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">{section.description}</p>
-            </div>
+        {/* Section Filters */}
+        {galleryData.sections.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
+            {galleryData.sections.map((section) => (
+              <Badge
+                key={section.id}
+                variant={selectedSection === section.id ? "default" : "outline"}
+                className={`cursor-pointer px-6 py-2 text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                  selectedSection === section.id
+                    ? "bg-orange-500 text-white hover:bg-orange-600"
+                    : "text-gray-600 hover:text-orange-500 hover:border-orange-500"
+                }`}
+                onClick={() => setSelectedSection(section.id)}
+              >
+                {section.name}
+              </Badge>
+            ))}
+          </div>
+        )}
 
-            {/* Bento Grid Layout */}
-            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-              {section.images.map((image, imageIndex) => (
-                <div
-                  key={imageIndex}
-                  className="break-inside-avoid group relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="relative">
-                    <Image
-                      src={image.url || "/placeholder.svg"}
-                      alt={image.alt}
-                      width={400}
-                      height={300}
-                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
-                      style={{
-                        aspectRatio: "auto",
-                      }}
-                    />
-                    {/* Overlay with caption */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <p className="text-white text-sm font-medium">{image.caption}</p>
-                      </div>
+        {/* Selected Section Description */}
+        {selectedSectionData?.description && (
+          <div className="text-center mb-8">
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">{selectedSectionData.description}</p>
+          </div>
+        )}
+
+        {/* Gallery Grid */}
+        {selectedSectionData && selectedSectionData.images.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
+            {selectedSectionData.images.map((image, index) => (
+              <Card
+                key={image.id}
+                className={`group overflow-hidden hover:shadow-xl transition-all duration-300 ${
+                  index % 3 === 0 ? "md:row-span-2" : ""
+                }`}
+              >
+                <div className="relative overflow-hidden">
+                  <img
+                    src={image.src || "/placeholder.svg"}
+                    alt={image.alt}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
+
+                  {/* Caption Overlay */}
+                  {image.caption && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                      <p className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        {image.caption}
+                      </p>
                     </div>
-                  </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </section>
-        ))}
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-gray-500 text-lg">No images available in this section.</p>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {galleryData.sections.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-gray-500 text-lg">Gallery is being updated. Please check back soon!</p>
+          </div>
+        )}
       </div>
-    </main>
+    </div>
   )
 }

@@ -1,282 +1,325 @@
-"use client"
+"use client";
+import { useState } from "react";
+import { ReservationModal } from "./reserveModal";
+import { useRouter } from "next/navigation";
+import { Facebook, Instagram, Globe } from "lucide-react";
+import toast from "react-hot-toast";
 
-import type React from "react"
+export default function Footer() {
+  const [email, setEmail] = useState("");
+  const router = useRouter();
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"reservation" | "contact">(
+    "reservation"
+  );
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ContactModal } from "@/components/ContactModal"
-import { LocationModal } from "@/components/location-modal"
-import toast from "react-hot-toast"
-
-interface FooterLink {
-  label: string
-  href?: string
-  action?: string
-  sectionId?: string
-}
-
-interface FooterSection {
-  title: string
-  links: FooterLink[]
-}
-
-interface SocialMedia {
-  platform: string
-  url: string
-  icon: string
-}
-
-interface FooterContent {
-  sections: FooterSection[]
-  contactInfo: {
-    address: string
-    phone: string
-    email: string
-    hours: {
-      weekdays: string
-      weekends: string
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }
-  socialMedia: SocialMedia[]
-  newsletterSection: {
-    title: string
-    description: string
-  }
-  copyright: string
-}
+  };
 
-export function Footer() {
-  const [footerContent, setFooterContent] = useState<FooterContent | null>(null)
-  const [email, setEmail] = useState("")
-  const [isSubscribing, setIsSubscribing] = useState(false)
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
+  const openReservationModal = () => {
+    setModalType("reservation");
+    setIsReservationModalOpen(true);
+  };
 
-  useEffect(() => {
-    fetchFooterContent()
-  }, [])
+  const openContactModal = () => {
+    setModalType("contact");
+    setIsReservationModalOpen(true);
+  };
 
-  const fetchFooterContent = async () => {
-    try {
-      const response = await fetch("/api/cms/footer")
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          setFooterContent(data.data)
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch footer content:", error)
-    }
-  }
-
-  const handleLinkClick = (link: FooterLink) => {
-    if (link.action === "scroll" && link.sectionId) {
-      const element = document.getElementById(link.sectionId)
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" })
-      }
-    } else if (link.action === "modal") {
-      if (link.sectionId === "contact") {
-        setIsContactModalOpen(true)
-      } else if (link.sectionId === "location") {
-        setIsLocationModalOpen(true)
-      }
-    }
-  }
-
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubscribe = async () => {
+    const toastId = toast.loading("Subscribing...");
     if (!email) {
-      toast.error("Please enter your email address")
-      return
+      toast.error("Please enter a valid email", { id: toastId });
+      return;
     }
-
-    setIsSubscribing(true)
     try {
-      const response = await fetch("/api/newsletter", {
+      const res = await fetch("/api/subscribers", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      })
-
-      if (response.ok) {
-        toast.success("Thank you for subscribing to our newsletter!")
-        setEmail("")
+      });
+      if (res.ok) {
+        setEmail("");
+        toast.success("Subscribed successfully!", { id: toastId });
+      } else if (res.status === 409) {
+        toast.error("Already subscribed!", { id: toastId });
       } else {
-        const data = await response.json()
-        toast.error(data.message || "Failed to subscribe. Please try again.")
+        toast.error("Subscription failed!", { id: toastId });
       }
     } catch (error) {
-      toast.error("Failed to subscribe. Please try again.")
-    } finally {
-      setIsSubscribing(false)
+      console.error("Subscription error:", error);
+      toast.error("Something went wrong.", { id: toastId });
     }
-  }
-
-  const getSocialIcon = (iconName: string) => {
-    switch (iconName.toLowerCase()) {
-      case "facebook":
-        return <Facebook className="w-5 h-5" />
-      case "instagram":
-        return <Instagram className="w-5 h-5" />
-      case "twitter":
-        return <Twitter className="w-5 h-5" />
-      case "linkedin":
-        return <Linkedin className="w-5 h-5" />
-      default:
-        return <Mail className="w-5 h-5" />
-    }
-  }
-
-  if (!footerContent) {
-    return (
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <p>Loading footer content...</p>
-          </div>
-        </div>
-      </footer>
-    )
-  }
+  };
 
   return (
-    <>
-      <footer className="bg-gray-900 text-white">
-        {/* Newsletter Section */}
-        <div className="bg-orange-500 py-12">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                {footerContent.newsletterSection.title}
-              </h3>
-              <p className="text-lg text-white/90 mb-8">{footerContent.newsletterSection.description}</p>
-              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                <Input
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 bg-white text-gray-900 border-0 focus:ring-2 focus:ring-white"
-                  required
-                />
-                <Button
-                  type="submit"
-                  disabled={isSubscribing}
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-2 whitespace-nowrap"
+    <footer id="contact" className="bg-black text-white section-padding">
+      <div className="max-w-7xl mx-auto container-padding">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
+          {/* About Us */}
+          <div className="animate-fade-in-up">
+            <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">
+              ABOUT US
+            </h4>
+            <ul className="space-y-4">
+              <li>
+                <button
+                  onClick={() => scrollToSection("story")}
+                  className="text-sm text-gray-300 hover:text-orange transition-colors duration-200 text-left"
                 >
-                  {isSubscribing ? "Subscribing..." : "Subscribe"}
-                </Button>
-              </form>
-            </div>
+                  Our Story
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() =>
+                    window.open(
+                      "https://www.google.com/maps/place/foreigner+cafe+san+mateo/data=!4m2!3m1!1s0x808f9ffb12544205:0x5e89d06013ecbdc?sa=X&ved=1t:242&ictx=111",
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                  className="text-sm text-gray-300 hover:text-orange transition-colors duration-200 text-left"
+                >
+                  Location
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    openContactModal();
+                  }}
+                  className="text-sm text-gray-300 hover:text-orange transition-colors duration-200 text-left"
+                >
+                  Contact Us
+                </button>
+              </li>
+            </ul>
           </div>
-        </div>
 
-        {/* Main Footer Content */}
-        <div className="py-12">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {/* Contact Information */}
-              <div className="lg:col-span-1">
-                <h3 className="text-xl font-bold mb-6">Contact Info</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <MapPin className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
-                    <p className="text-gray-300">{footerContent.contactInfo.address}</p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-5 h-5 text-orange-500 flex-shrink-0" />
-                    <a
-                      href={`tel:${footerContent.contactInfo.phone}`}
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      {footerContent.contactInfo.phone}
-                    </a>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-orange-500 flex-shrink-0" />
-                    <a
-                      href={`mailto:${footerContent.contactInfo.email}`}
-                      className="text-gray-300 hover:text-white transition-colors"
-                    >
-                      {footerContent.contactInfo.email}
-                    </a>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <Clock className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
-                    <div className="text-gray-300">
-                      <p>{footerContent.contactInfo.hours.weekdays}</p>
-                      <p>{footerContent.contactInfo.hours.weekends}</p>
-                    </div>
-                  </div>
-                </div>
+          {/* Location & Hours */}
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">
+              LOCATION & HOURS
+            </h4>
+            <div className="space-y-4 text-sm text-gray-300">
+              <div>
+                <p>
+                  Foreigner Cafe, 60 E 3rd Ave Ste 108, San Mateo, CA 94401,
+                  United States
+                </p>
               </div>
-
-              {/* Footer Sections */}
-              {footerContent.sections.map((section, index) => (
-                <div key={index}>
-                  <h3 className="text-xl font-bold mb-6">{section.title}</h3>
-                  <ul className="space-y-3">
-                    {section.links.map((link, linkIndex) => (
-                      <li key={linkIndex}>
-                        {link.action === "navigate" || link.action === "external" ? (
-                          <Link
-                            href={link.href || "#"}
-                            className="text-gray-300 hover:text-white transition-colors"
-                            {...(link.action === "external" && { target: "_blank", rel: "noopener noreferrer" })}
-                          >
-                            {link.label}
-                          </Link>
-                        ) : (
-                          <button
-                            onClick={() => handleLinkClick(link)}
-                            className="text-gray-300 hover:text-white transition-colors text-left"
-                          >
-                            {link.label}
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800 py-6">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-              <p className="text-gray-400 text-center md:text-left">{footerContent.copyright}</p>
-              <div className="flex items-center space-x-4">
-                {footerContent.socialMedia.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-white transition-colors"
-                    aria-label={`Follow us on ${social.platform}`}
-                  >
-                    {getSocialIcon(social.icon)}
-                  </a>
-                ))}
+              <div>
+                <p className="font-medium text-white">
+                  Mon-Fri: 8:00am - 4:00pm
+                </p>
+                <p className="font-medium text-white">
+                  Sat-Sun: 8:30am - 4:00pm
+                </p>
+              </div>
+              <div>
+                <p>+1 (650) 620 1888</p>
+                <p>service@foreignercafe.com</p>
               </div>
             </div>
           </div>
-        </div>
-      </footer>
 
-      {/* Modals */}
-      <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
-      <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
-    </>
-  )
+          {/* Services */}
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">
+              SERVICES
+            </h4>
+            <ul className="space-y-4">
+              <li>
+                <button
+                  onClick={() =>
+                    window.open(
+                      "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                  className="text-sm text-gray-300 hover:text-orange transition-colors duration-200 text-left"
+                >
+                  Takeaway
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() =>
+                    window.open(
+                      "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                  className="text-sm text-gray-300 hover:text-orange transition-colors duration-200 text-left"
+                >
+                  Delivery
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() =>
+                    window.open(
+                      "https://www.toasttab.com/foreigner-60-east-3rd-avenue/giftcards",
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                  className="text-sm text-gray-300 hover:text-orange transition-colors duration-200 text-left"
+                >
+                  Gift Cards
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => router.push("/events")}
+                  className="text-sm text-gray-300 hover:text-orange transition-colors duration-200 text-left"
+                >
+                  Events
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "0.3s" }}
+          >
+            <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">
+              STAY CONNECTED
+            </h4>
+            <p className="text-sm text-gray-300 mb-6 leading-relaxed">
+              Receive The Foreigner Cafe news directly to you.
+            </p>
+            <div className="flex mb-6">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className="flex-1 px-4 py-3 bg-white text-black text-sm focus:outline-none focus:ring-2 focus:ring-orange"
+              />
+              <button
+                onClick={handleSubscribe}
+                className="bg-orange text-white px-6 py-3 text-sm hover:bg-white hover:text-black transition-colors duration-200 font-medium"
+              >
+                →
+              </button>
+            </div>
+            {/* Social Media */}
+            <div className="flex space-x-4">
+              {/* Facebook */}
+              <button
+                onClick={() =>
+                  window.open(
+                    "https://www.facebook.com/foreignercafe/",
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
+                aria-label="Visit Foreigner Cafe Facebook"
+                className="w-10 h-10 bg-gray-800 hover:bg-orange text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+              >
+                <Facebook className="w-5 h-5" />
+              </button>
+              {/* Instagram */}
+              <button
+                onClick={() =>
+                  window.open(
+                    "https://www.instagram.com/foreignercafe/?hl=en",
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
+                aria-label="Visit Foreigner Cafe Instagram"
+                className="w-10 h-10 bg-gray-800 hover:bg-orange text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+              >
+                <Instagram className="w-5 h-5" />
+              </button>
+              {/* Google */}
+              <button
+                onClick={() =>
+                  window.open(
+                    "https://www.google.com/maps/place/Foreigner+Cafe/@37.5637466,-122.3247235,17z/data=!3m1!4b1!4m6!3m5!1s0x808f9ffb12544205:0x5e89d06013ecbdc!8m2!3d37.5637466!4d-122.3247235!16s%2Fg%2F11h0m6rnjj?entry=ttu&g_ep=EgoyMDI1MDcyMi4wIKXMDSoASAFQAw%3D%3D",
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
+                aria-label="View Foreigner Cafe on Google Maps"
+                className="w-10 h-10 bg-gray-800 hover:bg-orange text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+              >
+                <Globe className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Section */}
+        <div className="border-t border-gray-800 pt-12">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-6 md:mb-0">
+              <button
+                onClick={() => scrollToSection("home")}
+                className="text-2xl font-display font-bold text-white hover:text-orange transition-colors duration-200"
+              >
+                FOREIGNER CAFE
+              </button>
+            </div>
+            <div className="flex flex-wrap justify-center md:justify-end space-x-8 text-xs text-gray-400 mb-6 md:mb-0">
+              <button
+                onClick={() => openReservationModal()}
+                className="hover:text-orange transition-colors duration-200 tracking-wide"
+              >
+                RESERVE
+              </button>
+              <button
+                onClick={() => router.push("/privacy")}
+                className="hover:text-orange transition-colors duration-200 tracking-wide"
+              >
+                PRIVACY
+              </button>
+              <button
+                onClick={() => router.push("/privacy")}
+                className="hover:text-orange transition-colors duration-200 tracking-wide"
+              >
+                TERMS
+              </button>
+            </div>
+          </div>
+          <div className="text-center mt-8">
+            <p className="text-xs text-gray-500 tracking-wide">
+              © {new Date().getFullYear()} The Foreigner Cafe. Website by{" "}
+              <a
+                href="https://cybitronix.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-gray-700"
+              >
+                Cybitronix
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <ReservationModal
+        open={isReservationModalOpen}
+        onOpenChange={setIsReservationModalOpen}
+        isContactForm={modalType === "contact"}
+      />
+    </footer>
+  );
 }
