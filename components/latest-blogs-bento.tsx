@@ -20,14 +20,15 @@ async function getLatestBlogs(): Promise<Blog[]> {
     const url = `${baseUrl}/blog/public`
 
     const res = await fetch(url, {
-      cache: "no-store",
+      next: { revalidate: 300 }, // Revalidate every 5 minutes
       headers: {
         "Content-Type": "application/json",
       },
     })
 
     if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`)
+      console.error(`Blog fetch failed with status: ${res.status}`)
+      return []
     }
 
     const data = await res.json()
@@ -120,9 +121,7 @@ export default async function LatestBlogsBento() {
               <Link href={`/blogs/${blog.slug}`}>
                 <div className="relative h-48 w-full">
                   <Image
-                    src={
-                      blog.mainImage || "/placeholder.svg?height=300&width=400&query=blog+post" || "/placeholder.svg"
-                    }
+                    src={blog.mainImage || "/placeholder.svg?height=300&width=400&query=blog+post"}
                     alt={blog.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"

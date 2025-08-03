@@ -1,16 +1,19 @@
 "use client"
+
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { ReservationModal } from "./reserveModal"
-import { useRouter } from "next/navigation"
-import { Facebook, Instagram, Globe } from "lucide-react"
-import toast from "react-hot-toast"
-import axiosInstance from "@/lib/axios"
+import Link from "next/link"
+import Image from "next/image"
+import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 
 interface FooterLink {
   label: string
-  href?: string
-  action?: string
-  sectionId?: string
+  href: string
+  type?: "address" | "phone" | "email"
 }
 
 interface FooterSection {
@@ -25,168 +28,117 @@ interface SocialMedia {
 }
 
 interface FooterContent {
-  sections: FooterSection[]
-  contactInfo: {
-    address: string
-    phone: string
-    email: string
-    hours: {
-      weekdays: string
-      weekends: string
-    }
+  logo: {
+    text: string
+    image: string
   }
+  description: string
+  sections: FooterSection[]
   socialMedia: SocialMedia[]
-  newsletterSection: {
+  newsletter: {
     title: string
     description: string
+    placeholder: string
   }
   copyright: string
+  policies: FooterLink[]
 }
 
 export default function Footer() {
-  const [email, setEmail] = useState("")
-  const router = useRouter()
-  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
-  const [modalType, setModalType] = useState<"reservation" | "contact">("reservation")
-  const [footerContent, setFooterContent] = useState<FooterContent>({
-    sections: [],
-    contactInfo: {
-      address: "",
-      phone: "",
-      email: "",
-      hours: {
-        weekdays: "",
-        weekends: "",
-      },
-    },
-    socialMedia: [],
-    newsletterSection: {
-      title: "STAY CONNECTED",
-      description: "Receive The Foreigner Cafe news directly to you.",
-    },
-    copyright: "",
-  })
+  const [footerContent, setFooterContent] = useState<FooterContent | null>(null)
   const [loading, setLoading] = useState(true)
+  const [email, setEmail] = useState("")
+  const [subscribing, setSubscribing] = useState(false)
 
-  // Fetch footer content
   useEffect(() => {
+    const fetchFooterContent = async () => {
+      try {
+        const response = await fetch("/api/cms/footer")
+        if (response.ok) {
+          const data = await response.json()
+          setFooterContent(data.content)
+        }
+      } catch (error) {
+        console.error("Error fetching footer content:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchFooterContent()
   }, [])
 
-  const fetchFooterContent = async () => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+
+    setSubscribing(true)
     try {
-      const response = await axiosInstance.get("/api/cms/footer")
-      if (response.data.success) {
-        setFooterContent(response.data.data)
-      }
-    } catch (error) {
-      console.error("Failed to fetch footer content:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
-  }
-
-  const openReservationModal = () => {
-    setModalType("reservation")
-    setIsReservationModalOpen(true)
-  }
-
-  const openContactModal = () => {
-    setModalType("contact")
-    setIsReservationModalOpen(true)
-  }
-
-  const handleLinkClick = (link: FooterLink) => {
-    switch (link.action) {
-      case "scroll":
-        if (link.sectionId) {
-          scrollToSection(link.sectionId)
-        }
-        break
-      case "navigate":
-        if (link.href) {
-          router.push(link.href)
-        }
-        break
-      case "external":
-        if (link.href) {
-          window.open(link.href, "_blank", "noopener,noreferrer")
-        }
-        break
-      case "modal":
-        openContactModal()
-        break
-      default:
-        if (link.href) {
-          window.open(link.href, "_blank", "noopener,noreferrer")
-        }
-        break
-    }
-  }
-
-  const handleSubscribe = async () => {
-    const toastId = toast.loading("Subscribing...")
-    if (!email) {
-      toast.error("Please enter a valid email", { id: toastId })
-      return
-    }
-    try {
-      const res = await fetch("/api/subscribers", {
+      const response = await fetch("/api/newsletter", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email }),
       })
-      if (res.ok) {
+
+      if (response.ok) {
+        toast.success("Successfully subscribed to newsletter!")
         setEmail("")
-        toast.success("Subscribed successfully!", { id: toastId })
-      } else if (res.status === 409) {
-        toast.error("Already subscribed!", { id: toastId })
       } else {
-        toast.error("Subscription failed!", { id: toastId })
+        const data = await response.json()
+        toast.error(data.message || "Failed to subscribe")
       }
     } catch (error) {
-      console.error("Subscription error:", error)
-      toast.error("Something went wrong.", { id: toastId })
+      toast.error("Failed to subscribe. Please try again.")
+    } finally {
+      setSubscribing(false)
     }
   }
 
-  const getIconComponent = (iconName: string) => {
+  const getSocialIcon = (iconName: string) => {
     switch (iconName) {
-      case "Facebook":
-        return Facebook
-      case "Instagram":
-        return Instagram
-      case "Globe":
-        return Globe
+      case "facebook":
+        return <Facebook size={20} />
+      case "instagram":
+        return <Instagram size={20} />
+      case "twitter":
+        return <Twitter size={20} />
+      case "linkedin":
+        return <Linkedin size={20} />
       default:
-        return Globe
+        return null
+    }
+  }
+
+  const getLinkIcon = (type?: string) => {
+    switch (type) {
+      case "phone":
+        return <Phone size={16} />
+      case "email":
+        return <Mail size={16} />
+      case "address":
+        return <MapPin size={16} />
+      default:
+        return null
     }
   }
 
   if (loading) {
     return (
-      <footer className="bg-black text-white section-padding">
-        <div className="max-w-7xl mx-auto container-padding">
-          <div className="animate-pulse">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i}>
-                  <div className="h-4 bg-gray-700 rounded w-24 mb-6"></div>
-                  <div className="space-y-4">
-                    <div className="h-3 bg-gray-700 rounded w-20"></div>
-                    <div className="h-3 bg-gray-700 rounded w-16"></div>
-                    <div className="h-3 bg-gray-700 rounded w-24"></div>
-                  </div>
+      <footer className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-4">
+                <div className="w-32 h-6 bg-gray-700 animate-pulse rounded" />
+                <div className="space-y-2">
+                  {[...Array(4)].map((_, j) => (
+                    <div key={j} className="w-24 h-4 bg-gray-700 animate-pulse rounded" />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </footer>
@@ -194,129 +146,97 @@ export default function Footer() {
   }
 
   return (
-    <footer id="contact" className="bg-black text-white section-padding">
-      <div className="max-w-7xl mx-auto container-padding">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
-          {/* Dynamic Footer Sections */}
-          {footerContent.sections.map((section, index) => (
-            <div key={index} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-              <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">{section.title}</h4>
-              {section.title === "LOCATION & HOURS" ? (
-                // Special handling for Location & Hours section
-                <div className="space-y-4 text-sm text-gray-300">
-                  <div>
-                    <p>{footerContent.contactInfo.address}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-white">{footerContent.contactInfo.hours.weekdays}</p>
-                    <p className="font-medium text-white">{footerContent.contactInfo.hours.weekends}</p>
-                  </div>
-                  <div>
-                    <p>{footerContent.contactInfo.phone}</p>
-                    <p>{footerContent.contactInfo.email}</p>
-                  </div>
-                </div>
-              ) : (
-                // Regular links
-                <ul className="space-y-4">
-                  {section.links.map((link, linkIndex) => (
-                    <li key={linkIndex}>
-                      <button
-                        onClick={() => handleLinkClick(link)}
-                        className="text-sm text-gray-300 hover:text-orange transition-colors duration-200 text-left"
-                      >
-                        {link.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+    <footer className="bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Logo and Description */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center space-x-2 mb-4">
+              {footerContent?.logo.image && (
+                <Image
+                  src={footerContent.logo.image || "/placeholder.svg"}
+                  alt={footerContent.logo.text}
+                  width={40}
+                  height={40}
+                  className="w-10 h-10"
+                />
               )}
+              <span className="text-xl font-bold">{footerContent?.logo.text || "Foreigner Cafe"}</span>
+            </div>
+            <p className="text-gray-300 mb-6">{footerContent?.description}</p>
+
+            {/* Social Media */}
+            <div className="flex space-x-4">
+              {footerContent?.socialMedia.map((social) => (
+                <Link
+                  key={social.platform}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  {getSocialIcon(social.icon)}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer Sections */}
+          {footerContent?.sections.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-lg font-semibold mb-4">{section.title}</h3>
+              <ul className="space-y-2">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"
+                    >
+                      {getLinkIcon(link.type)}
+                      <span>{link.label}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
 
-          {/* Newsletter Section */}
-          <div className="animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-            <h4 className="text-sm font-display font-bold mb-6 tracking-wide text-white">
-              {footerContent.newsletterSection.title}
-            </h4>
-            <p className="text-sm text-gray-300 mb-6 leading-relaxed">{footerContent.newsletterSection.description}</p>
-            <div className="flex mb-6">
-              <input
+          {/* Newsletter */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">{footerContent?.newsletter.title}</h3>
+            <p className="text-gray-300 mb-4">{footerContent?.newsletter.description}</p>
+            <form onSubmit={handleNewsletterSubmit} className="space-y-2">
+              <Input
                 type="email"
+                placeholder={footerContent?.newsletter.placeholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="flex-1 px-4 py-3 bg-white text-black text-sm focus:outline-none focus:ring-2 focus:ring-orange"
+                className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                required
               />
-              <button
-                onClick={handleSubscribe}
-                className="bg-orange text-white px-6 py-3 text-sm hover:bg-white hover:text-black transition-colors duration-200 font-medium"
-              >
-                →
-              </button>
-            </div>
-            {/* Social Media */}
-            <div className="flex space-x-4">
-              {footerContent.socialMedia.map((social, index) => {
-                const IconComponent = getIconComponent(social.icon)
-                return (
-                  <button
-                    key={index}
-                    onClick={() => window.open(social.url, "_blank", "noopener,noreferrer")}
-                    aria-label={`Visit Foreigner Cafe ${social.platform}`}
-                    className="w-10 h-10 bg-gray-800 hover:bg-orange text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                  >
-                    <IconComponent className="w-5 h-5" />
-                  </button>
-                )
-              })}
-            </div>
+              <Button type="submit" disabled={subscribing} className="w-full bg-orange-600 hover:bg-orange-700">
+                {subscribing ? "Subscribing..." : "Subscribe"}
+              </Button>
+            </form>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-gray-800 pt-12">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-6 md:mb-0">
-              <button
-                onClick={() => scrollToSection("home")}
-                className="text-2xl font-display font-bold text-white hover:text-orange transition-colors duration-200"
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-gray-400 text-sm">{footerContent?.copyright}</p>
+          <div className="flex space-x-6 mt-4 md:mt-0">
+            {footerContent?.policies.map((policy) => (
+              <Link
+                key={policy.label}
+                href={policy.href}
+                className="text-gray-400 hover:text-white text-sm transition-colors"
               >
-                FOREIGNER CAFE
-              </button>
-            </div>
-            <div className="flex flex-wrap justify-center md:justify-end space-x-8 text-xs text-gray-400 mb-6 md:mb-0">
-              <button
-                onClick={() => openReservationModal()}
-                className="hover:text-orange transition-colors duration-200 tracking-wide"
-              >
-                RESERVE
-              </button>
-              <button
-                onClick={() => router.push("/privacy")}
-                className="hover:text-orange transition-colors duration-200 tracking-wide"
-              >
-                PRIVACY
-              </button>
-              <button
-                onClick={() => router.push("/privacy")}
-                className="hover:text-orange transition-colors duration-200 tracking-wide"
-              >
-                TERMS
-              </button>
-            </div>
-          </div>
-          <div className="text-center mt-8">
-            <p className="text-xs text-gray-500 tracking-wide">{footerContent.copyright}</p>
+                {policy.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
-
-      <ReservationModal
-        open={isReservationModalOpen}
-        onOpenChange={setIsReservationModalOpen}
-        isContactForm={modalType === "contact"}
-      />
     </footer>
   )
 }

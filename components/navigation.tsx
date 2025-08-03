@@ -1,375 +1,195 @@
 "use client"
-import { useState, useEffect } from "react"
-import { Menu, X, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ReservationModal } from "./reserveModal"
-import axiosInstance from "@/lib/axios"
 
-interface HeaderNavItem {
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { Menu, X, Phone, MapPin, Clock } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ContactModal } from "@/components/ContactModal"
+import { ReserveModal } from "@/components/reserveModal"
+
+interface NavigationItem {
   label: string
-  href?: string
-  action?: string
-  sectionId?: string
-  isExternal?: boolean
+  href: string
+  type: "link" | "modal"
 }
 
 interface HeaderContent {
-  logo: string
-  topNavItems: HeaderNavItem[]
-  mainNavItems: HeaderNavItem[]
-  reserveButtonText: string
+  logo: {
+    text: string
+    image: string
+  }
+  navigation: NavigationItem[]
+  ctaButton: {
+    text: string
+    action: "reserve" | "contact"
+    variant: "primary" | "secondary"
+  }
 }
 
 export default function Navigation() {
-  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isTopHeaderHidden, setIsTopHeaderHidden] = useState(false)
-  const [scrollProgress, setScrollProgress] = useState(0)
-  const [activeTab, setActiveTab] = useState<string | null>(null)
-  const [topNavActiveItem, setTopNavActiveItem] = useState<string>("DINE")
-  const [modalType, setModalType] = useState<"reservation" | "contact">("reservation")
-  const [headerContent, setHeaderContent] = useState<HeaderContent>({
-    logo: "FOREIGNER CAFE",
-    topNavItems: [],
-    mainNavItems: [],
-    reserveButtonText: "RESERVE",
-  })
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
+  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
+  const [headerContent, setHeaderContent] = useState<HeaderContent | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const topHeaderHeight = 65
-  const mainNavHeight = 64
-  const progressBarHeight = 1
-  const router = useRouter()
-
-  // Fetch header content
   useEffect(() => {
+    const fetchHeaderContent = async () => {
+      try {
+        const response = await fetch("/api/cms/header")
+        if (response.ok) {
+          const data = await response.json()
+          setHeaderContent(data.content)
+        }
+      } catch (error) {
+        console.error("Error fetching header content:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchHeaderContent()
   }, [])
 
-  const fetchHeaderContent = async () => {
-    try {
-      const response = await axiosInstance.get("/api/cms/header")
-      if (response.data.success) {
-        setHeaderContent(response.data.data)
-      }
-    } catch (error) {
-      console.error("Failed to fetch header content:", error)
-    } finally {
-      setLoading(false)
+  const handleNavClick = (item: NavigationItem) => {
+    if (item.type === "modal") {
+      setIsContactModalOpen(true)
     }
+    setIsOpen(false)
   }
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrollPercent = docHeight > 0 ? scrollTop / docHeight : 0
-      setIsScrolled(scrollTop > 50)
-      setIsTopHeaderHidden(scrollTop > topHeaderHeight)
-      setScrollProgress(scrollPercent)
+  const handleCtaClick = () => {
+    if (headerContent?.ctaButton.action === "reserve") {
+      setIsReserveModalOpen(true)
+    } else {
+      setIsContactModalOpen(true)
     }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [topHeaderHeight])
-
-  const scrollToSection = (sectionId: string, offset = 80) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      const topPosition = element.getBoundingClientRect().top + window.scrollY - offset
-      window.scrollTo({
-        top: topPosition,
-        behavior: "smooth",
-      })
-    }
-  }
-
-  const openReservationModal = () => {
-    setModalType("reservation")
-    setIsReservationModalOpen(true)
-  }
-
-  const openContactModal = () => {
-    setModalType("contact")
-    setIsReservationModalOpen(true)
-  }
-
-  const handleNavItemClick = (item: HeaderNavItem) => {
-    switch (item.action) {
-      case "scroll":
-        if (item.sectionId) {
-          scrollToSection(item.sectionId)
-        }
-        break
-      case "navigate":
-        if (item.href) {
-          router.push(item.href)
-        }
-        break
-      case "external":
-        if (item.href) {
-          window.open(item.href, "_blank", "noopener,noreferrer")
-        }
-        break
-      default:
-        if (item.href) {
-          if (item.isExternal) {
-            window.open(item.href, "_blank", "noopener,noreferrer")
-          } else {
-            router.push(item.href)
-          }
-        }
-        break
-    }
-  }
-
-  // Combined navigation items for mobile sheet
-  const mobileNavItems = [
-    ...headerContent.topNavItems.map((item) => ({ ...item, isTopNavItem: true })),
-    { label: "---", action: "", isDivider: true },
-    ...headerContent.mainNavItems,
-    {
-      label: "CONTACT US",
-      action: "modal",
-    },
-  ]
-
-  const handleTabClick = (id: string, action: () => void) => {
-    setActiveTab(id)
-    action()
-  }
-
-  const handleTopNavClick = (item: string) => {
-    setTopNavActiveItem(item)
   }
 
   if (loading) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
-        <div className="h-16 flex items-center justify-center">
-          <div className="animate-pulse text-xl font-bold">Loading...</div>
+      <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <div className="w-32 h-8 bg-gray-200 animate-pulse rounded" />
+            </div>
+            <div className="hidden md:flex space-x-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="w-16 h-4 bg-gray-200 animate-pulse rounded" />
+              ))}
+            </div>
+            <div className="w-24 h-8 bg-gray-200 animate-pulse rounded" />
+          </div>
         </div>
-      </div>
+      </nav>
     )
   }
 
   return (
     <>
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-black/10">
-        <div
-          className="h-full bg-orange transition-all duration-150 ease-out"
-          style={{ width: `${scrollProgress * 100}%` }}
-        />
-      </div>
-
-      {/* Top Header - Hidden on small/medium screens, visible on large screens */}
-      <header
-        className={`fixed top-1 left-0 right-0 z-40 w-full transition-all duration-500 hidden lg:block ${
-          isTopHeaderHidden ? "opacity-0 h-0 pointer-events-none" : "opacity-100 h-auto"
-        }`}
-      >
-        {/* Top thin border */}
-        <div className="h-[1px] bg-gray-700" />
-        {/* Main header content - Top navigation bar */}
-        <div className="flex h-10">
-          {/* Left section: DINE */}
-          <div
-            className={`flex items-center px-6 font-medium text-sm tracking-wide uppercase h-full ${
-              topNavActiveItem === "DINE"
-                ? "bg-[#EC4E20] text-white"
-                : "bg-[#F8F8F8] text-[#A0A0A0] hover:text-gray-700"
-            }`}
-          >
-            <Link href="/" className="hover:opacity-80 transition-opacity" onClick={() => handleTopNavClick("DINE")}>
-              DINE
-            </Link>
-          </div>
-          {/* Right section: Navigation links and Action buttons */}
-          <div className="flex-1 bg-[#F8F8F8] flex items-center justify-between px-6 h-full">
-            {/* Navigation links */}
-            <nav className="flex space-x-0 text-[#A0A0A0] font-medium text-sm tracking-wide uppercase">
-              {headerContent.topNavItems.slice(1).map((item, index) => (
-                <div
-                  key={index}
-                  className={`px-6 h-10 flex items-center ${
-                    topNavActiveItem === item.label ? "bg-[#EC4E20] text-white" : "hover:text-gray-700"
-                  }`}
-                >
-                  <button
-                    onClick={() => {
-                      handleNavItemClick(item)
-                      handleTopNavClick(item.label)
-                    }}
-                    className="transition-colors"
-                  >
-                    {item.label}
-                  </button>
-                </div>
-              ))}
-            </nav>
-            {/* Action buttons */}
-            <div className="flex items-center space-x-6 text-[#A0A0A0] font-medium text-sm tracking-wide uppercase">
-              <button
-                className={`px-6 h-10 flex items-center space-x-2 hover:text-gray-700 transition-colors focus:outline-none ${
-                  topNavActiveItem === "CONTACT US" ? "bg-[#EC4E20] text-white" : ""
-                }`}
-                onClick={() => {
-                  openContactModal()
-                  handleTopNavClick("CONTACT US")
-                }}
-              >
-                <User className="w-3 h-3" />
-                <span>CONTACT US</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* Bottom message bar */}
-        <div className="bg-[#EC4E20] text-white text-center py-3 text-xs font-medium tracking-wide uppercase"></div>
-      </header>
-
-      {/* Main navigation */}
-      <nav
-        className={`fixed left-0 right-0 z-40 transition-all duration-500 top-1 ${
-          isScrolled ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50" : "bg-transparent"
-        } ${isTopHeaderHidden ? "lg:top-1" : "lg:top-[66px]"}`}
-      >
-        <div className="max-w-7xl mx-auto container-padding">
+      <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="flex-shrink-0">
-              <button
-                onClick={() => scrollToSection("home")}
-                className={`text-2xl font-display font-bold transition-all duration-300 hover:scale-110 focus:outline-none ${
-                  isScrolled ? "text-black hover:text-orange" : "text-white hover:text-orange"
-                }`}
-              >
-                {headerContent.logo}
-              </button>
-            </div>
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
-              {headerContent.mainNavItems.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleTabClick(item.label, () => handleNavItemClick(item))}
-                  className={`text-sm font-medium tracking-wide transition-all duration-200 hover:scale-110 relative group focus:outline-none ${
-                    isScrolled ? "text-black/80 hover:text-orange" : "text-white/80 hover:text-orange"
-                  } ${activeTab === item.label ? "text-orange" : ""}`}
-                >
-                  {item.label}
-                  <span
-                    className={`absolute -bottom-1 left-0 h-0.5 bg-orange transition-all duration-300 ${
-                      activeTab === item.label ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center space-x-2">
+                {headerContent?.logo.image && (
+                  <Image
+                    src={headerContent.logo.image || "/placeholder.svg"}
+                    alt={headerContent.logo.text}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
                   />
+                )}
+                <span className="text-xl font-bold text-gray-900">{headerContent?.logo.text || "Foreigner Cafe"}</span>
+              </Link>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              {headerContent?.navigation.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavClick(item)}
+                  className="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium transition-colors"
+                >
+                  {item.type === "link" ? <Link href={item.href}>{item.label}</Link> : item.label}
                 </button>
               ))}
             </div>
-            {/* Reserve Button (Desktop) */}
-            <div className="hidden lg:block">
+
+            {/* CTA Button */}
+            <div className="hidden md:flex items-center space-x-4">
               <Button
-                onClick={openReservationModal}
-                className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-110 hover:shadow-lg focus:outline-none ${
-                  isScrolled
-                    ? "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black"
-                    : "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black"
+                onClick={handleCtaClick}
+                className={`${
+                  headerContent?.ctaButton.variant === "primary"
+                    ? "bg-orange-600 hover:bg-orange-700 text-white"
+                    : "bg-transparent border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white"
                 }`}
               >
-                {headerContent.reserveButtonText}
+                {headerContent?.ctaButton.text || "Book Table"}
               </Button>
             </div>
-            {/* Mobile menu button (Sheet Trigger) */}
-            <div className="lg:hidden">
-              <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={`p-2 transition-all duration-300 hover:scale-110 focus:outline-none ${
-                      isScrolled ? "text-black hover:text-orange" : "text-white hover:text-orange"
-                    }`}
-                  >
-                    {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                    <span className="sr-only">Toggle navigation menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-[20rem] h-[30rem] bg-white p-8 overflow-y-auto">
-                  <SheetHeader className="sr-only">
-                    <SheetTitle>Mobile Navigation Menu</SheetTitle>
-                  </SheetHeader>
-                  <div className="flex flex-col space-y-6 pt-12">
-                    {mobileNavItems.map((item, index) => {
-                      // Handle divider
-                      if (item.isDivider) {
-                        return <div key={index} className="border-t border-gray-200 my-2" />
-                      }
 
-                      // Handle top nav items with special styling
-                      if (item.isTopNavItem) {
-                        return (
-                          <button
-                            key={item.label}
-                            onClick={() => {
-                              handleNavItemClick(item)
-                              setIsOpen(false)
-                            }}
-                            className={`block text-left text-sm font-bold tracking-wide transition-colors hover:translate-x-2 ${
-                              topNavActiveItem === item.label ? "text-orange" : "text-gray-800 hover:text-orange"
-                            }`}
-                          >
-                            {item.label}
-                          </button>
-                        )
-                      }
-
-                      // Handle regular nav items
-                      return (
-                        <button
-                          key={item.label}
-                          onClick={() => {
-                            if (item.action === "modal") {
-                              openContactModal()
-                            } else {
-                              handleNavItemClick(item)
-                            }
-                            setIsOpen(false)
-                          }}
-                          className="block text-left text-sm font-semibold tracking-wide text-gray-600 hover:text-orange transition-colors hover:translate-x-2"
-                        >
-                          {item.label}
-                        </button>
-                      )
-                    })}
-
-                    <Button
-                      onClick={() => {
-                        openReservationModal()
-                        setIsOpen(false)
-                      }}
-                      className="bg-orange text-white text-sm rounded-xl tracking-wide mt-6 hover:bg-black transition-all duration-300 w-[130px]"
-                    >
-                      {headerContent.reserveButtonText}
-                    </Button>
-                  </div>
-                </SheetContent>
-              </Sheet>
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700 hover:text-orange-600 p-2">
+                {isOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="md:hidden bg-white border-t">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {headerContent?.navigation.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavClick(item)}
+                  className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50"
+                >
+                  {item.type === "link" ? <Link href={item.href}>{item.label}</Link> : item.label}
+                </button>
+              ))}
+              <div className="px-3 py-2">
+                <Button onClick={handleCtaClick} className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+                  {headerContent?.ctaButton.text || "Book Table"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
-      <ReservationModal
-        open={isReservationModalOpen}
-        onOpenChange={setIsReservationModalOpen}
-        isContactForm={modalType === "contact"}
-      />
+      {/* Contact Info Bar */}
+      <div className="bg-gray-900 text-white py-2 text-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-8">
+            <div className="flex items-center space-x-2">
+              <Phone size={16} />
+              <span>+1 (555) 123-4567</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <MapPin size={16} />
+              <span>123 Cafe Street, City</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Clock size={16} />
+              <span>Mon-Fri: 7AM-10PM | Sat-Sun: 8AM-11PM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+      <ReserveModal isOpen={isReserveModalOpen} onClose={() => setIsReserveModalOpen(false)} />
     </>
   )
 }

@@ -1,132 +1,94 @@
-import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
-import { FooterContent } from "@/models/CMSContent"
+import CMSContent from "@/models/CMSContent"
 
 export async function GET() {
   try {
     await connectDB()
 
-    let footerContent = await FooterContent.findOne()
+    let footerContent = await CMSContent.findOne({ section: "footer" })
 
-    // Create default content if none exists
     if (!footerContent) {
-      footerContent = await FooterContent.create({
-        sections: [
-          {
-            title: "ABOUT US",
-            links: [
-              { label: "Our Story", action: "scroll", sectionId: "story" },
-              {
-                label: "Location",
-                action: "external",
-                href: "https://www.google.com/maps/place/foreigner+cafe+san+mateo",
-              },
-              { label: "Contact Us", action: "modal" },
-            ],
+      // Create default footer content if it doesn't exist
+      footerContent = await CMSContent.create({
+        section: "footer",
+        content: {
+          logo: {
+            text: "Foreigner Cafe",
+            image: "/images/logo.png",
           },
-          {
-            title: "LOCATION & HOURS",
-            links: [], // This will be handled by contactInfo
+          description:
+            "Experience the perfect blend of international flavors and local hospitality at Foreigner Cafe. Where every cup tells a story.",
+          sections: [
+            {
+              title: "Quick Links",
+              links: [
+                { label: "About Us", href: "/about" },
+                { label: "Menu", href: "/menu" },
+                { label: "Events", href: "/events" },
+                { label: "Gallery", href: "/gallery" },
+                { label: "Blog", href: "/blogs" },
+              ],
+            },
+            {
+              title: "Services",
+              links: [
+                { label: "Catering", href: "/catering" },
+                { label: "Private Events", href: "/events" },
+                { label: "Coffee Workshops", href: "/experiences" },
+                { label: "Gift Cards", href: "/shop" },
+              ],
+            },
+            {
+              title: "Contact",
+              links: [
+                { label: "123 Cafe Street, City", href: "#", type: "address" },
+                { label: "+1 (555) 123-4567", href: "tel:+15551234567", type: "phone" },
+                { label: "hello@foreignercafe.com", href: "mailto:hello@foreignercafe.com", type: "email" },
+              ],
+            },
+          ],
+          socialMedia: [
+            { platform: "facebook", url: "https://facebook.com/foreignercafe", icon: "facebook" },
+            { platform: "instagram", url: "https://instagram.com/foreignercafe", icon: "instagram" },
+            { platform: "twitter", url: "https://twitter.com/foreignercafe", icon: "twitter" },
+            { platform: "linkedin", url: "https://linkedin.com/company/foreignercafe", icon: "linkedin" },
+          ],
+          newsletter: {
+            title: "Stay Updated",
+            description: "Subscribe to our newsletter for the latest updates, events, and special offers.",
+            placeholder: "Enter your email address",
           },
-          {
-            title: "SERVICES",
-            links: [
-              {
-                label: "Takeaway",
-                action: "external",
-                href: "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
-              },
-              {
-                label: "Delivery",
-                action: "external",
-                href: "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
-              },
-              {
-                label: "Gift Cards",
-                action: "external",
-                href: "https://www.toasttab.com/foreigner-60-east-3rd-avenue/giftcards",
-              },
-              { label: "Events", action: "navigate", href: "/events" },
-            ],
-          },
-        ],
-        contactInfo: {
-          address: "Foreigner Cafe, 60 E 3rd Ave Ste 108, San Mateo, CA 94401, United States",
-          phone: "+1 (650) 620 1888",
-          email: "service@foreignercafe.com",
-          hours: {
-            weekdays: "Mon-Fri: 8:00am - 4:00pm",
-            weekends: "Sat-Sun: 8:30am - 4:00pm",
-          },
+          copyright: "© 2024 Foreigner Cafe. All rights reserved.",
+          policies: [
+            { label: "Privacy Policy", href: "/privacy" },
+            { label: "Terms of Service", href: "/terms" },
+            { label: "Cookie Policy", href: "/cookies" },
+          ],
         },
-        socialMedia: [
-          {
-            platform: "Facebook",
-            url: "https://www.facebook.com/foreignercafe/",
-            icon: "Facebook",
-          },
-          {
-            platform: "Instagram",
-            url: "https://www.instagram.com/foreignercafe/?hl=en",
-            icon: "Instagram",
-          },
-          {
-            platform: "Google",
-            url: "https://www.google.com/maps/place/Foreigner+Cafe/@37.5637466,-122.3247235,17z",
-            icon: "Globe",
-          },
-        ],
-        newsletterSection: {
-          title: "STAY CONNECTED",
-          description: "Receive The Foreigner Cafe news directly to you.",
-        },
-        copyright: `© ${new Date().getFullYear()} The Foreigner Cafe. Website by Cybitronix`,
       })
     }
 
-    return NextResponse.json({ success: true, data: footerContent })
+    return Response.json({ content: footerContent.content })
   } catch (error) {
-    console.error("Error fetching footer content:", error)
-    return NextResponse.json({ success: false, message: "Failed to fetch footer content" }, { status: 500 })
+    console.error("GET /api/cms/footer error:", error)
+    return new Response("Failed to load footer content", { status: 500 })
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: Request) {
   try {
     await connectDB()
+    const { content } = await request.json()
 
-    const body = await request.json()
-    const { sections, contactInfo, socialMedia, newsletterSection, copyright } = body
+    const footerContent = await CMSContent.findOneAndUpdate(
+      { section: "footer" },
+      { content },
+      { new: true, upsert: true },
+    )
 
-    if (!sections || !contactInfo || !socialMedia) {
-      return NextResponse.json(
-        { success: false, message: "Sections, contactInfo, and socialMedia are required" },
-        { status: 400 },
-      )
-    }
-
-    let footerContent = await FooterContent.findOne()
-
-    if (footerContent) {
-      footerContent.sections = sections
-      footerContent.contactInfo = contactInfo
-      footerContent.socialMedia = socialMedia
-      footerContent.newsletterSection = newsletterSection || footerContent.newsletterSection
-      footerContent.copyright = copyright || footerContent.copyright
-      await footerContent.save()
-    } else {
-      footerContent = await FooterContent.create({
-        sections,
-        contactInfo,
-        socialMedia,
-        newsletterSection,
-        copyright,
-      })
-    }
-
-    return NextResponse.json({ success: true, data: footerContent })
+    return Response.json({ content: footerContent.content })
   } catch (error) {
-    console.error("Error updating footer content:", error)
-    return NextResponse.json({ success: false, message: "Failed to update footer content" }, { status: 500 })
+    console.error("PUT /api/cms/footer error:", error)
+    return new Response("Failed to update footer content", { status: 500 })
   }
 }
