@@ -1,176 +1,261 @@
-import mongoose from "mongoose"
+import mongoose, { Schema, type Document } from "mongoose"
 
-// Hero Content Schema
-const HeroContentSchema = new mongoose.Schema(
+// Hero Section
+export interface IHeroContent extends Document {
+  title: string
+  subtitle: string
+  backgroundImage: string
+  ctaButton: {
+    text: string
+    link: string
+  }
+  createdAt: Date
+  updatedAt: Date
+}
+
+const HeroContentSchema = new Schema<IHeroContent>(
   {
     title: { type: String, required: true },
     subtitle: { type: String, required: true },
-    description: { type: String, required: true },
-    videoUrl: { type: String, required: true },
-  },
-  { timestamps: true },
-)
-
-// Hero Parallax Products Schema
-const HeroParallaxProductsSchema = new mongoose.Schema(
-  {
-    products: [
-      {
-        id: { type: Number, required: true },
-        title: { type: String, required: true },
-        link: { type: String, required: true },
-        thumbnail: { type: String, required: true },
-      },
-    ],
-    rowConfiguration: {
-      firstRowCount: { type: Number, default: 8 },
-      secondRowCount: { type: Number, default: 8 },
-      thirdRowCount: { type: Number, default: 9 },
+    backgroundImage: { type: String, required: true },
+    ctaButton: {
+      text: { type: String, required: true },
+      link: { type: String, required: true },
     },
   },
   { timestamps: true },
 )
 
-// What's On Section Schema (events-section.tsx)
-const WhatsOnSectionSchema = new mongoose.Schema(
+export const HeroContent = mongoose.models.HeroContent || mongoose.model<IHeroContent>("HeroContent", HeroContentSchema)
+
+// What's On Section
+export interface IWhatsOnSection extends Document {
+  title: string
+  items: Array<{
+    title: string
+    description: string
+    image: string
+    link: string
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const WhatsOnSectionSchema = new Schema<IWhatsOnSection>(
   {
-    title: { type: String, required: true, default: "WHAT'S ON" },
+    title: { type: String, required: true },
+    items: [
+      {
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+        image: { type: String, required: true },
+        link: { type: String, required: true },
+      },
+    ],
+  },
+  { timestamps: true },
+)
+
+export const WhatsOnSection =
+  mongoose.models.WhatsOnSection || mongoose.model<IWhatsOnSection>("WhatsOnSection", WhatsOnSectionSchema)
+
+// Events Section
+export interface IEventsSection extends Document {
+  title: string
+  description: string
+  events: Array<{
+    title: string
+    description: string
+    image: string
+    date: string
+    link: string
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const EventsSectionSchema = new Schema<IEventsSection>(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
     events: [
       {
         title: { type: String, required: true },
         description: { type: String, required: true },
         image: { type: String, required: true },
-        linkText: { type: String, required: true },
-        linkHref: { type: String, required: true },
+        date: { type: String, required: true },
+        link: { type: String, required: true },
       },
     ],
   },
   { timestamps: true },
 )
 
-// Events Section Schema (eventsSection.tsx)
-const EventsSectionSchema = new mongoose.Schema(
+export const EventsSection =
+  mongoose.models.EventsSection || mongoose.model<IEventsSection>("EventsSection", EventsSectionSchema)
+
+// Brand Section
+export interface IBrandSection extends Document {
+  title: string
+  description: string
+  logos: Array<{
+    name: string
+    image: string
+    link?: string
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const BrandSectionSchema = new Schema<IBrandSection>(
   {
-    title: { type: String, required: true, default: "Where Stories Come to Life" },
+    title: { type: String, required: true },
     description: { type: String, required: true },
-    buttonText: { type: String, required: true, default: "Explore All Events" },
-    buttonLink: { type: String, required: true, default: "/events" },
-    eventImages: [
+    logos: [
       {
-        src: { type: String, required: true },
-        alt: { type: String, required: true },
+        name: { type: String, required: true },
+        image: { type: String, required: true },
+        link: { type: String },
       },
     ],
   },
   { timestamps: true },
 )
 
-// Brand Section Schema (Cafe Story with story elements)
-const BrandSectionSchema = new mongoose.Schema(
-  {
-    storyElements: [
-      {
-        id: { type: Number, required: true },
-        layout: { type: String, enum: ["left", "right"], required: true },
-        title: { type: String, required: true },
-        text: { type: String, required: true },
-        media: {
-          type: { type: String, enum: ["image", "video"], required: true },
-          src: { type: String, required: true },
-          alt: { type: String },
-          linkHref: { type: String },
-        },
-      },
-    ],
-  },
-  { timestamps: true },
-)
+export const BrandSection =
+  mongoose.models.BrandSection || mongoose.model<IBrandSection>("BrandSection", BrandSectionSchema)
 
-// Experiences Section Schema
-const ExperiencesSectionSchema = new mongoose.Schema(
+// Experiences Section
+export interface IExperiencesSection extends Document {
+  title: string
+  description: string
+  experiences: Array<{
+    title: string
+    description: string
+    image: string
+    features: string[]
+    link: string
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const ExperiencesSectionSchema = new Schema<IExperiencesSection>(
   {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
     experiences: [
       {
-        id: { type: Number, required: true },
         title: { type: String, required: true },
         description: { type: String, required: true },
-        imageSrc: { type: String, required: true },
-        alt: { type: String },
-        linkText: { type: String, required: true },
-        linkHref: { type: String, required: true },
-      },
-    ],
-    testimonials: [
-      {
-        quote: { type: String, required: true },
-        name: { type: String, required: true },
-        avatar: { type: String, required: true },
+        image: { type: String, required: true },
+        features: [{ type: String }],
+        link: { type: String, required: true },
       },
     ],
   },
   { timestamps: true },
 )
 
-// Dine & Drink Content Schema
-const DineDrinkContentSchema = new mongoose.Schema(
+export const ExperiencesSection =
+  mongoose.models.ExperiencesSection ||
+  mongoose.model<IExperiencesSection>("ExperiencesSection", ExperiencesSectionSchema)
+
+// Dine & Drink Section
+export interface IDineDrinkSection extends Document {
+  title: string
+  description: string
+  items: Array<{
+    title: string
+    description: string
+    image: string
+    price?: string
+    category: string
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const DineDrinkSectionSchema = new Schema<IDineDrinkSection>(
   {
-    venues: [
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    items: [
       {
-        name: { type: String, required: true },
-        location: { type: String, required: true },
+        title: { type: String, required: true },
         description: { type: String, required: true },
         image: { type: String, required: true },
+        price: { type: String },
+        category: { type: String, required: true },
       },
     ],
   },
   { timestamps: true },
 )
 
-// FAQs Schema
-const FAQsSectionSchema = new mongoose.Schema(
-  {
-    title: { type: String, required: true, default: "FREQUENTLY ASKED QUESTIONS" },
-    subtitle: { type: String, required: true, default: "Everything you need to know about visiting Foreigner Cafe" },
-    faqs: [
-      {
-        question: { type: String, required: true },
-        answer: { type: String, required: true },
-      },
-    ],
-  },
-  { timestamps: true },
-)
+export const DineDrinkSection =
+  mongoose.models.DineDrinkSection || mongoose.model<IDineDrinkSection>("DineDrinkSection", DineDrinkSectionSchema)
 
-// Gallery Schema
-const GallerySchema = new mongoose.Schema(
+// Cafe Story Content
+export interface ICafeStoryContent extends Document {
+  sections: Array<{
+    title: string
+    content: string
+    mainImage: string
+    smallImage: string
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const CafeStoryContentSchema = new Schema<ICafeStoryContent>(
   {
     sections: [
       {
-        id: { type: Number, required: true },
-        name: { type: String, required: true },
-        description: { type: String },
-        images: [
-          {
-            id: { type: Number, required: true },
-            src: { type: String, required: true },
-            alt: { type: String, required: true },
-            caption: { type: String },
-          },
-        ],
+        title: { type: String, required: true },
+        content: { type: String, required: true },
+        mainImage: { type: String, required: true },
+        smallImage: { type: String, required: true },
       },
     ],
   },
   { timestamps: true },
 )
 
-// Header/Navigation Schema
-const HeaderContentSchema = new mongoose.Schema(
+export const CafeStoryContent =
+  mongoose.models.CafeStoryContent || mongoose.model<ICafeStoryContent>("CafeStoryContent", CafeStoryContentSchema)
+
+// Header Content
+export interface IHeaderContent extends Document {
+  logo: string
+  topNavItems: Array<{
+    label: string
+    href?: string
+    action?: string
+    sectionId?: string
+    isExternal?: boolean
+  }>
+  mainNavItems: Array<{
+    label: string
+    href?: string
+    action?: string
+    sectionId?: string
+    isExternal?: boolean
+  }>
+  reserveButtonText: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+const HeaderContentSchema = new Schema<IHeaderContent>(
   {
-    logo: { type: String, required: true, default: "FOREIGNER CAFE" },
+    logo: { type: String, required: true },
     topNavItems: [
       {
         label: { type: String, required: true },
-        href: { type: String, required: true },
+        href: { type: String },
+        action: { type: String },
+        sectionId: { type: String },
         isExternal: { type: Boolean, default: false },
       },
     ],
@@ -178,17 +263,54 @@ const HeaderContentSchema = new mongoose.Schema(
       {
         label: { type: String, required: true },
         href: { type: String },
-        action: { type: String }, // 'scroll', 'navigate', 'external'
+        action: { type: String },
         sectionId: { type: String },
+        isExternal: { type: Boolean, default: false },
       },
     ],
-    reserveButtonText: { type: String, default: "RESERVE" },
+    reserveButtonText: { type: String, required: true },
   },
   { timestamps: true },
 )
 
-// Footer Schema
-const FooterContentSchema = new mongoose.Schema(
+export const HeaderContent =
+  mongoose.models.HeaderContent || mongoose.model<IHeaderContent>("HeaderContent", HeaderContentSchema)
+
+// Footer Content
+export interface IFooterContent extends Document {
+  sections: Array<{
+    title: string
+    links: Array<{
+      label: string
+      href?: string
+      action?: string
+      sectionId?: string
+    }>
+  }>
+  contactInfo: {
+    address: string
+    phone: string
+    email: string
+    hours: {
+      weekdays: string
+      weekends: string
+    }
+  }
+  socialMedia: Array<{
+    platform: string
+    url: string
+    icon: string
+  }>
+  newsletterSection: {
+    title: string
+    description: string
+  }
+  copyright: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+const FooterContentSchema = new Schema<IFooterContent>(
   {
     sections: [
       {
@@ -197,7 +319,7 @@ const FooterContentSchema = new mongoose.Schema(
           {
             label: { type: String, required: true },
             href: { type: String },
-            action: { type: String }, // 'scroll', 'navigate', 'external', 'modal'
+            action: { type: String },
             sectionId: { type: String },
           },
         ],
@@ -216,30 +338,122 @@ const FooterContentSchema = new mongoose.Schema(
       {
         platform: { type: String, required: true },
         url: { type: String, required: true },
-        icon: { type: String, required: true }, // icon name
+        icon: { type: String, required: true },
       },
     ],
     newsletterSection: {
-      title: { type: String, default: "STAY CONNECTED" },
-      description: { type: String, default: "Receive The Foreigner Cafe news directly to you." },
+      title: { type: String, required: true },
+      description: { type: String, required: true },
     },
     copyright: { type: String, required: true },
   },
   { timestamps: true },
 )
 
-// Export models
-export const HeroContent = mongoose.models.HeroContent || mongoose.model("HeroContent", HeroContentSchema)
-export const HeroParallaxProducts =
-  mongoose.models.HeroParallaxProducts || mongoose.model("HeroParallaxProducts", HeroParallaxProductsSchema)
-export const WhatsOnSection = mongoose.models.WhatsOnSection || mongoose.model("WhatsOnSection", WhatsOnSectionSchema)
-export const EventsSection = mongoose.models.EventsSection || mongoose.model("EventsSection", EventsSectionSchema)
-export const BrandSection = mongoose.models.BrandSection || mongoose.model("BrandSection", BrandSectionSchema)
-export const ExperiencesSection =
-  mongoose.models.ExperiencesSection || mongoose.model("ExperiencesSection", ExperiencesSectionSchema)
-export const DineDrinkContent =
-  mongoose.models.DineDrinkContent || mongoose.model("DineDrinkContent", DineDrinkContentSchema)
-export const FAQsSection = mongoose.models.FAQsSection || mongoose.model("FAQsSection", FAQsSectionSchema)
-export const Gallery = mongoose.models.Gallery || mongoose.model("Gallery", GallerySchema)
-export const HeaderContent = mongoose.models.HeaderContent || mongoose.model("HeaderContent", HeaderContentSchema)
-export const FooterContent = mongoose.models.FooterContent || mongoose.model("FooterContent", FooterContentSchema)
+export const FooterContent =
+  mongoose.models.FooterContent || mongoose.model<IFooterContent>("FooterContent", FooterContentSchema)
+
+// FAQ Content
+export interface IFAQContent extends Document {
+  title: string
+  description: string
+  categories: Array<{
+    name: string
+    faqs: Array<{
+      question: string
+      answer: string
+    }>
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const FAQContentSchema = new Schema<IFAQContent>(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    categories: [
+      {
+        name: { type: String, required: true },
+        faqs: [
+          {
+            question: { type: String, required: true },
+            answer: { type: String, required: true },
+          },
+        ],
+      },
+    ],
+  },
+  { timestamps: true },
+)
+
+export const FAQContent = mongoose.models.FAQContent || mongoose.model<IFAQContent>("FAQContent", FAQContentSchema)
+
+// Gallery Content
+export interface IGalleryContent extends Document {
+  title: string
+  description: string
+  categories: Array<{
+    name: string
+    images: Array<{
+      url: string
+      alt: string
+      caption?: string
+    }>
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const GalleryContentSchema = new Schema<IGalleryContent>(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    categories: [
+      {
+        name: { type: String, required: true },
+        images: [
+          {
+            url: { type: String, required: true },
+            alt: { type: String, required: true },
+            caption: { type: String },
+          },
+        ],
+      },
+    ],
+  },
+  { timestamps: true },
+)
+
+export const GalleryContent =
+  mongoose.models.GalleryContent || mongoose.model<IGalleryContent>("GalleryContent", GalleryContentSchema)
+
+// Hero Parallax Content
+export interface IHeroParallaxContent extends Document {
+  products: Array<{
+    id: number
+    title: string
+    link: string
+    thumbnail: string
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+
+const HeroParallaxContentSchema = new Schema<IHeroParallaxContent>(
+  {
+    products: [
+      {
+        id: { type: Number, required: true },
+        title: { type: String, required: true },
+        link: { type: String, required: true },
+        thumbnail: { type: String, required: true },
+      },
+    ],
+  },
+  { timestamps: true },
+)
+
+export const HeroParallaxContent =
+  mongoose.models.HeroParallaxContent ||
+  mongoose.model<IHeroParallaxContent>("HeroParallaxContent", HeroParallaxContentSchema)

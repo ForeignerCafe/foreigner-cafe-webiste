@@ -1,70 +1,67 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import Link from "next/link"
-import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 interface Experience {
-  id: number
   title: string
   description: string
-  imageSrc: string
-  alt?: string
-  linkText: string
-  linkHref: string
+  image: string
+  features: string[]
+  link: string
 }
 
-interface Testimonial {
-  quote: string
-  name: string
-  avatar: string
-}
-
-interface ExperiencesContent {
+interface ExperiencesSectionData {
+  title: string
+  description: string
   experiences: Experience[]
-  testimonials: Testimonial[]
 }
 
-export function ExperiencesSection() {
-  const [experiencesContent, setExperiencesContent] = useState<ExperiencesContent | null>(null)
+export default function ExperiencesSection() {
+  const [content, setContent] = useState<ExperiencesSectionData | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchExperiencesContent()
+    fetchContent()
   }, [])
 
-  const fetchExperiencesContent = async () => {
+  const fetchContent = async () => {
     try {
       const response = await fetch("/api/cms/experiences")
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
-          setExperiencesContent(data.data)
+          setContent(data.data)
         }
       }
     } catch (error) {
       console.error("Failed to fetch experiences content:", error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  if (!experiencesContent) {
+  if (loading) {
     return (
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-300 rounded w-96 mx-auto mb-8"></div>
-            </div>
+            <div className="w-64 h-8 bg-gray-200 animate-pulse rounded mx-auto mb-4" />
+            <div className="w-96 h-4 bg-gray-200 animate-pulse rounded mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-64 bg-gray-300 rounded-lg mb-4"></div>
-                <div className="h-6 bg-gray-300 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-full mb-4"></div>
-                <div className="h-10 bg-gray-300 rounded w-32"></div>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="w-full h-48 bg-gray-200 animate-pulse" />
+                <div className="p-6 space-y-4">
+                  <div className="w-32 h-6 bg-gray-200 animate-pulse rounded" />
+                  <div className="w-full h-4 bg-gray-200 animate-pulse rounded" />
+                  <div className="w-3/4 h-4 bg-gray-200 animate-pulse rounded" />
+                </div>
               </div>
             ))}
           </div>
@@ -73,82 +70,109 @@ export function ExperiencesSection() {
     )
   }
 
-  return (
-    <section id="experiences" className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Unique Experiences</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover our carefully crafted experiences that go beyond just great coffee
-          </p>
-        </div>
-
-        {/* Experiences Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {experiencesContent.experiences.map((experience) => (
-            <Card key={experience.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="relative overflow-hidden">
-                <img
-                  src={experience.imageSrc || "/placeholder.svg"}
-                  alt={experience.alt || experience.title}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{experience.title}</h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">{experience.description}</p>
-                <Link href={experience.linkHref}>
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white">{experience.linkText}</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Testimonials */}
-        {experiencesContent.testimonials.length > 0 && (
-          <div className="bg-gray-50 rounded-2xl p-8 md:p-12">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">What Our Guests Say</h3>
-              <p className="text-gray-600">Hear from those who've experienced our unique offerings</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {experiencesContent.testimonials.map((testimonial, index) => (
-                <Card key={index} className="bg-white border-0 shadow-md">
-                  <CardContent className="p-6">
-                    <div className="flex items-center mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+  if (!content) {
+    return (
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Experiences</h2>
+            <p className="text-lg text-gray-600 mb-12">
+              Discover unique experiences that bring people together through food, culture, and community.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "Coffee Tasting",
+                  description: "Explore the world of specialty coffee with our expert-led tasting sessions.",
+                  image: "/placeholder.svg?height=300&width=400",
+                  features: ["Expert guidance", "Premium beans", "Tasting notes"],
+                  link: "/experiences/coffee-tasting",
+                },
+                {
+                  title: "Cultural Events",
+                  description: "Join us for cultural celebrations and community gatherings.",
+                  image: "/placeholder.svg?height=300&width=400",
+                  features: ["Live music", "Traditional food", "Community spirit"],
+                  link: "/experiences/cultural-events",
+                },
+                {
+                  title: "Cooking Classes",
+                  description: "Learn to prepare authentic dishes from around the world.",
+                  image: "/placeholder.svg?height=300&width=400",
+                  features: ["Hands-on learning", "Professional chefs", "Take-home recipes"],
+                  link: "/experiences/cooking-classes",
+                },
+              ].map((experience, index) => (
+                <Card key={index} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src={experience.image || "/placeholder.svg"}
+                      alt={experience.title}
+                      fill
+                      className="object-cover transition-transform duration-300 hover:scale-105"
+                    />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xl">{experience.title}</CardTitle>
+                    <CardDescription>{experience.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {experience.features.map((feature, featureIndex) => (
+                        <Badge key={featureIndex} variant="secondary">
+                          {feature}
+                        </Badge>
                       ))}
                     </div>
-                    <blockquote className="text-gray-600 mb-4 italic">"{testimonial.quote}"</blockquote>
-                    <div className="flex items-center">
-                      <img
-                        src={testimonial.avatar || "/placeholder.svg"}
-                        alt={testimonial.name}
-                        className="w-10 h-10 rounded-full mr-3"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                        <p className="text-sm text-gray-500">Verified Customer</p>
-                      </div>
-                    </div>
+                    <Button asChild className="w-full">
+                      <Link href={experience.link}>Learn More</Link>
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </div>
-        )}
+        </div>
+      </section>
+    )
+  }
 
-        {/* CTA Section */}
-        <div className="text-center mt-12">
-          <Link href="/experiences">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3">
-              Explore All Experiences
-            </Button>
-          </Link>
+  return (
+    <section className="py-16 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{content.title}</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{content.description}</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {content.experiences.map((experience, index) => (
+            <Card key={index} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src={experience.image || "/placeholder.svg"}
+                  alt={experience.title}
+                  fill
+                  className="object-cover transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+              <CardHeader>
+                <CardTitle className="text-xl">{experience.title}</CardTitle>
+                <CardDescription>{experience.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {experience.features.map((feature, featureIndex) => (
+                    <Badge key={featureIndex} variant="secondary">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
+                <Button asChild className="w-full">
+                  <Link href={experience.link}>Learn More</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </section>

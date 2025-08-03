@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
 import { FooterContent } from "@/models/CMSContent"
 
@@ -8,83 +8,37 @@ export async function GET() {
 
     let footerContent = await FooterContent.findOne()
 
-    // Create default content if none exists
     if (!footerContent) {
       footerContent = await FooterContent.create({
         sections: [
           {
             title: "Quick Links",
             links: [
-              {
-                label: "Home",
-                action: "navigate",
-                href: "/",
-              },
-              {
-                label: "About Us",
-                action: "scroll",
-                sectionId: "about",
-              },
-              {
-                label: "Menu",
-                action: "scroll",
-                sectionId: "menu",
-              },
-              {
-                label: "Events",
-                action: "navigate",
-                href: "/events",
-              },
+              { label: "Home", href: "/", action: "navigate" },
+              { label: "About Us", href: "/about", action: "navigate" },
+              { label: "Menu", href: "/menu", action: "navigate" },
+              { label: "Events", href: "/events", action: "navigate" },
+              { label: "Catering", href: "/catering", action: "navigate" },
             ],
           },
           {
             title: "Services",
             links: [
-              {
-                label: "Catering",
-                action: "navigate",
-                href: "/catering",
-              },
-              {
-                label: "Private Events",
-                action: "navigate",
-                href: "/events",
-              },
-              {
-                label: "Coffee Workshops",
-                action: "navigate",
-                href: "/experiences",
-              },
-              {
-                label: "Gift Cards",
-                action: "navigate",
-                href: "/gift-cards",
-              },
+              { label: "Dine In", href: "/dine-in", action: "navigate" },
+              { label: "Takeaway", href: "/takeaway", action: "navigate" },
+              { label: "Delivery", href: "/delivery", action: "navigate" },
+              { label: "Private Events", href: "/private-events", action: "navigate" },
+              { label: "Corporate Catering", href: "/corporate-catering", action: "navigate" },
             ],
           },
           {
             title: "Support",
             links: [
-              {
-                label: "Contact Us",
-                action: "modal",
-                sectionId: "contact",
-              },
-              {
-                label: "FAQs",
-                action: "navigate",
-                href: "/faqs",
-              },
-              {
-                label: "Privacy Policy",
-                action: "navigate",
-                href: "/privacy",
-              },
-              {
-                label: "Terms of Service",
-                action: "navigate",
-                href: "/terms",
-              },
+              { label: "Contact Us", action: "modal", sectionId: "contact" },
+              { label: "FAQs", href: "/faqs", action: "navigate" },
+              { label: "Privacy Policy", href: "/privacy", action: "navigate" },
+              { label: "Terms of Service", href: "/terms", action: "navigate" },
+              { label: "Accessibility", href: "/accessibility", action: "navigate" },
             ],
           },
         ],
@@ -98,30 +52,14 @@ export async function GET() {
           },
         },
         socialMedia: [
-          {
-            platform: "Facebook",
-            url: "https://facebook.com/foreignercafe",
-            icon: "Facebook",
-          },
-          {
-            platform: "Instagram",
-            url: "https://instagram.com/foreignercafe",
-            icon: "Instagram",
-          },
-          {
-            platform: "Twitter",
-            url: "https://twitter.com/foreignercafe",
-            icon: "Twitter",
-          },
-          {
-            platform: "LinkedIn",
-            url: "https://linkedin.com/company/foreignercafe",
-            icon: "Linkedin",
-          },
+          { platform: "Facebook", url: "https://facebook.com/foreignercafe", icon: "facebook" },
+          { platform: "Instagram", url: "https://instagram.com/foreignercafe", icon: "instagram" },
+          { platform: "Twitter", url: "https://twitter.com/foreignercafe", icon: "twitter" },
+          { platform: "LinkedIn", url: "https://linkedin.com/company/foreignercafe", icon: "linkedin" },
         ],
         newsletterSection: {
-          title: "STAY CONNECTED",
-          description: "Receive The Foreigner Cafe news directly to you.",
+          title: "Stay Connected",
+          description: "Subscribe to our newsletter for the latest updates, special offers, and community events.",
         },
         copyright: "© 2024 Foreigner Cafe. All rights reserved.",
       })
@@ -134,16 +72,12 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: Request) {
   try {
     await connectDB()
 
     const body = await request.json()
     const { sections, contactInfo, socialMedia, newsletterSection, copyright } = body
-
-    if (!sections || !contactInfo || !socialMedia || !newsletterSection || !copyright) {
-      return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 })
-    }
 
     let footerContent = await FooterContent.findOne()
 

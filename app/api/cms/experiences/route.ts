@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
 import { ExperiencesSection } from "@/models/CMSContent"
 
@@ -8,39 +8,31 @@ export async function GET() {
 
     let experiencesSection = await ExperiencesSection.findOne()
 
-    // Create default content if none exists
     if (!experiencesSection) {
       experiencesSection = await ExperiencesSection.create({
+        title: "Our Experiences",
+        description: "Discover unique experiences that bring people together through food, culture, and community.",
         experiences: [
           {
-            id: 1,
-            title: "Coffee Tasting Experience",
-            description: "Discover the nuances of our specialty coffee blends with our expert baristas.",
-            imageSrc: "/placeholder.svg?height=300&width=400",
-            alt: "Coffee tasting session",
-            linkText: "Book Now",
-            linkHref: "/experiences/coffee-tasting",
+            title: "Coffee Tasting",
+            description: "Explore the world of specialty coffee with our expert-led tasting sessions.",
+            image: "/placeholder.svg?height=300&width=400",
+            features: ["Expert guidance", "Premium beans", "Tasting notes"],
+            link: "/experiences/coffee-tasting",
           },
           {
-            id: 2,
-            title: "Private Events",
-            description: "Host your special occasions in our intimate and welcoming space.",
-            imageSrc: "/placeholder.svg?height=300&width=400",
-            alt: "Private event setup",
-            linkText: "Learn More",
-            linkHref: "/experiences/private-events",
-          },
-        ],
-        testimonials: [
-          {
-            quote: "The coffee here is absolutely exceptional. Every visit feels like a warm hug.",
-            name: "Sarah Johnson",
-            avatar: "/placeholder.svg?height=60&width=60",
+            title: "Cultural Events",
+            description: "Join us for cultural celebrations and community gatherings.",
+            image: "/placeholder.svg?height=300&width=400",
+            features: ["Live music", "Traditional food", "Community spirit"],
+            link: "/experiences/cultural-events",
           },
           {
-            quote: "Perfect atmosphere for meetings and catching up with friends. Highly recommended!",
-            name: "Michael Chen",
-            avatar: "/placeholder.svg?height=60&width=60",
+            title: "Cooking Classes",
+            description: "Learn to prepare authentic dishes from around the world.",
+            image: "/placeholder.svg?height=300&width=400",
+            features: ["Hands-on learning", "Professional chefs", "Take-home recipes"],
+            link: "/experiences/cooking-classes",
           },
         ],
       })
@@ -48,41 +40,36 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data: experiencesSection })
   } catch (error) {
-    console.error("Error fetching experiences section:", error)
-    return NextResponse.json({ success: false, message: "Failed to fetch experiences section" }, { status: 500 })
+    console.error("Error fetching experiences content:", error)
+    return NextResponse.json({ success: false, message: "Failed to fetch experiences content" }, { status: 500 })
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: Request) {
   try {
     await connectDB()
 
     const body = await request.json()
-    const { experiences, testimonials } = body
-
-    if (!experiences || !testimonials || !Array.isArray(experiences) || !Array.isArray(testimonials)) {
-      return NextResponse.json(
-        { success: false, message: "Experiences and testimonials arrays are required" },
-        { status: 400 },
-      )
-    }
+    const { title, description, experiences } = body
 
     let experiencesSection = await ExperiencesSection.findOne()
 
     if (experiencesSection) {
+      experiencesSection.title = title
+      experiencesSection.description = description
       experiencesSection.experiences = experiences
-      experiencesSection.testimonials = testimonials
       await experiencesSection.save()
     } else {
       experiencesSection = await ExperiencesSection.create({
+        title,
+        description,
         experiences,
-        testimonials,
       })
     }
 
     return NextResponse.json({ success: true, data: experiencesSection })
   } catch (error) {
-    console.error("Error updating experiences section:", error)
-    return NextResponse.json({ success: false, message: "Failed to update experiences section" }, { status: 500 })
+    console.error("Error updating experiences content:", error)
+    return NextResponse.json({ success: false, message: "Failed to update experiences content" }, { status: 500 })
   }
 }

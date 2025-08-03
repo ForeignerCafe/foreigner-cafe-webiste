@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
 import { HeaderContent } from "@/models/CMSContent"
 
@@ -8,65 +8,27 @@ export async function GET() {
 
     let headerContent = await HeaderContent.findOne()
 
-    // Create default content if none exists
     if (!headerContent) {
       headerContent = await HeaderContent.create({
         logo: "FOREIGNER CAFE",
         topNavItems: [
           {
-            label: "Book a Table",
-            href: "/book",
-            isExternal: false,
-          },
-          {
             label: "Order Online",
-            href: "/shop",
-            isExternal: false,
+            href: "https://order.toasttab.com/online/foreigner-60-east-3rd-avenue",
+            isExternal: true,
           },
-          {
-            label: "Gift Cards",
-            href: "/gift-cards",
-            isExternal: false,
-          },
+          { label: "Careers", href: "/careers" },
+          { label: "Gift Cards", href: "/gift-cards" },
         ],
         mainNavItems: [
-          {
-            label: "Home",
-            action: "navigate",
-            href: "/",
-          },
-          {
-            label: "About",
-            action: "scroll",
-            sectionId: "about",
-          },
-          {
-            label: "Menu",
-            action: "scroll",
-            sectionId: "menu",
-          },
-          {
-            label: "Events",
-            action: "navigate",
-            href: "/events",
-          },
-          {
-            label: "Gallery",
-            action: "navigate",
-            href: "/gallery",
-          },
-          {
-            label: "Blog",
-            action: "navigate",
-            href: "/blogs",
-          },
-          {
-            label: "Contact",
-            action: "scroll",
-            sectionId: "contact",
-          },
+          { label: "Home", href: "/", action: "navigate" },
+          { label: "About", href: "/about", action: "navigate" },
+          { label: "Menu", href: "/menu", action: "navigate" },
+          { label: "Events", href: "/events", action: "navigate" },
+          { label: "Catering", href: "/catering", action: "navigate" },
+          { label: "Contact", action: "modal", sectionId: "contact" },
         ],
-        reserveButtonText: "RESERVE",
+        reserveButtonText: "RESERVE TABLE",
       })
     }
 
@@ -77,16 +39,12 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: Request) {
   try {
     await connectDB()
 
     const body = await request.json()
     const { logo, topNavItems, mainNavItems, reserveButtonText } = body
-
-    if (!logo || !Array.isArray(topNavItems) || !Array.isArray(mainNavItems) || !reserveButtonText) {
-      return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 })
-    }
 
     let headerContent = await HeaderContent.findOne()
 

@@ -1,33 +1,35 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import Link from "next/link"
-import { Calendar, Clock, User, ArrowRight } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, Clock, User } from "lucide-react"
 
 interface Blog {
   _id: string
   title: string
   slug: string
   excerpt: string
-  featuredImage?: string
-  category?: {
+  featuredImage: string
+  category: {
     name: string
     slug: string
   }
-  author?: {
+  author: {
     name: string
+    email: string
   }
   publishedAt: string
-  readTime?: number
-  tags?: string[]
+  readTime: number
+  tags: string[]
 }
 
-export function LatestBlogsSection() {
+export default function LatestBlogsSection() {
   const [blogs, setBlogs] = useState<Blog[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchBlogs()
@@ -35,18 +37,17 @@ export function LatestBlogsSection() {
 
   const fetchBlogs = async () => {
     try {
-      setIsLoading(true)
       const response = await fetch("/api/blog/public")
       if (response.ok) {
         const data = await response.json()
-        if (data.success && Array.isArray(data.blogs)) {
+        if (data.success) {
           setBlogs(data.blogs.slice(0, 3)) // Get latest 3 blogs
         }
       }
     } catch (error) {
       console.error("Failed to fetch blogs:", error)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
@@ -58,23 +59,23 @@ export function LatestBlogsSection() {
     })
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-300 rounded w-96 mx-auto mb-8"></div>
-            </div>
+            <div className="w-64 h-8 bg-gray-200 animate-pulse rounded mx-auto mb-4" />
+            <div className="w-96 h-4 bg-gray-200 animate-pulse rounded mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-64 bg-gray-300 rounded-lg mb-4"></div>
-                <div className="h-6 bg-gray-300 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-full mb-4"></div>
-                <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="w-full h-48 bg-gray-200 animate-pulse" />
+                <div className="p-6 space-y-4">
+                  <div className="w-32 h-6 bg-gray-200 animate-pulse rounded" />
+                  <div className="w-full h-4 bg-gray-200 animate-pulse rounded" />
+                  <div className="w-3/4 h-4 bg-gray-200 animate-pulse rounded" />
+                </div>
               </div>
             ))}
           </div>
@@ -83,87 +84,69 @@ export function LatestBlogsSection() {
     )
   }
 
-  if (blogs.length === 0) {
-    return (
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Latest from Our Blog</h2>
-            <p className="text-gray-600">No blog posts available at the moment.</p>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
   return (
-    <section id="blog" className="py-16 bg-white">
+    <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Latest from Our Blog</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Latest Stories</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Stay updated with our latest stories, coffee tips, and community highlights
+            Discover the latest news, stories, and insights from our community and beyond.
           </p>
         </div>
-
-        {/* Blog Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {blogs.map((blog) => (
-            <Card key={blog._id} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="relative overflow-hidden">
-                <img
-                  src={blog.featuredImage || "/placeholder.svg?height=250&width=400"}
+            <Card key={blog._id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src={blog.featuredImage || "/placeholder.svg?height=300&width=400"}
                   alt={blog.title}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  fill
+                  className="object-cover transition-transform duration-300 hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
-                {blog.category && (
-                  <Badge className="absolute top-4 left-4 bg-orange-500 text-white">{blog.category.name}</Badge>
-                )}
               </div>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatDate(blog.publishedAt)}</span>
+              <CardHeader>
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant="secondary">{blog.category?.name || "General"}</Badge>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {blog.readTime} min read
                   </div>
-                  {blog.readTime && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{blog.readTime} min</span>
-                    </div>
-                  )}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-500 transition-colors">
-                  <Link href={`/blogs/${blog.slug}`}>{blog.title}</Link>
-                </h3>
-                <p className="text-gray-600 mb-4 leading-relaxed line-clamp-3">{blog.excerpt}</p>
-                {blog.author && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                    <User className="w-4 h-4" />
-                    <span>By {blog.author.name}</span>
+                <CardTitle className="text-xl line-clamp-2">{blog.title}</CardTitle>
+                <CardDescription className="line-clamp-3">{blog.excerpt}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                  <div className="flex items-center">
+                    <User className="w-4 h-4 mr-1" />
+                    {blog.author?.name || "Anonymous"}
                   </div>
-                )}
-                <Link href={`/blogs/${blog.slug}`}>
-                  <Button variant="ghost" className="p-0 h-auto text-orange-500 hover:text-orange-600">
-                    Read More
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </Link>
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    {formatDate(blog.publishedAt)}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {blog.tags.slice(0, 3).map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+                <Button asChild className="w-full">
+                  <Link href={`/blogs/${blog.slug}`}>Read More</Link>
+                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
-
-        {/* CTA */}
-        <div className="text-center">
-          <Link href="/blogs">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3">
-              View All Blog Posts
+        {blogs.length > 0 && (
+          <div className="text-center mt-12">
+            <Button asChild variant="outline" size="lg">
+              <Link href="/blogs">View All Stories</Link>
             </Button>
-          </Link>
-        </div>
+          </div>
+        )}
       </div>
     </section>
   )
