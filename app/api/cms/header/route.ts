@@ -1,61 +1,113 @@
+import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
-import CMSContent from "@/models/CMSContent"
+import { HeaderContent } from "@/models/CMSContent"
 
 export async function GET() {
   try {
     await connectDB()
 
-    let headerContent = await CMSContent.findOne({ section: "header" })
+    let headerContent = await HeaderContent.findOne()
 
+    // Create default content if none exists
     if (!headerContent) {
-      // Create default header content if it doesn't exist
-      headerContent = await CMSContent.create({
-        section: "header",
-        content: {
-          logo: {
-            text: "Foreigner Cafe",
-            image: "/images/logo.png",
+      headerContent = await HeaderContent.create({
+        logo: "FOREIGNER CAFE",
+        topNavItems: [
+          {
+            label: "Book a Table",
+            href: "/book",
+            isExternal: false,
           },
-          navigation: [
-            { label: "Home", href: "/", type: "link" },
-            { label: "About", href: "/about", type: "link" },
-            { label: "Menu", href: "/menu", type: "link" },
-            { label: "Events", href: "/events", type: "link" },
-            { label: "Gallery", href: "/gallery", type: "link" },
-            { label: "Blog", href: "/blogs", type: "link" },
-            { label: "Shop", href: "/shop", type: "link" },
-            { label: "Contact", href: "/contact", type: "modal" },
-          ],
-          ctaButton: {
-            text: "Book Table",
-            action: "reserve",
-            variant: "primary",
+          {
+            label: "Order Online",
+            href: "/shop",
+            isExternal: false,
           },
-        },
+          {
+            label: "Gift Cards",
+            href: "/gift-cards",
+            isExternal: false,
+          },
+        ],
+        mainNavItems: [
+          {
+            label: "Home",
+            action: "navigate",
+            href: "/",
+          },
+          {
+            label: "About",
+            action: "scroll",
+            sectionId: "about",
+          },
+          {
+            label: "Menu",
+            action: "scroll",
+            sectionId: "menu",
+          },
+          {
+            label: "Events",
+            action: "navigate",
+            href: "/events",
+          },
+          {
+            label: "Gallery",
+            action: "navigate",
+            href: "/gallery",
+          },
+          {
+            label: "Blog",
+            action: "navigate",
+            href: "/blogs",
+          },
+          {
+            label: "Contact",
+            action: "scroll",
+            sectionId: "contact",
+          },
+        ],
+        reserveButtonText: "RESERVE",
       })
     }
 
-    return Response.json({ content: headerContent.content })
+    return NextResponse.json({ success: true, data: headerContent })
   } catch (error) {
-    console.error("GET /api/cms/header error:", error)
-    return new Response("Failed to load header content", { status: 500 })
+    console.error("Error fetching header content:", error)
+    return NextResponse.json({ success: false, message: "Failed to fetch header content" }, { status: 500 })
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     await connectDB()
-    const { content } = await request.json()
 
-    const headerContent = await CMSContent.findOneAndUpdate(
-      { section: "header" },
-      { content },
-      { new: true, upsert: true },
-    )
+    const body = await request.json()
+    const { logo, topNavItems, mainNavItems, reserveButtonText } = body
 
-    return Response.json({ content: headerContent.content })
+    if (!logo || !Array.isArray(topNavItems) || !Array.isArray(mainNavItems) || !reserveButtonText) {
+      return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 })
+    }
+
+    let headerContent = await HeaderContent.findOne()
+
+    if (headerContent) {
+      headerContent.logo = logo
+      headerContent.topNavItems = topNavItems
+      headerContent.mainNavItems = mainNavItems
+      headerContent.reserveButtonText = reserveButtonText
+      await headerContent.save()
+    } else {
+      headerContent = await HeaderContent.create({
+        logo,
+        topNavItems,
+        mainNavItems,
+        reserveButtonText,
+      })
+    }
+
+    return NextResponse.json({ success: true, data: headerContent })
   } catch (error) {
-    console.error("PUT /api/cms/header error:", error)
-    return new Response("Failed to update header content", { status: 500 })
+    console.error("Error updating header content:", error)
+    return NextResponse.json({ success: false, message: "Failed to update header content" }, { status: 500 })
   }
 }

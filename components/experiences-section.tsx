@@ -1,74 +1,70 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import Link from "next/link"
-import { Clock, Users, Star } from "lucide-react"
+import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface Experience {
+  id: number
   title: string
   description: string
-  image: string
-  duration: string
-  capacity: string
-  price: string
-  features: string[]
+  imageSrc: string
+  alt?: string
+  linkText: string
+  linkHref: string
 }
 
 interface Testimonial {
+  quote: string
   name: string
-  rating: number
-  comment: string
-  experience: string
+  avatar: string
 }
 
 interface ExperiencesContent {
-  title: string
-  subtitle: string
   experiences: Experience[]
   testimonials: Testimonial[]
 }
 
-export default function ExperiencesSection() {
+export function ExperiencesSection() {
   const [experiencesContent, setExperiencesContent] = useState<ExperiencesContent | null>(null)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchExperiencesContent = async () => {
-      try {
-        const response = await fetch("/api/cms/experiences")
-        if (response.ok) {
-          const data = await response.json()
-          setExperiencesContent(data.content)
-        }
-      } catch (error) {
-        console.error("Error fetching experiences content:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchExperiencesContent()
   }, [])
 
-  if (loading) {
+  const fetchExperiencesContent = async () => {
+    try {
+      const response = await fetch("/api/cms/experiences")
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setExperiencesContent(data.data)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch experiences content:", error)
+    }
+  }
+
+  if (!experiencesContent) {
     return (
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="w-64 h-8 bg-gray-200 animate-pulse rounded mx-auto mb-4" />
-            <div className="w-96 h-4 bg-gray-200 animate-pulse rounded mx-auto" />
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-300 rounded w-96 mx-auto mb-8"></div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-gray-50 rounded-lg overflow-hidden">
-                <div className="w-full h-48 bg-gray-200 animate-pulse" />
-                <div className="p-6 space-y-4">
-                  <div className="w-3/4 h-6 bg-gray-200 animate-pulse rounded" />
-                  <div className="w-full h-4 bg-gray-200 animate-pulse rounded" />
-                  <div className="w-2/3 h-4 bg-gray-200 animate-pulse rounded" />
-                </div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-64 bg-gray-300 rounded-lg mb-4"></div>
+                <div className="h-6 bg-gray-300 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded w-full mb-4"></div>
+                <div className="h-10 bg-gray-300 rounded w-32"></div>
               </div>
             ))}
           </div>
@@ -77,101 +73,80 @@ export default function ExperiencesSection() {
     )
   }
 
-  if (!experiencesContent) return null
-
   return (
-    <section className="py-16 bg-white">
+    <section id="experiences" className="py-16 bg-white">
       <div className="container mx-auto px-4">
+        {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{experiencesContent.title}</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{experiencesContent.subtitle}</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Unique Experiences</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover our carefully crafted experiences that go beyond just great coffee
+          </p>
         </div>
 
         {/* Experiences Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {experiencesContent.experiences.map((experience, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="relative h-48 w-full">
-                <Image
-                  src={experience.image || "/placeholder.svg"}
-                  alt={experience.title}
-                  fill
-                  className="object-cover"
+          {experiencesContent.experiences.map((experience) => (
+            <Card key={experience.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+              <div className="relative overflow-hidden">
+                <img
+                  src={experience.imageSrc || "/placeholder.svg"}
+                  alt={experience.alt || experience.title}
+                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
               </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{experience.title}</h3>
-                <p className="text-gray-600 mb-4">{experience.description}</p>
-
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{experience.duration}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="w-4 h-4" />
-                    <span>{experience.capacity}</span>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    {experience.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center space-x-2">
-                        <span className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-orange-600">{experience.price}</span>
-                  <Button className="bg-orange-600 hover:bg-orange-700">Book Now</Button>
-                </div>
-              </div>
-            </div>
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{experience.title}</h3>
+                <p className="text-gray-600 mb-4 leading-relaxed">{experience.description}</p>
+                <Link href={experience.linkHref}>
+                  <Button className="bg-orange-500 hover:bg-orange-600 text-white">{experience.linkText}</Button>
+                </Link>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
         {/* Testimonials */}
         {experiencesContent.testimonials.length > 0 && (
-          <div className="bg-gray-50 rounded-lg p-8">
-            <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">What Our Guests Say</h3>
+          <div className="bg-gray-50 rounded-2xl p-8 md:p-12">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">What Our Guests Say</h3>
+              <p className="text-gray-600">Hear from those who've experienced our unique offerings</p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {experiencesContent.testimonials.map((testimonial, index) => (
-                <div key={index} className="bg-white rounded-lg p-6 shadow-sm">
-                  <div className="flex items-center mb-4">
-                    <div className="flex space-x-1">
+                <Card key={index} className="bg-white border-0 shadow-md">
+                  <CardContent className="p-6">
+                    <div className="flex items-center mb-4">
                       {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < testimonial.rating ? "text-yellow-400 fill-current" : "text-gray-300"
-                          }`}
-                        />
+                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                       ))}
                     </div>
-                  </div>
-                  <p className="text-gray-600 mb-4 italic">"{testimonial.comment}"</p>
-                  <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.experience}</p>
-                  </div>
-                </div>
+                    <blockquote className="text-gray-600 mb-4 italic">"{testimonial.quote}"</blockquote>
+                    <div className="flex items-center">
+                      <img
+                        src={testimonial.avatar || "/placeholder.svg"}
+                        alt={testimonial.name}
+                        className="w-10 h-10 rounded-full mr-3"
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                        <p className="text-sm text-gray-500">Verified Customer</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
         )}
 
-        {/* CTA */}
+        {/* CTA Section */}
         <div className="text-center mt-12">
           <Link href="/experiences">
-            <Button className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 text-lg">
-              View All Experiences
+            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3">
+              Explore All Experiences
             </Button>
           </Link>
         </div>

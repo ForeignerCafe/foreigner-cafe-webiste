@@ -2,85 +2,102 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { Menu, X, Phone, MapPin, Clock } from "lucide-react"
+import { Menu, Phone, MapPin, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ContactModal } from "@/components/ContactModal"
+import { LocationModal } from "@/components/location-modal"
 import { ReserveModal } from "@/components/reserveModal"
 
-interface NavigationItem {
+interface NavItem {
   label: string
-  href: string
-  type: "link" | "modal"
+  href?: string
+  action?: string
+  sectionId?: string
+  isExternal?: boolean
 }
 
 interface HeaderContent {
-  logo: {
-    text: string
-    image: string
-  }
-  navigation: NavigationItem[]
-  ctaButton: {
-    text: string
-    action: "reserve" | "contact"
-    variant: "primary" | "secondary"
-  }
+  logo: string
+  topNavItems: NavItem[]
+  mainNavItems: NavItem[]
+  reserveButtonText: string
 }
 
-export default function Navigation() {
+export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
-  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const [headerContent, setHeaderContent] = useState<HeaderContent | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
+  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
 
   useEffect(() => {
-    const fetchHeaderContent = async () => {
-      try {
-        const response = await fetch("/api/cms/header")
-        if (response.ok) {
-          const data = await response.json()
-          setHeaderContent(data.content)
-        }
-      } catch (error) {
-        console.error("Error fetching header content:", error)
-      } finally {
-        setLoading(false)
-      }
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
     }
 
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  useEffect(() => {
     fetchHeaderContent()
   }, [])
 
-  const handleNavClick = (item: NavigationItem) => {
-    if (item.type === "modal") {
-      setIsContactModalOpen(true)
+  const fetchHeaderContent = async () => {
+    try {
+      const response = await fetch("/api/cms/header")
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setHeaderContent(data.data)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch header content:", error)
+    }
+  }
+
+  const handleNavClick = (item: NavItem) => {
+    if (item.action === "scroll" && item.sectionId) {
+      const element = document.getElementById(item.sectionId)
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" })
+      }
+    } else if (item.action === "modal") {
+      if (item.sectionId === "contact") {
+        setIsContactModalOpen(true)
+      } else if (item.sectionId === "location") {
+        setIsLocationModalOpen(true)
+      }
     }
     setIsOpen(false)
   }
 
-  const handleCtaClick = () => {
-    if (headerContent?.ctaButton.action === "reserve") {
-      setIsReserveModalOpen(true)
-    } else {
-      setIsContactModalOpen(true)
-    }
+  const handleReserveClick = () => {
+    setIsReserveModalOpen(true)
+    setIsOpen(false)
   }
 
-  if (loading) {
+  if (!headerContent) {
     return (
-      <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="w-32 h-8 bg-gray-200 animate-pulse rounded" />
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="text-xl font-bold">FOREIGNER CAFE</div>
+            <div className="hidden md:flex items-center space-x-8">
+              <Link href="/" className="text-gray-700 hover:text-orange-500 transition-colors">
+                Home
+              </Link>
+              <Link href="/about" className="text-gray-700 hover:text-orange-500 transition-colors">
+                About
+              </Link>
+              <Link href="/menu" className="text-gray-700 hover:text-orange-500 transition-colors">
+                Menu
+              </Link>
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white">RESERVE</Button>
             </div>
-            <div className="hidden md:flex space-x-8">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="w-16 h-4 bg-gray-200 animate-pulse rounded" />
-              ))}
-            </div>
-            <div className="w-24 h-8 bg-gray-200 animate-pulse rounded" />
           </div>
         </div>
       </nav>
@@ -89,106 +106,173 @@ export default function Navigation() {
 
   return (
     <>
-      <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center space-x-2">
-                {headerContent?.logo.image && (
-                  <Image
-                    src={headerContent.logo.image || "/placeholder.svg"}
-                    alt={headerContent.logo.text}
-                    width={40}
-                    height={40}
-                    className="w-10 h-10"
-                  />
-                )}
-                <span className="text-xl font-bold text-gray-900">{headerContent?.logo.text || "Foreigner Cafe"}</span>
-              </Link>
-            </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {headerContent?.navigation.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => handleNavClick(item)}
-                  className="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  {item.type === "link" ? <Link href={item.href}>{item.label}</Link> : item.label}
-                </button>
-              ))}
-            </div>
-
-            {/* CTA Button */}
-            <div className="hidden md:flex items-center space-x-4">
-              <Button
-                onClick={handleCtaClick}
-                className={`${
-                  headerContent?.ctaButton.variant === "primary"
-                    ? "bg-orange-600 hover:bg-orange-700 text-white"
-                    : "bg-transparent border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white"
-                }`}
-              >
-                {headerContent?.ctaButton.text || "Book Table"}
-              </Button>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700 hover:text-orange-600 p-2">
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden bg-white border-t">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {headerContent?.navigation.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => handleNavClick(item)}
-                  className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50"
-                >
-                  {item.type === "link" ? <Link href={item.href}>{item.label}</Link> : item.label}
-                </button>
-              ))}
-              <div className="px-3 py-2">
-                <Button onClick={handleCtaClick} className="w-full bg-orange-600 hover:bg-orange-700 text-white">
-                  {headerContent?.ctaButton.text || "Book Table"}
-                </Button>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? "bg-white shadow-lg py-2" : "bg-white/95 backdrop-blur-sm py-4"
+        }`}
+      >
+        {/* Top Bar */}
+        <div className="border-b border-gray-200 py-2">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between text-sm">
+              <div className="hidden md:flex items-center space-x-6 text-gray-600">
+                <div className="flex items-center space-x-1">
+                  <Phone className="w-4 h-4" />
+                  <span>+1 (555) 123-4567</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>123 Coffee Street, Brew City</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Clock className="w-4 h-4" />
+                  <span>Mon-Fri: 7AM-9PM</span>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                {headerContent.topNavItems.map((item, index) => (
+                  <div key={index}>
+                    {item.isExternal ? (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 hover:text-orange-500 transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link href={item.href || "#"} className="text-gray-600 hover:text-orange-500 transition-colors">
+                        {item.label}
+                      </Link>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
-      </nav>
+        </div>
 
-      {/* Contact Info Bar */}
-      <div className="bg-gray-900 text-white py-2 text-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-8">
-            <div className="flex items-center space-x-2">
-              <Phone size={16} />
-              <span>+1 (555) 123-4567</span>
+        {/* Main Navigation */}
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="text-2xl font-bold text-gray-900 hover:text-orange-500 transition-colors">
+              {headerContent.logo}
+            </Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-8">
+              {headerContent.mainNavItems.map((item, index) => (
+                <div key={index}>
+                  {item.action === "navigate" ? (
+                    <Link
+                      href={item.href || "#"}
+                      className="text-gray-700 hover:text-orange-500 transition-colors font-medium"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => handleNavClick(item)}
+                      className="text-gray-700 hover:text-orange-500 transition-colors font-medium"
+                    >
+                      {item.label}
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
-            <div className="flex items-center space-x-2">
-              <MapPin size={16} />
-              <span>123 Cafe Street, City</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Clock size={16} />
-              <span>Mon-Fri: 7AM-10PM | Sat-Sun: 8AM-11PM</span>
+
+            {/* Reserve Button & Mobile Menu */}
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={handleReserveClick}
+                className="hidden md:inline-flex bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium transition-colors"
+              >
+                {headerContent.reserveButtonText}
+              </Button>
+
+              {/* Mobile Menu Button */}
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="lg:hidden">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                  <div className="flex flex-col space-y-6 mt-6">
+                    <div className="text-2xl font-bold text-gray-900">{headerContent.logo}</div>
+
+                    {/* Mobile Navigation Items */}
+                    <div className="flex flex-col space-y-4">
+                      {headerContent.mainNavItems.map((item, index) => (
+                        <div key={index}>
+                          {item.action === "navigate" ? (
+                            <Link
+                              href={item.href || "#"}
+                              onClick={() => setIsOpen(false)}
+                              className="text-lg text-gray-700 hover:text-orange-500 transition-colors font-medium block py-2"
+                            >
+                              {item.label}
+                            </Link>
+                          ) : (
+                            <button
+                              onClick={() => handleNavClick(item)}
+                              className="text-lg text-gray-700 hover:text-orange-500 transition-colors font-medium block py-2 text-left w-full"
+                            >
+                              {item.label}
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Mobile Reserve Button */}
+                    <Button
+                      onClick={handleReserveClick}
+                      className="bg-orange-500 hover:bg-orange-600 text-white w-full py-3 rounded-full font-medium"
+                    >
+                      {headerContent.reserveButtonText}
+                    </Button>
+
+                    {/* Mobile Top Nav Items */}
+                    <div className="border-t pt-6 space-y-3">
+                      {headerContent.topNavItems.map((item, index) => (
+                        <div key={index}>
+                          {item.isExternal ? (
+                            <a
+                              href={item.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => setIsOpen(false)}
+                              className="text-gray-600 hover:text-orange-500 transition-colors block py-1"
+                            >
+                              {item.label}
+                            </a>
+                          ) : (
+                            <Link
+                              href={item.href || "#"}
+                              onClick={() => setIsOpen(false)}
+                              className="text-gray-600 hover:text-orange-500 transition-colors block py-1"
+                            >
+                              {item.label}
+                            </Link>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* Modals */}
       <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+      <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
       <ReserveModal isOpen={isReserveModalOpen} onClose={() => setIsReserveModalOpen(false)} />
     </>
   )

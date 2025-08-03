@@ -4,16 +4,18 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react"
+import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
+import { ContactModal } from "@/components/ContactModal"
+import { LocationModal } from "@/components/location-modal"
+import toast from "react-hot-toast"
 
 interface FooterLink {
   label: string
-  href: string
-  type?: "address" | "phone" | "email"
+  href?: string
+  action?: string
+  sectionId?: string
 }
 
 interface FooterSection {
@@ -28,51 +30,72 @@ interface SocialMedia {
 }
 
 interface FooterContent {
-  logo: {
-    text: string
-    image: string
-  }
-  description: string
   sections: FooterSection[]
+  contactInfo: {
+    address: string
+    phone: string
+    email: string
+    hours: {
+      weekdays: string
+      weekends: string
+    }
+  }
   socialMedia: SocialMedia[]
-  newsletter: {
+  newsletterSection: {
     title: string
     description: string
-    placeholder: string
   }
   copyright: string
-  policies: FooterLink[]
 }
 
-export default function Footer() {
+export function Footer() {
   const [footerContent, setFooterContent] = useState<FooterContent | null>(null)
-  const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState("")
-  const [subscribing, setSubscribing] = useState(false)
+  const [isSubscribing, setIsSubscribing] = useState(false)
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
 
   useEffect(() => {
-    const fetchFooterContent = async () => {
-      try {
-        const response = await fetch("/api/cms/footer")
-        if (response.ok) {
-          const data = await response.json()
-          setFooterContent(data.content)
-        }
-      } catch (error) {
-        console.error("Error fetching footer content:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchFooterContent()
   }, [])
 
+  const fetchFooterContent = async () => {
+    try {
+      const response = await fetch("/api/cms/footer")
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setFooterContent(data.data)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch footer content:", error)
+    }
+  }
+
+  const handleLinkClick = (link: FooterLink) => {
+    if (link.action === "scroll" && link.sectionId) {
+      const element = document.getElementById(link.sectionId)
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" })
+      }
+    } else if (link.action === "modal") {
+      if (link.sectionId === "contact") {
+        setIsContactModalOpen(true)
+      } else if (link.sectionId === "location") {
+        setIsLocationModalOpen(true)
+      }
+    }
+  }
+
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) return
+    if (!email) {
+      toast.error("Please enter your email address")
+      return
+    }
 
-    setSubscribing(true)
+    setIsSubscribing(true)
     try {
       const response = await fetch("/api/newsletter", {
         method: "POST",
@@ -83,62 +106,40 @@ export default function Footer() {
       })
 
       if (response.ok) {
-        toast.success("Successfully subscribed to newsletter!")
+        toast.success("Thank you for subscribing to our newsletter!")
         setEmail("")
       } else {
         const data = await response.json()
-        toast.error(data.message || "Failed to subscribe")
+        toast.error(data.message || "Failed to subscribe. Please try again.")
       }
     } catch (error) {
       toast.error("Failed to subscribe. Please try again.")
     } finally {
-      setSubscribing(false)
+      setIsSubscribing(false)
     }
   }
 
   const getSocialIcon = (iconName: string) => {
-    switch (iconName) {
+    switch (iconName.toLowerCase()) {
       case "facebook":
-        return <Facebook size={20} />
+        return <Facebook className="w-5 h-5" />
       case "instagram":
-        return <Instagram size={20} />
+        return <Instagram className="w-5 h-5" />
       case "twitter":
-        return <Twitter size={20} />
+        return <Twitter className="w-5 h-5" />
       case "linkedin":
-        return <Linkedin size={20} />
+        return <Linkedin className="w-5 h-5" />
       default:
-        return null
+        return <Mail className="w-5 h-5" />
     }
   }
 
-  const getLinkIcon = (type?: string) => {
-    switch (type) {
-      case "phone":
-        return <Phone size={16} />
-      case "email":
-        return <Mail size={16} />
-      case "address":
-        return <MapPin size={16} />
-      default:
-        return null
-    }
-  }
-
-  if (loading) {
+  if (!footerContent) {
     return (
-      <footer className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <div className="w-32 h-6 bg-gray-700 animate-pulse rounded" />
-                <div className="space-y-2">
-                  {[...Array(4)].map((_, j) => (
-                    <div key={j} className="w-24 h-4 bg-gray-700 animate-pulse rounded" />
-                  ))}
-                </div>
-              </div>
-            ))}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <p>Loading footer content...</p>
           </div>
         </div>
       </footer>
@@ -146,97 +147,136 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Logo and Description */}
-          <div className="lg:col-span-1">
-            <div className="flex items-center space-x-2 mb-4">
-              {footerContent?.logo.image && (
-                <Image
-                  src={footerContent.logo.image || "/placeholder.svg"}
-                  alt={footerContent.logo.text}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10"
+    <>
+      <footer className="bg-gray-900 text-white">
+        {/* Newsletter Section */}
+        <div className="bg-orange-500 py-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                {footerContent.newsletterSection.title}
+              </h3>
+              <p className="text-lg text-white/90 mb-8">{footerContent.newsletterSection.description}</p>
+              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                <Input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 bg-white text-gray-900 border-0 focus:ring-2 focus:ring-white"
+                  required
                 />
-              )}
-              <span className="text-xl font-bold">{footerContent?.logo.text || "Foreigner Cafe"}</span>
-            </div>
-            <p className="text-gray-300 mb-6">{footerContent?.description}</p>
-
-            {/* Social Media */}
-            <div className="flex space-x-4">
-              {footerContent?.socialMedia.map((social) => (
-                <Link
-                  key={social.platform}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
+                <Button
+                  type="submit"
+                  disabled={isSubscribing}
+                  className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-2 whitespace-nowrap"
                 >
-                  {getSocialIcon(social.icon)}
-                </Link>
-              ))}
+                  {isSubscribing ? "Subscribing..." : "Subscribe"}
+                </Button>
+              </form>
             </div>
           </div>
+        </div>
 
-          {/* Footer Sections */}
-          {footerContent?.sections.map((section) => (
-            <div key={section.title}>
-              <h3 className="text-lg font-semibold mb-4">{section.title}</h3>
-              <ul className="space-y-2">
-                {section.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"
+        {/* Main Footer Content */}
+        <div className="py-12">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {/* Contact Information */}
+              <div className="lg:col-span-1">
+                <h3 className="text-xl font-bold mb-6">Contact Info</h3>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <MapPin className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
+                    <p className="text-gray-300">{footerContent.contactInfo.address}</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                    <a
+                      href={`tel:${footerContent.contactInfo.phone}`}
+                      className="text-gray-300 hover:text-white transition-colors"
                     >
-                      {getLinkIcon(link.type)}
-                      <span>{link.label}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                      {footerContent.contactInfo.phone}
+                    </a>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Mail className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                    <a
+                      href={`mailto:${footerContent.contactInfo.email}`}
+                      className="text-gray-300 hover:text-white transition-colors"
+                    >
+                      {footerContent.contactInfo.email}
+                    </a>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <Clock className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
+                    <div className="text-gray-300">
+                      <p>{footerContent.contactInfo.hours.weekdays}</p>
+                      <p>{footerContent.contactInfo.hours.weekends}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          {/* Newsletter */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">{footerContent?.newsletter.title}</h3>
-            <p className="text-gray-300 mb-4">{footerContent?.newsletter.description}</p>
-            <form onSubmit={handleNewsletterSubmit} className="space-y-2">
-              <Input
-                type="email"
-                placeholder={footerContent?.newsletter.placeholder}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                required
-              />
-              <Button type="submit" disabled={subscribing} className="w-full bg-orange-600 hover:bg-orange-700">
-                {subscribing ? "Subscribing..." : "Subscribe"}
-              </Button>
-            </form>
+              {/* Footer Sections */}
+              {footerContent.sections.map((section, index) => (
+                <div key={index}>
+                  <h3 className="text-xl font-bold mb-6">{section.title}</h3>
+                  <ul className="space-y-3">
+                    {section.links.map((link, linkIndex) => (
+                      <li key={linkIndex}>
+                        {link.action === "navigate" || link.action === "external" ? (
+                          <Link
+                            href={link.href || "#"}
+                            className="text-gray-300 hover:text-white transition-colors"
+                            {...(link.action === "external" && { target: "_blank", rel: "noopener noreferrer" })}
+                          >
+                            {link.label}
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => handleLinkClick(link)}
+                            className="text-gray-300 hover:text-white transition-colors text-left"
+                          >
+                            {link.label}
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">{footerContent?.copyright}</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            {footerContent?.policies.map((policy) => (
-              <Link
-                key={policy.label}
-                href={policy.href}
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                {policy.label}
-              </Link>
-            ))}
+        <div className="border-t border-gray-800 py-6">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+              <p className="text-gray-400 text-center md:text-left">{footerContent.copyright}</p>
+              <div className="flex items-center space-x-4">
+                {footerContent.socialMedia.map((social, index) => (
+                  <a
+                    key={index}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-white transition-colors"
+                    aria-label={`Follow us on ${social.platform}`}
+                  >
+                    {getSocialIcon(social.icon)}
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+
+      {/* Modals */}
+      <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+      <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
+    </>
   )
 }

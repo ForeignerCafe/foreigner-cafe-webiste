@@ -1,82 +1,98 @@
+import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
-import CMSContent from "@/models/CMSContent"
+import { FAQsSection } from "@/models/CMSContent"
 
 export async function GET() {
   try {
     await connectDB()
 
-    let faqsContent = await CMSContent.findOne({ section: "faqs" })
+    let faqsSection = await FAQsSection.findOne()
 
-    if (!faqsContent) {
-      // Create default FAQs content if it doesn't exist
-      faqsContent = await CMSContent.create({
-        section: "faqs",
-        content: {
-          title: "Frequently Asked Questions",
-          subtitle: "Find answers to common questions about our cafe, services, and policies.",
-          faqs: [
-            {
-              question: "What are your opening hours?",
-              answer:
-                "We're open Monday to Friday from 7:00 AM to 10:00 PM, and weekends from 8:00 AM to 11:00 PM. Holiday hours may vary.",
-            },
-            {
-              question: "Do you offer vegan and gluten-free options?",
-              answer:
-                "Yes! We have a variety of vegan and gluten-free options including plant-based milk alternatives, vegan pastries, and gluten-free bread for sandwiches.",
-            },
-            {
-              question: "Can I make a reservation?",
-              answer:
-                "Yes, we accept reservations for groups of 4 or more. You can book online through our website or call us directly. Walk-ins are always welcome too!",
-            },
-            {
-              question: "Do you provide catering services?",
-              answer:
-                "We offer catering for corporate events, private parties, and special occasions. Contact us at least 48 hours in advance to discuss your needs.",
-            },
-            {
-              question: "Is there WiFi available?",
-              answer:
-                "Yes, we provide free high-speed WiFi for all our customers. Perfect for remote work, studying, or casual browsing.",
-            },
-            {
-              question: "Do you have parking available?",
-              answer:
-                "We have a small parking lot behind the cafe with 15 spaces. Street parking is also available, and we're accessible by public transport.",
-            },
-            {
-              question: "Can I host private events at your cafe?",
-              answer:
-                "Yes! We offer private event hosting for birthdays, business meetings, book clubs, and more. Contact us to discuss availability and packages.",
-            },
-            {
-              question: "Do you sell gift cards?",
-              answer:
-                "Yes, we offer both physical and digital gift cards in various denominations. They make perfect gifts for coffee lovers and can be purchased in-store or online.",
-            },
-          ],
-        },
+    // Create default content if none exists
+    if (!faqsSection) {
+      faqsSection = await FAQsSection.create({
+        title: "FREQUENTLY ASKED QUESTIONS",
+        subtitle: "Everything you need to know about visiting Foreigner Cafe",
+        faqs: [
+          {
+            question: "What are your opening hours?",
+            answer:
+              "We're open Monday to Friday from 7:00 AM to 9:00 PM, and weekends from 8:00 AM to 10:00 PM. We're here to serve you fresh coffee and delicious food throughout the day!",
+          },
+          {
+            question: "Do you offer WiFi for customers?",
+            answer:
+              "Yes! We provide free high-speed WiFi for all our customers. Whether you're working, studying, or just browsing, you can stay connected while enjoying our coffee and atmosphere.",
+          },
+          {
+            question: "Can I make reservations for large groups?",
+            answer:
+              "We welcome groups of all sizes. For parties of 6 or more, we recommend making a reservation in advance to ensure we can accommodate your group comfortably.",
+          },
+          {
+            question: "Do you have vegan and gluten-free options?",
+            answer:
+              "Yes, we offer a variety of vegan and gluten-free options including plant-based milk alternatives, vegan pastries, and gluten-free bread. Our staff can help you identify suitable options from our menu.",
+          },
+          {
+            question: "Do you offer catering services?",
+            answer:
+              "Yes! We provide catering services for corporate events, private parties, and special occasions. Contact us at least 48 hours in advance to discuss your catering needs and menu options.",
+          },
+          {
+            question: "Can I host private events at your cafe?",
+            answer:
+              "We'd love to host your private event! We offer our space for birthday parties, business meetings, book clubs, and other gatherings. Please contact us to discuss availability and arrangements.",
+          },
+          {
+            question: "Do you sell gift cards?",
+            answer:
+              "Yes, we offer gift cards in various denominations. They make perfect gifts for coffee lovers and can be purchased in-store or online. Gift cards never expire and can be used for any items in our cafe.",
+          },
+          {
+            question: "Do you have parking available?",
+            answer:
+              "We have limited street parking available in front of our cafe. There's also a public parking lot two blocks away on Main Street. We also encourage customers to bike - we have bike racks available!",
+          },
+        ],
       })
     }
 
-    return Response.json({ content: faqsContent.content })
+    return NextResponse.json({ success: true, data: faqsSection })
   } catch (error) {
-    console.error("GET /api/cms/faqs error:", error)
-    return new Response("Failed to load FAQs content", { status: 500 })
+    console.error("Error fetching FAQs:", error)
+    return NextResponse.json({ success: false, message: "Failed to fetch FAQs" }, { status: 500 })
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     await connectDB()
-    const { content } = await request.json()
 
-    const faqsContent = await CMSContent.findOneAndUpdate({ section: "faqs" }, { content }, { new: true, upsert: true })
+    const body = await request.json()
+    const { title, subtitle, faqs } = body
 
-    return Response.json({ content: faqsContent.content })
+    if (!title || !subtitle || !Array.isArray(faqs)) {
+      return NextResponse.json(
+        { success: false, message: "Title, subtitle, and faqs array are required" },
+        { status: 400 },
+      )
+    }
+
+    let faqsSection = await FAQsSection.findOne()
+
+    if (faqsSection) {
+      faqsSection.title = title
+      faqsSection.subtitle = subtitle
+      faqsSection.faqs = faqs
+      await faqsSection.save()
+    } else {
+      faqsSection = await FAQsSection.create({ title, subtitle, faqs })
+    }
+
+    return NextResponse.json({ success: true, data: faqsSection })
   } catch (error) {
-    console.error("PUT /api/cms/faqs error:", error)
-    return new Response("Failed to update FAQs content", { status: 500 })
+    console.error("Error updating FAQs:", error)
+    return NextResponse.json({ success: false, message: "Failed to update FAQs" }, { status: 500 })
   }
 }
