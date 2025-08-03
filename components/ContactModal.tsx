@@ -39,7 +39,7 @@
 //             background: #9ca3af;
 //           }
 //         `}</style>
-        
+
 //         <div className="relative p-6 sm:p-8 h-full flex flex-col">
 //           <div className="custom-scrollbar overflow-y-auto h-full pr-2 -mr-2">
 //             <div className="space-y-6">
@@ -61,11 +61,11 @@
 //                       </p>
 //                       <p className="flex items-center gap-3">
 //                         <Phone className="h-5 w-5 shrink-0 text-primary" />
-//                         <span>(650) 123-4567</span>
+//                         <span>+1 (650) 620 1888</span>
 //                       </p>
 //                       <p className="flex items-center gap-3">
 //                         <Mail className="h-5 w-5 shrink-0 text-primary" />
-//                         <span>hello@foreignercafe.com</span>
+//                         <span>service@foreignercafe.com</span>
 //                       </p>
 //                     </div>
 //                   </div>
