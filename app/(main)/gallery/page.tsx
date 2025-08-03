@@ -67,9 +67,20 @@ export default function GalleryPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <Skeleton key={i} className={`rounded-lg ${i % 3 === 0 ? "md:row-span-2 h-96" : "h-48"}`} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-7xl mx-auto">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                className={`rounded-lg ${
+                  i % 7 === 0
+                    ? "md:col-span-2 md:row-span-2 h-96"
+                    : i % 5 === 0
+                      ? "lg:col-span-2 h-48"
+                      : i % 3 === 0
+                        ? "md:row-span-2 h-80"
+                        : "h-48"
+                }`}
+              />
             ))}
           </div>
         </div>
@@ -113,35 +124,55 @@ export default function GalleryPage() {
           </div>
         )}
 
-        {/* Gallery Grid */}
+        {/* Bento Grid Gallery */}
         {selectedSectionData && selectedSectionData.images.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
-            {selectedSectionData.images.map((image, index) => (
-              <Card
-                key={image.id}
-                className={`group overflow-hidden hover:shadow-xl transition-all duration-300 ${
-                  index % 3 === 0 ? "md:row-span-2" : ""
-                }`}
-              >
-                <div className="relative overflow-hidden">
-                  <img
-                    src={image.src || "/placeholder.svg"}
-                    alt={image.alt}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-7xl mx-auto">
+            {selectedSectionData.images.map((image, index) => {
+              // Create varied grid patterns for bento layout
+              let gridClass = "h-48" // default height
 
-                  {/* Caption Overlay */}
-                  {image.caption && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <p className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        {image.caption}
-                      </p>
+              if (index % 7 === 0) {
+                gridClass = "md:col-span-2 md:row-span-2 h-96" // Large square
+              } else if (index % 5 === 0) {
+                gridClass = "lg:col-span-2 h-48" // Wide rectangle
+              } else if (index % 3 === 0) {
+                gridClass = "md:row-span-2 h-80" // Tall rectangle
+              }
+
+              return (
+                <Card
+                  key={image.id}
+                  className={`group overflow-hidden hover:shadow-xl transition-all duration-300 ${gridClass}`}
+                >
+                  <div className="relative overflow-hidden h-full">
+                    <img
+                      src={image.src || "/placeholder.svg"}
+                      alt={image.alt}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
+
+                    {/* Caption Overlay */}
+                    {image.caption && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                        <p className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          {image.caption}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Hover overlay with image info */}
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
+                        <span className="text-xs font-medium text-gray-800">
+                          {index + 1} / {selectedSectionData.images.length}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </Card>
-            ))}
+                  </div>
+                </Card>
+              )
+            })}
           </div>
         ) : (
           <div className="text-center py-20">
