@@ -1,8 +1,9 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
-import { motion, useScroll, useTransform } from "motion/react"
-import axiosInstance from "@/lib/axios"
+import { useEffect, useRef, useState } from "react"
+import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion"
 import Image from "next/image"
+import Link from "next/link"
+import axiosInstance from "@/lib/axios"
 
 interface Product {
   id: number
@@ -21,9 +22,7 @@ interface HeroParallaxData {
 }
 
 export const HeroParallax = () => {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [isAutoScrolling, setIsAutoScrolling] = useState(false)
-  const [heroParallaxData, setHeroParallaxData] = useState<HeroParallaxData>({
+  const [heroData, setHeroData] = useState<HeroParallaxData>({
     products: [],
     rowConfiguration: {
       firstRowCount: 8,
@@ -31,7 +30,7 @@ export const HeroParallax = () => {
       thirdRowCount: 9,
     },
   })
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchHeroParallaxData()
@@ -39,142 +38,132 @@ export const HeroParallax = () => {
 
   const fetchHeroParallaxData = async () => {
     try {
-      setIsLoading(true)
       const response = await axiosInstance.get("/api/cms/hero-parallax")
       if (response.data.success) {
-        setHeroParallaxData(response.data.data)
+        setHeroData(response.data.data)
       }
     } catch (error) {
       console.error("Failed to fetch hero parallax data:", error)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
+  const firstRow = heroData.products.slice(0, heroData.rowConfiguration.firstRowCount)
+  const secondRow = heroData.products.slice(
+    heroData.rowConfiguration.firstRowCount,
+    heroData.rowConfiguration.firstRowCount + heroData.rowConfiguration.secondRowCount,
+  )
+  const thirdRow = heroData.products.slice(
+    heroData.rowConfiguration.firstRowCount + heroData.rowConfiguration.secondRowCount,
+    heroData.rowConfiguration.firstRowCount +
+      heroData.rowConfiguration.secondRowCount +
+      heroData.rowConfiguration.thirdRowCount,
+  )
+
+  const ref = useRef(null)
   const { scrollYProgress } = useScroll({
-    target: containerRef,
+    target: ref,
     offset: ["start start", "end start"],
   })
 
-  // Parallax effect always enabled
-  const translateX1 = useTransform(scrollYProgress, [0, 1], [0, -250]) // Moves left
-  const translateX2 = useTransform(scrollYProgress, [0, 1], [0, 500]) // Moves right
-  const translateX3 = useTransform(scrollYProgress, [0, 1], [0, -500]) // Moves left
+  const springConfig = { stiffness: 300, damping: 30, bounce: 100 }
 
-  // Auto-scroll to next section when reaching the end
-  const nextSectionRef = useRef<HTMLDivElement>(null)
+  const translateX = useSpring(useTransform(scrollYProgress, [0, 1], [0, 1000]), springConfig)
+  const translateXReverse = useSpring(useTransform(scrollYProgress, [0, 1], [0, -1000]), springConfig)
+  const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.2], [15, 0]), springConfig)
+  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.2], [0.2, 1]), springConfig)
+  const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [20, 0]), springConfig)
+  const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-700, 500]), springConfig)
 
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.onChange((latest) => {
-      if (latest > 0.95 && !isAutoScrolling) {
-        setIsAutoScrolling(true)
-        nextSectionRef.current?.scrollIntoView({ behavior: "smooth" })
-
-        // Reset auto-scrolling flag after animation completes
-        setTimeout(() => {
-          setIsAutoScrolling(false)
-        }, 1000)
-      }
-    })
-
-    return () => unsubscribe()
-  }, [scrollYProgress, isAutoScrolling])
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="max-h-[500vh] overflow-hidden antialiased relative mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mt-10">
-          {/* Loading skeleton for three rows */}
-          {[1, 2, 3].map((row) => (
-            <div key={row} className="flex mb-10 space-x-8 justify-center">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-64 sm:h-96 w-48 sm:w-[30rem] bg-gray-200 animate-pulse rounded-xl shrink-0" />
-              ))}
-            </div>
-          ))}
+      <div className="h-[300vh] py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]">
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-pulse text-2xl font-bold">Loading experiences...</div>
         </div>
       </div>
     )
   }
 
-  // Split products based on row configuration
-  const { firstRowCount, secondRowCount, thirdRowCount } = heroParallaxData.rowConfiguration
-  const firstRow = heroParallaxData.products.slice(0, firstRowCount)
-  const secondRow = heroParallaxData.products.slice(firstRowCount, firstRowCount + secondRowCount)
-  const thirdRow = heroParallaxData.products.slice(
-    firstRowCount + secondRowCount,
-    firstRowCount + secondRowCount + thirdRowCount,
-  )
-
   return (
-    <>
-      <div
-        ref={containerRef}
-        className="max-h-[500vh] overflow-hidden antialiased relative mx-auto px-4 sm:px-6 lg:px-8"
+    <div
+      ref={ref}
+      className="h-[300vh] py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]"
+    >
+      <Header />
+      <motion.div
+        style={{
+          rotateX,
+          rotateZ,
+          translateY,
+          opacity,
+        }}
+        className=""
       >
-        <div className="mt-10">
-          {/* First Row */}
-          {firstRow.length > 0 && (
-            <motion.div style={{ x: translateX1 }} className="flex mb-10 space-x-8 justify-center">
-              {firstRow.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </motion.div>
-          )}
-
-          {/* Second Row */}
-          {secondRow.length > 0 && (
-            <motion.div style={{ x: translateX2 }} className="flex mb-10 space-x-8 justify-center">
-              {secondRow.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </motion.div>
-          )}
-
-          {/* Third Row */}
-          {thirdRow.length > 0 && (
-            <motion.div style={{ x: translateX3 }} className="flex space-x-8 justify-center">
-              {thirdRow.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </motion.div>
-          )}
-        </div>
-      </div>
-
-      {/* Next section reference */}
-      <div ref={nextSectionRef} />
-    </>
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-20 mb-20">
+          {firstRow.map((product) => (
+            <ProductCard product={product} translate={translateX} key={product.id} />
+          ))}
+        </motion.div>
+        <motion.div className="flex flex-row mb-20 space-x-20">
+          {secondRow.map((product) => (
+            <ProductCard product={product} translate={translateXReverse} key={product.id} />
+          ))}
+        </motion.div>
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-20">
+          {thirdRow.map((product) => (
+            <ProductCard product={product} translate={translateX} key={product.id} />
+          ))}
+        </motion.div>
+      </motion.div>
+    </div>
   )
 }
 
-const ProductCard = ({
+export const Header = () => {
+  return (
+    <div className="max-w-7xl relative mx-auto py-20 md:py-40 px-4 w-full left-0 top-0">
+      <h1 className="text-2xl md:text-7xl font-bold dark:text-white">
+        The Ultimate <br /> development studio
+      </h1>
+      <p className="max-w-2xl text-base md:text-xl mt-8 dark:text-neutral-200">
+        We build beautiful products with the latest technologies and frameworks. We are a team of passionate developers
+        and designers that love to build amazing products.
+      </p>
+    </div>
+  )
+}
+
+export const ProductCard = ({
   product,
+  translate,
 }: {
-  product: {
-    title: string
-    link: string
-    thumbnail: string
-  }
+  product: Product
+  translate: MotionValue<number>
 }) => {
   return (
     <motion.div
-      whileHover={{ y: -10 }}
-      className="group h-64 sm:h-96 w-48 sm:w-[30rem] relative shrink-0 rounded-xl overflow-hidden"
+      style={{
+        x: translate,
+      }}
+      whileHover={{
+        y: -20,
+      }}
+      key={product.id}
+      className="group/product h-96 w-[30rem] relative flex-shrink-0"
     >
-      <a href={product.link} className="block h-full w-full">
+      <Link href={product.link} className="block group-hover/product:shadow-2xl">
         <Image
           src={product.thumbnail || "/placeholder.svg"}
-          fill
-          sizes="(max-width: 768px) 100vw, 30rem"
-          className="object-cover object-left-top transition-transform duration-500 group-hover:scale-105"
+          height="600"
+          width="600"
+          className="object-cover object-left-top absolute h-full w-full inset-0"
           alt={product.title}
         />
-        <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-60 transition-opacity duration-300" />
-        <h2 className="absolute bottom-4 left-4 text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          {product.title}
-        </h2>
-      </a>
+      </Link>
+      <div className="absolute inset-0 h-full w-full opacity-0 group-hover/product:opacity-80 bg-black pointer-events-none"></div>
+      <h2 className="absolute bottom-4 left-4 opacity-0 group-hover/product:opacity-100 text-white">{product.title}</h2>
     </motion.div>
   )
 }
