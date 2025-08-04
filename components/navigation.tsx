@@ -2,10 +2,25 @@
 import { useState, useEffect } from "react"
 import { Menu, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ReservationModal } from "./reserveModal"
+import axiosInstance from "@/lib/axios"
+
+interface HeaderNavItem {
+  label: string
+  href?: string
+  action?: string
+  sectionId?: string
+  isExternal?: boolean
+}
+
+interface HeaderContent {
+  logo: string
+  topNavItems: HeaderNavItem[]
+  mainNavItems: HeaderNavItem[]
+  reserveButtonText: string
+}
 
 export default function Navigation() {
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
@@ -17,11 +32,36 @@ export default function Navigation() {
   const [activeTab, setActiveTab] = useState<string | null>(null)
   const [topNavActiveItem, setTopNavActiveItem] = useState<string>("DINE")
   const [modalType, setModalType] = useState<"reservation" | "contact">("reservation")
+  const [headerContent, setHeaderContent] = useState<HeaderContent>({
+    logo: "FOREIGNER CAFE",
+    topNavItems: [],
+    mainNavItems: [],
+    reserveButtonText: "RESERVE",
+  })
+  const [isLoading, setIsLoading] = useState(true)
 
   const topHeaderHeight = 65
   const mainNavHeight = 64
   const progressBarHeight = 1
   const router = useRouter()
+
+  useEffect(() => {
+    fetchHeaderContent()
+  }, [])
+
+  const fetchHeaderContent = async () => {
+    try {
+      setIsLoading(true)
+      const response = await axiosInstance.get("/api/cms/header")
+      if (response.data.success) {
+        setHeaderContent(response.data.data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch header content:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,113 +98,30 @@ export default function Navigation() {
     setIsReservationModalOpen(true)
   }
 
-  // Navigation items for desktop - conditionally includes About Us based on topNavActiveItem
-  const navItems = [
-    {
-      label: "HOME",
-      id: "hero",
-      action: () => {
-        scrollToSection("home")
-      },
-    },
-    {
-      label: "MENU",
-      id: "menu",
-      action: () =>
-        window.open(
-          "https://mhm-timber.s3.amazonaws.com/public/member/r9bJd/lurgtAi7r1j5/morningbreakfastmenuexamplecompressed.pdf",
-          "_blank",
-          "noopener,noreferrer",
-        ),
-    },
-    ...(topNavActiveItem === "DINE"
-      ? [
-          {
-            label: "ABOUT US",
-            id: "aboutUs",
-            action: () => {
-              scrollToSection("story")
-            },
-          },
-        ]
-      : []),
-    {
-      label: "EXPERIENCES",
-      id: "contact",
-      action: () => router.push("/experiences"),
-    },
-    { label: "FAQS", id: "faqs", action: () => router.push("/faqs") },
-  ]
+  const handleNavItemAction = (item: HeaderNavItem) => {
+    if (item.action === "scroll" && item.sectionId) {
+      scrollToSection(item.sectionId)
+    } else if (item.action === "navigate" && item.href) {
+      router.push(item.href)
+    } else if (item.action === "external" && item.href) {
+      window.open(item.href, "_blank", "noopener,noreferrer")
+    } else if (item.href) {
+      if (item.isExternal) {
+        window.open(item.href, "_blank", "noopener,noreferrer")
+      } else {
+        router.push(item.href)
+      }
+    }
+  }
 
-  // Combined navigation items for mobile sheet - now properly synced with topNavActiveItem
+  // Create combined mobile nav items
   const mobileNavItems = [
-    {
-      label: "DINE",
-      action: () => {
-        setTopNavActiveItem("DINE")
-        window.location.href = "/"
-      },
-      isTopNavItem: true,
-    },
-    {
-      label: "EVENTS",
-      action: () => {
-        setTopNavActiveItem("EVENTS")
-        router.push("/events")
-      },
-      isTopNavItem: true,
-    },
-    {
-      label: "SHOP",
-      action: () => {
-        setTopNavActiveItem("SHOP")
-        window.open("https://order.toasttab.com/online/foreigner-60-east-3rd-avenue", "_blank", "noopener,noreferrer")
-      },
-      isTopNavItem: true,
-    },
-    {
-      label: "CATERING",
-      action: () => {
-        setTopNavActiveItem("CATERING")
-        router.push("/catering")
-      },
-      isTopNavItem: true,
-    },
-    {
-      label: "GIFT VOUCHERS",
-      action: () => {
-        setTopNavActiveItem("GIFT VOUCHERS")
-        window.open("https://www.toasttab.com/foreigner-60-east-3rd-avenue/giftcards", "_blank", "noopener,noreferrer")
-      },
-      isTopNavItem: true,
-    },
-    // Divider for visual separation
-    { label: "---", action: () => {}, isDivider: true },
-    // Secondary navigation items that depend on topNavActiveItem
-    {
-      label: "HOME",
-      action: () => {
-        scrollToSection("home")
-      },
-    },
-    {
-      label: "MENU",
-      action: () =>
-        window.open(
-          "https://mhm-timber.s3.amazonaws.com/public/member/r9bJd/lurgtAi7r1j5/morningbreakfastmenuexamplecompressed.pdf",
-          "_blank",
-          "noopener,noreferrer",
-        ),
-    },
-    // Conditionally show ABOUT US only when DINE is selected
-    ...(topNavActiveItem === "DINE" ? [{ label: "ABOUT US", action: () => scrollToSection("story") }] : []),
-    { label: "EXPERIENCES", action: () => router.push("/experiences") },
-    { label: "FAQS", action: () => router.push("/faqs") },
+    ...headerContent.topNavItems.map((item) => ({ ...item, isTopNavItem: true })),
+    { label: "---", action: "divider", isDivider: true },
+    ...headerContent.mainNavItems,
     {
       label: "CONTACT US",
-      action: () => {
-        openContactModal()
-      },
+      action: "contact",
     },
   ]
 
@@ -175,6 +132,24 @@ export default function Navigation() {
 
   const handleTopNavClick = (item: string) => {
     setTopNavActiveItem(item)
+  }
+
+  if (isLoading) {
+    return (
+      <nav className="fixed left-0 right-0 z-40 top-1 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50">
+        <div className="max-w-7xl mx-auto container-padding">
+          <div className="flex justify-between items-center h-16">
+            <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+            <div className="hidden lg:flex items-center space-x-8">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+              ))}
+            </div>
+            <div className="h-10 bg-gray-200 rounded w-24 animate-pulse"></div>
+          </div>
+        </div>
+      </nav>
+    )
   }
 
   return (
@@ -197,72 +172,48 @@ export default function Navigation() {
         <div className="h-[1px] bg-gray-700" />
         {/* Main header content - Top navigation bar */}
         <div className="flex h-10">
-          {/* Left section: DINE */}
-          <div
-            className={`flex items-center px-6 font-medium text-sm tracking-wide uppercase h-full ${
-              topNavActiveItem === "DINE"
-                ? "bg-[#EC4E20] text-white"
-                : "bg-[#F8F8F8] text-[#A0A0A0] hover:text-gray-700"
-            }`}
-          >
-            <Link href="/" className="hover:opacity-80 transition-opacity" onClick={() => handleTopNavClick("DINE")}>
-              DINE
-            </Link>
-          </div>
+          {/* Left section: First top nav item */}
+          {headerContent.topNavItems.length > 0 && (
+            <div
+              className={`flex items-center px-6 font-medium text-sm tracking-wide uppercase h-full ${
+                topNavActiveItem === headerContent.topNavItems[0].label
+                  ? "bg-[#EC4E20] text-white"
+                  : "bg-[#F8F8F8] text-[#A0A0A0] hover:text-gray-700"
+              }`}
+            >
+              <button
+                className="hover:opacity-80 transition-opacity"
+                onClick={() => {
+                  handleNavItemAction(headerContent.topNavItems[0])
+                  handleTopNavClick(headerContent.topNavItems[0].label)
+                }}
+              >
+                {headerContent.topNavItems[0].label}
+              </button>
+            </div>
+          )}
           {/* Right section: Navigation links and Action buttons */}
-          <div className="flex-1  bg-[#F8F8F8] flex items-center justify-between px-6 h-full">
+          <div className="flex-1 bg-[#F8F8F8] flex items-center justify-between px-6 h-full">
             {/* Navigation links */}
             <nav className="flex space-x-0 text-[#A0A0A0] font-medium text-sm tracking-wide uppercase">
-              <div
-                className={`px-6 h-10 flex items-center ${
-                  topNavActiveItem === "EVENTS" ? "bg-[#EC4E20] text-white" : "hover:text-gray-700"
-                }`}
-              >
-                <Link href="/events" className="transition-colors" onClick={() => handleTopNavClick("EVENTS")}>
-                  EVENTS
-                </Link>
-              </div>
-              <div
-                className={`px-6 h-10 flex items-center ${
-                  topNavActiveItem === "SHOP" ? "bg-[#EC4E20] text-white" : "hover:text-gray-700"
-                }`}
-              >
-                <a
-                  href="https://order.toasttab.com/online/foreigner-60-east-3rd-avenue"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-colors"
-                  onClick={() => handleTopNavClick("SHOP")}
+              {headerContent.topNavItems.slice(1).map((item, index) => (
+                <div
+                  key={index}
+                  className={`px-6 h-10 flex items-center ${
+                    topNavActiveItem === item.label ? "bg-[#EC4E20] text-white" : "hover:text-gray-700"
+                  }`}
                 >
-                  SHOP
-                </a>
-              </div>
-              <div
-                className={`px-6 h-10 flex items-center ${
-                  topNavActiveItem === "CATERING" ? "bg-[#EC4E20] text-white" : "hover:text-gray-700"
-                }`}
-              >
-                <Link href="/catering" className="transition-colors" onClick={() => handleTopNavClick("CATERING")}>
-                  CATERING
-                </Link>
-              </div>
-              <div
-                className={`px-6 h-10 flex items-center ${
-                  topNavActiveItem === "GIFT VOUCHERS"
-                    ? "bg-[#EC4E20] text-white"
-                    : "hover:text-gray-700 focus:outline-none"
-                }`}
-              >
-                <a
-                  href="https://www.toasttab.com/foreigner-60-east-3rd-avenue/giftcards"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-colors"
-                  onClick={() => handleTopNavClick("GIFT VOUCHERS")}
-                >
-                  GIFT VOUCHERS
-                </a>
-              </div>
+                  <button
+                    className="transition-colors"
+                    onClick={() => {
+                      handleNavItemAction(item)
+                      handleTopNavClick(item.label)
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                </div>
+              ))}
             </nav>
             {/* Action buttons */}
             <div className="flex items-center space-x-6 text-[#A0A0A0] font-medium text-sm tracking-wide uppercase">
@@ -301,23 +252,23 @@ export default function Navigation() {
                   isScrolled ? "text-black hover:text-orange" : "text-white hover:text-orange"
                 }`}
               >
-                FOREIGNER CAFE
+                {headerContent.logo}
               </button>
             </div>
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
-              {navItems.map((item) => (
+              {headerContent.mainNavItems.map((item, index) => (
                 <button
-                  key={item.id}
-                  onClick={() => handleTabClick(item.id, item.action)}
+                  key={index}
+                  onClick={() => handleTabClick(item.label, () => handleNavItemAction(item))}
                   className={`text-sm font-medium tracking-wide transition-all duration-200 hover:scale-110 relative group focus:outline-none ${
                     isScrolled ? "text-black/80 hover:text-orange" : "text-white/80 hover:text-orange"
-                  } ${activeTab === item.id ? "text-orange" : ""}`}
+                  } ${activeTab === item.label ? "text-orange" : ""}`}
                 >
                   {item.label}
                   <span
                     className={`absolute -bottom-1 left-0 h-0.5 bg-orange transition-all duration-300 ${
-                      activeTab === item.id ? "w-full" : "w-0 group-hover:w-full"
+                      activeTab === item.label ? "w-full" : "w-0 group-hover:w-full"
                     }`}
                   />
                 </button>
@@ -327,13 +278,13 @@ export default function Navigation() {
             <div className="hidden lg:block">
               <Button
                 onClick={openReservationModal}
-                className={`text-sm font-bold tracking-wide transition-all duration-300   hover:scale-110 hover:shadow-lg focus:outline-none ${
+                className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-110 hover:shadow-lg focus:outline-none ${
                   isScrolled
                     ? "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
                     : "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
                 }`}
               >
-                RESERVE
+                {headerContent.reserveButtonText}
               </Button>
             </div>
             {/* Mobile menu button (Sheet Trigger) */}
@@ -356,16 +307,26 @@ export default function Navigation() {
                     <SheetTitle>Mobile Navigation Menu</SheetTitle>
                   </SheetHeader>
                   <div className="flex flex-col space-y-6 pt-12">
-                    {/* Current active section indicator */}
-                    {/* <div className="mb-4 pb-4 border-b border-gray-200">
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Current Section</p>
-                      <p className="text-sm font-bold text-orange">{topNavActiveItem}</p>
-                    </div> */}
-
                     {mobileNavItems.map((item, index) => {
                       // Handle divider
                       if (item.isDivider) {
                         return <div key={index} className="border-t border-gray-200 my-2" />
+                      }
+
+                      // Handle contact action
+                      if (item.action === "contact") {
+                        return (
+                          <button
+                            key={item.label}
+                            onClick={() => {
+                              openContactModal()
+                              setIsOpen(false)
+                            }}
+                            className="block text-left text-sm font-semibold tracking-wide text-gray-600 hover:text-orange transition-colors hover:translate-x-2"
+                          >
+                            {item.label}
+                          </button>
+                        )
                       }
 
                       // Handle top nav items with special styling
@@ -374,7 +335,7 @@ export default function Navigation() {
                           <button
                             key={item.label}
                             onClick={() => {
-                              item.action()
+                              handleNavItemAction(item)
                               setIsOpen(false)
                             }}
                             className={`block text-left text-sm font-bold tracking-wide transition-colors hover:translate-x-2 ${
@@ -391,7 +352,7 @@ export default function Navigation() {
                         <button
                           key={item.label}
                           onClick={() => {
-                            item.action()
+                            handleNavItemAction(item)
                             setIsOpen(false)
                           }}
                           className="block text-left text-sm font-semibold tracking-wide text-gray-600 hover:text-orange transition-colors hover:translate-x-2"
@@ -408,7 +369,7 @@ export default function Navigation() {
                       }}
                       className="bg-orange text-white text-sm rounded-xl tracking-wide mt-6 hover:bg-black transition-all duration-300 w-[130px]"
                     >
-                      RESERVE
+                      {headerContent.reserveButtonText}
                     </Button>
                   </div>
                 </SheetContent>

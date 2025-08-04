@@ -510,7 +510,7 @@ export function ReservationModal({
 							<div className="pt-4 border-t border-gray-200">
 								<h3 className="text-lg font-medium">Need help?</h3>
 								<p className="text-sm text-muted-foreground mt-2">
-									For immediate assistance, please call us at (650) 123-4567
+									For immediate assistance, please call us at +1 (650) 620 1888
 									during our business hours.
 								</p>
 							</div>

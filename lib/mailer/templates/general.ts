@@ -349,7 +349,7 @@ export function generalTemplate({
                                       "
                                       ><img
                                         class="adapt-img"
-                                        src="https://eflhdlb.stripocdn.email/content/guids/CABINET_58a54e8e78fabb698281c2706073412d981de670155b27883b5acf41bd4a283a/images/chatgpt_image_jul_30_2025_09_08_08_pm_1_1.png"
+                                        src="https://eflhdlb.stripocdn.email/content/guids/CABINET_58a54e8e78fabb698281c2706073412d981de670155b27883b5acf41bd4a283a/images/chatgpt_image_jul_31__2025__11_25_24_amremovebgpreview.png"
                                         alt="Foreigner Cafe Barista"
                                         style="
                                           display: block;

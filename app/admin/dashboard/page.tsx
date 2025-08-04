@@ -1,27 +1,17 @@
-"use client";
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import {
-  Users,
-  FileText,
-  Mail,
-  Eye,
-  PlusCircle,
-  ArrowRight,
-  MessageSquare,
-  CheckCircle,
-  Clock,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
-import axiosInstance from "@/lib/axios";
-import { DataTable } from "@/components/dashboard/table";
-import StatsCard from "@/components/dashboard/statsCard";
-import MonthlyBlogStatsChart from "@/components/dashboard/left-chart";
-import RatioOfDevicesChart from "@/components/dashboard/right-chart";
-import { getBlogColumns } from "@/components/dashboard/blog-colums";
-import type { Blog } from "@/models/Blog";
+"use client"
+import { useState, useEffect, useCallback } from "react"
+import Link from "next/link"
+import { Users, FileText, Mail, Eye, PlusCircle, ArrowRight, MessageSquare, CheckCircle, Clock } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import axiosInstance from "@/lib/axios"
+import { DataTable } from "@/components/dashboard/table"
+import StatsCard from "@/components/dashboard/statsCard"
+import MonthlyBlogStatsChart from "@/components/dashboard/left-chart"
+import RatioOfDevicesChart from "@/components/dashboard/right-chart"
+import { getBlogColumns } from "@/components/dashboard/blog-colums"
+import type { Blog } from "@/models/Blog"
 
 // Skeleton loader for table
 const TableSkeleton = () => (
@@ -34,15 +24,12 @@ const TableSkeleton = () => (
     {[...Array(5)].map((_, rowIndex) => (
       <div key={`row-${rowIndex}`} className="grid grid-cols-5 gap-4">
         {[...Array(5)].map((_, colIndex) => (
-          <Skeleton
-            key={`cell-${rowIndex}-${colIndex}`}
-            className="h-12 w-full rounded-md"
-          />
+          <Skeleton key={`cell-${rowIndex}-${colIndex}`} className="h-12 w-full rounded-md" />
         ))}
       </div>
     ))}
   </div>
-);
+)
 
 // Skeleton loader for stats cards
 const StatsCardsSkeleton = () => (
@@ -51,7 +38,7 @@ const StatsCardsSkeleton = () => (
       <Skeleton key={`stats-${i}`} className="h-24 w-full rounded-lg" />
     ))}
   </div>
-);
+)
 
 // Skeleton loader for charts
 const ChartsSkeleton = () => (
@@ -59,12 +46,12 @@ const ChartsSkeleton = () => (
     <Skeleton className="col-span-1 lg:col-span-6 h-[350px] rounded-lg" />
     <Skeleton className="col-span-1 lg:col-span-4 h-[350px] rounded-lg" />
   </div>
-);
+)
 
 export default function DashboardPage() {
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [blogs, setBlogs] = useState<Blog[]>([])
+  const [loading, setLoading] = useState(true)
+  const [statsLoading, setStatsLoading] = useState(true)
   const [stats, setStats] = useState({
     subscribers: 0,
     blogs: { total: 0, published: 0, draft: 0 },
@@ -72,53 +59,50 @@ export default function DashboardPage() {
     uniqueVisitors: 0,
     deviceData: [],
     monthlyBlogStats: [],
-  });
+  })
 
   const fetchBlogs = useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const res = await axiosInstance.get("/api/blog");
-      setBlogs(res.data.blogs || []);
+      const res = await axiosInstance.get("/api/blog")
+      setBlogs(res.data.blogs || [])
     } catch (err) {
-      console.error("Failed to fetch blogs:", err);
+      console.error("Failed to fetch blogs:", err)
       toast({
         title: "Error",
         description: "Failed to fetch blogs",
         variant: "destructive",
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   const fetchStats = useCallback(async () => {
-    setStatsLoading(true);
+    setStatsLoading(true)
     try {
-      const res = await axiosInstance.get("/api/stats");
-      setStats(res.data.stats);
+      const res = await axiosInstance.get("/api/stats")
+      setStats(res.data.stats)
     } catch (err) {
-      console.error("Failed to fetch stats:", err);
+      console.error("Failed to fetch stats:", err)
       toast({
         title: "Error",
         description: "Failed to fetch dashboard stats",
         variant: "destructive",
-      });
+      })
     } finally {
-      setStatsLoading(false);
+      setStatsLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    fetchBlogs();
-    fetchStats();
-  }, [fetchBlogs, fetchStats]);
+    fetchBlogs()
+    fetchStats()
+  }, [fetchBlogs, fetchStats])
 
   const recentBlogs = [...blogs]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-    .slice(0, 7);
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 7)
 
   const statsData = [
     {
@@ -145,7 +129,7 @@ export default function DashboardPage() {
       value: stats.uniqueVisitors,
       label: "Unique Visitors",
     },
-  ];
+  ]
 
   const contactRequestStats = [
     {
@@ -166,7 +150,7 @@ export default function DashboardPage() {
       value: stats.contactRequests.pending || 0,
       label: "Pending Requests",
     },
-  ];
+  ]
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -210,10 +194,7 @@ export default function DashboardPage() {
           <h1 className="text-xl sm:text-2xl font-semibold">Recent Blogs</h1>
           <div className="flex gap-2 w-full sm:w-auto">
             <Link href="/admin/blogs" className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto bg-transparent"
-              >
+              <Button variant="outline" className="w-full sm:w-auto bg-transparent">
                 View All <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -240,5 +221,5 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

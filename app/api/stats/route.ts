@@ -30,6 +30,7 @@ export async function GET() {
       totalBlogs,
       publishedBlogs,
       draftBlogs,
+      archivedBlogs,
       totalContactRequests,
       thisMonthContactRequests,
       acknowledgedContactRequests,
@@ -40,6 +41,7 @@ export async function GET() {
       Blog.countDocuments(),
       Blog.countDocuments({ status: "published" }),
       Blog.countDocuments({ status: "draft" }),
+      Blog.countDocuments({ status: "archived" }),
       ContactRequest.countDocuments(),
       ContactRequest.countDocuments({
         createdAt: { $gte: startOfMonth, $lte: endOfMonth },
@@ -86,12 +88,10 @@ export async function GET() {
       const monthStart = new Date(year, month, 1);
       const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
 
-      // Count blogs created in this month
       const blogsCount = await Blog.countDocuments({
         createdAt: { $gte: monthStart, $lte: monthEnd },
       });
 
-      // Count total views that occurred in this month (actual numbers, not in thousands)
       const viewsCount = await BlogView.countDocuments({
         viewedAt: { $gte: monthStart, $lte: monthEnd },
       });
@@ -99,7 +99,7 @@ export async function GET() {
       monthlyBlogStats.push({
         month: date.toLocaleDateString("en-US", { month: "short" }),
         blogs: blogsCount,
-        views: viewsCount, // Keep actual numbers for better chart scaling
+        views: viewsCount,
       });
     }
 
@@ -109,6 +109,7 @@ export async function GET() {
         total: totalBlogs,
         published: publishedBlogs,
         draft: draftBlogs,
+        archived: archivedBlogs,
       },
       contactRequests: {
         total: totalContactRequests,

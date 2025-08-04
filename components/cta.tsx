@@ -77,9 +77,9 @@ export default function CTA() {
               <Phone className="w-8 h-8 text-orange-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Call Us</h3>
               <p className="text-gray-300">
-                (555) 123-CAFE
+                +1 (650) 620 1888
                 <br />
-                hello@foreignercafe.com
+                service@foreignercafe.com
               </p>
             </div>
 

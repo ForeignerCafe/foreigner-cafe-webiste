@@ -68,7 +68,7 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdate }: Orde
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] !p-10 overflow-y-auto !font-body">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>Order Details - {order.orderNumber}</span>
@@ -82,7 +82,7 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdate }: Orde
           {/* Customer Information */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Customer Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-[#28282B] rounded-lg ">
               <div>
                 <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name</Label>
                 <p className="font-medium">{order.customerInfo.name}</p>
