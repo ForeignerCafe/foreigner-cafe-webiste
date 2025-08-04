@@ -5,114 +5,8 @@ import { Instagram, Heart, MessageCircle, ExternalLink } from "lucide-react";
 import Masonry from "react-masonry-css";
 import { Button } from "./ui/button";
 
-export const instagramPosts = [
-  {
-    id: 1,
-    image: "https://brunchcafe.com/wp-content/uploads/2020/12/IMG_2127.jpeg",
-    caption: "The sweetest way to fuel your body.",
-    likes: 234,
-    comments: 12,
-    timestamp: "2h",
-  },
-  {
-    id: 2,
-    image:
-      "https://w0.peakpx.com/wallpaper/332/146/HD-wallpaper-food-breakfast-coffee.jpg",
-    caption: "Industrial vibes meet cozy comfort 🏭✨",
-    likes: 189,
-    comments: 8,
-    timestamp: "4h",
-  },
-  {
-    id: 3,
-    image:
-      "https://w0.peakpx.com/wallpaper/120/799/HD-wallpaper-french-breakfast-cafe-food-french-breakfast-two-coffee-coffee-time-hot-drink-croissant-white-cups.jpg",
-    caption: "Fresh pastries baked daily 🥐",
-    likes: 156,
-    comments: 15,
-    timestamp: "6h",
-  },
-  {
-    id: 4,
-    image:
-      "https://images.pexels.com/photos/2122294/pexels-photo-2122294.jpeg?cs=srgb&dl=pexels-kyleroxas-2122294.jpg&fm=jpg",
-    caption: "Community gathering at its finest 👥",
-    likes: 298,
-    comments: 22,
-    timestamp: "8h",
-  },
-  {
-    id: 5,
-    image:
-      "https://images.unsplash.com/photo-1609590981063-d495e2914ce4?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y2FmZSUyMGZvb2R8ZW58MHx8MHx8fDA%3D",
-    caption: "Barista magic in action ✨",
-    likes: 167,
-    comments: 9,
-    timestamp: "12h",
-  },
-  {
-    id: 6,
-    image:
-      "https://images.pexels.com/photos/32710321/pexels-photo-32710321/free-photo-of-delicious-breakfast-spread-with-croissant.png?auto=compress&cs=tinysrgb&dpr=1&w=500",
-    caption: "Latte art perfection 🎨",
-    likes: 245,
-    comments: 18,
-    timestamp: "1d",
-  },
-  {
-    id: 7,
-    image:
-      "https://w0.peakpx.com/wallpaper/332/146/HD-wallpaper-food-breakfast-coffee.jpg",
-    caption: "Weekend vibes at Foreigner 🌟",
-    likes: 203,
-    comments: 14,
-    timestamp: "1d",
-  },
-  {
-    id: 8,
-    image:
-      "https://images.unsplash.com/photo-1609590981063-d495e2914ce4?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y2FmZSUyMGZvb2R8ZW58MHx8MHx8fDA%3D",
-    caption: "Coffee beans from around the world 🌍",
-    likes: 178,
-    comments: 11,
-    timestamp: "2d",
-  },
-  {
-    id: 9,
-    image:
-      "https://images.pexels.com/photos/32710321/pexels-photo-32710321/free-photo-of-delicious-breakfast-spread-with-croissant.png?auto=compress&cs=tinysrgb&dpr=1&w=500",
-    caption: "Cozy corner for reading 📚",
-    likes: 134,
-    comments: 7,
-    timestamp: "2d",
-  },
-  {
-    id: 10,
-    image: "https://brunchcafe.com/wp-content/uploads/2020/12/IMG_2127.jpeg",
-    caption: "Evening ambiance 🌙",
-    likes: 267,
-    comments: 19,
-    timestamp: "3d",
-  },
-  {
-    id: 11,
-    image:
-      "https://images.pexels.com/photos/2122294/pexels-photo-2122294.jpeg?cs=srgb&dl=pexels-kyleroxas-2122294.jpg&fm=jpg",
-    caption: "Team behind the magic 👨‍🍳👩‍🍳",
-    likes: 312,
-    comments: 25,
-    timestamp: "3d",
-  },
-  {
-    id: 12,
-    image:
-      "https://w0.peakpx.com/wallpaper/120/799/HD-wallpaper-french-breakfast-cafe-food-french-breakfast-two-coffee-coffee-time-hot-drink-croissant-white-cups.jpg",
-    caption: "Sunday brunch special 🥞",
-    likes: 189,
-    comments: 13,
-    timestamp: "4d",
-  },
-];
+const INSTAGRAM_ACCESS_TOKEN = "IGAAI0lOfo5HBBZ..."; // 🔒 Replace with your token securely
+const USER_ID = "8448803355243697";
 
 const breakpointColumnsObj = {
   default: 4,
@@ -122,29 +16,44 @@ const breakpointColumnsObj = {
   0: 1,
 };
 
-const shuffleArray = (array: typeof instagramPosts) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
+interface InstagramPost {
+  id: string;
+  media_type: string;
+  media_url: string;
+  permalink: string;
+  caption: string;
+  like_count?: number;
+  comments_count?: number;
+}
 
 export default function InstagramFeed() {
+  const [posts, setPosts] = useState<InstagramPost[]>([]);
   const [isVisible, setIsVisible] = useState(false);
-  const [hoveredPost, setHoveredPost] = useState<number | null>(null);
-  const [shuffledPosts, setShuffledPosts] = useState(instagramPosts);
+  const [hoveredPost, setHoveredPost] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
 
+  const fetchInstagramPosts = async (): Promise<InstagramPost[]> => {
+    try {
+      const res = await fetch("/api/instagram");
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch from internal API");
+      }
+      const data = await res.json();
+      setPosts(data);
+      return data;
+    } catch (error) {
+      console.error("Client-side fetch error:", error);
+      return [];
+    }
+  };
+
   useEffect(() => {
-    setShuffledPosts(shuffleArray(instagramPosts));
+    fetchInstagramPosts();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
+        if (entry.isIntersecting) setIsVisible(true);
       },
       { threshold: 0.2 }
     );
@@ -182,77 +91,14 @@ export default function InstagramFeed() {
           </a>
         </div>
 
-        {/* Instagram Posts Layout */}
-        <div className="block sm:hidden grid grid-cols-1 gap-4">
-          {shuffledPosts.map((post, index) => (
-            <div
-              key={post.id}
-              className="group transition-all duration-500"
-              onMouseEnter={() => setHoveredPost(post.id)}
-              onMouseLeave={() => setHoveredPost(null)}
-            >
-              <div className="relative overflow-hidden rounded-lg bg-gray-100">
-                <div className="w-full aspect-[4/5] overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.caption}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </div>
-
-                {/* Overlay */}
-                <div
-                  className={`absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity duration-300 ${
-                    hoveredPost === post.id ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <div className="text-white text-center p-4">
-                    <div className="flex items-center justify-center space-x-6 mb-4 text-xs">
-                      <div className="flex items-center">
-                        <Heart className="w-5 h-5 mr-2 fill-current" />
-                        <span className="font-medium">{post.likes}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MessageCircle className="w-5 h-5 mr-2" />
-                        <span className="font-medium">{post.comments}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <ExternalLink className="w-5 h-5 mr-2" />
-                        <span className="font-medium">View</span>
-                      </div>
-                    </div>
-                    <p className="text-xs opacity-90 line-clamp-2 mb-2">
-                      {post.caption}
-                    </p>
-                    <p className="text-[10px] opacity-70">
-                      {post.timestamp} ago
-                    </p>
-                  </div>
-                </div>
-
-                {/* Instagram Icon */}
-                <div className="absolute top-3 right-3">
-                  <div
-                    className={`w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 ${
-                      hoveredPost === post.id ? "scale-110 bg-white/30" : ""
-                    }`}
-                  >
-                    <Instagram className="w-4 h-4 text-white" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Masonry layout on sm+ screens */}
+        {/* Posts Masonry Layout */}
         <div className="hidden sm:block">
           <Masonry
             breakpointCols={breakpointColumnsObj}
             className="flex w-auto -ml-4"
             columnClassName="pl-4"
           >
-            {shuffledPosts.map((post, index) => (
+            {posts.map((post, index) => (
               <div
                 key={post.id}
                 className={`group mb-4 transition-all duration-500 ${
@@ -265,14 +111,31 @@ export default function InstagramFeed() {
                 onMouseLeave={() => setHoveredPost(null)}
               >
                 <div className="relative overflow-hidden rounded-lg bg-gray-100">
-                  <img
-                    src={post.image}
-                    alt={post.caption}
+                  {post.media_type === "IMAGE" ? (
+                    <img
+                      src={post.media_url}
+                      alt={post.caption || ""}
+                      className="..."
+                    />
+                  ) : (
+                    <video
+                      src={post.media_url}
+                      // controls
+                      autoPlay
+                      muted
+                      loop
+                      className="w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      style={{ height: `${300 + (index % 3) * 50}px` }}
+                    />
+                  )}
+                  {/* <img
+                    src={post.media_url}
+                    alt={post.caption || ""}
                     className="w-full object-cover group-hover:scale-110 transition-transform duration-500"
                     style={{
                       height: `${300 + (index % 3) * 50}px`,
                     }}
-                  />
+                  /> */}
 
                   {/* Overlay */}
                   <div
@@ -284,22 +147,28 @@ export default function InstagramFeed() {
                       <div className="flex items-center justify-center space-x-6 mb-4">
                         <div className="flex items-center">
                           <Heart className="w-5 h-5 mr-2 fill-current" />
-                          <span className="font-medium">{post.likes}</span>
+                          <span className="font-medium">
+                            {post.like_count ?? 0}
+                          </span>
                         </div>
                         <div className="flex items-center">
                           <MessageCircle className="w-5 h-5 mr-2" />
-                          <span className="font-medium">{post.comments}</span>
+                          <span className="font-medium">
+                            {post.comments_count ?? 0}
+                          </span>
                         </div>
-                        <div className="flex items-center">
+                        <a
+                          href={post.permalink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center"
+                        >
                           <ExternalLink className="w-5 h-5 mr-2" />
                           <span className="font-medium">View</span>
-                        </div>
+                        </a>
                       </div>
                       <p className="text-xs sm:text-sm opacity-90 line-clamp-2 mb-2">
                         {post.caption}
-                      </p>
-                      <p className="text-[10px] sm:text-xs opacity-70">
-                        {post.timestamp} ago
                       </p>
                     </div>
                   </div>
@@ -320,15 +189,15 @@ export default function InstagramFeed() {
           </Masonry>
         </div>
 
-        {/* Load More Button */}
+        {/* Load More */}
         <div className="text-center mt-12">
           <a
             href="https://www.instagram.com/foreignercafe/?hl=en"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button className=" uppercase border border-[#EC4E20] bg-transparent text-[#EC4E20] hover:bg-[#f97316] hover:text-black hover:scale-110 text-xs sm:text-sm px-4 py-2">
-              View more on instagram
+            <Button className="uppercase border border-[#EC4E20] bg-transparent text-[#EC4E20] hover:bg-[#f97316] hover:text-black hover:scale-110 text-xs sm:text-sm px-4 py-2">
+              View more on Instagram
             </Button>
           </a>
         </div>
