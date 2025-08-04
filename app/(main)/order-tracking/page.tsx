@@ -112,7 +112,7 @@ export default function OrderTrackingPage() {
       {/* Hero Section */}
       <div
         className="relative h-[50vh] sm:h-[60vh] md:h-[75vh] bg-cover bg-center flex items-center justify-center text-center px-4"
-        style={{ backgroundImage: `url('/images/faqs.webp?height=800&width=1600')` }}
+        style={{ backgroundImage: `url('/images/Iced.webp?height=800&width=1600')` }}
       >
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative z-10 text-white max-w-4xl mx-auto">

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import axiosInstance from "@/lib/axios"
+import Image from "next/image"
 
 interface GalleryImage {
   id: number
@@ -89,14 +90,27 @@ export default function GalleryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-32 pb-20">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 uppercase">Gallery</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">Explore moments and memories from our cafe</p>
+    <div className="min-h-screen bg-gray-50  pb-20">
+       {/* Header */}
+        <section className="relative h-[400px] md:h-[400px] lg:h-[500px] flex items-center justify-center text-center text-white overflow-hidden mb-10">
+        <Image
+          src="/images/blues.webp"
+          alt="People gathering under string lights"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>
+        <div className="relative z-10 px-4 max-w-4xl mx-auto space-y-2">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight  mt-10 uppercase">
+           Explore Our Gallery
+          </h1>
+          <p className="text-base md:text-lg lg:text-xl max-w-2xl mx-auto pb-6"></p>
+         Savor the warmth and joy of every shared moment at our cafe.
         </div>
-
+      </section>
+      <div className="container mx-auto px-4">
+       
         {/* Section Filters */}
         {galleryData.sections.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4 mb-12">
