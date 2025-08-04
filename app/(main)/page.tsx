@@ -9,11 +9,12 @@ import { HeroParallax } from "@/components/ui/hero-parallax"
 import Events from "@/components/eventsSection"
 import LatestBlogsSection from "@/components/latest-blogs-section"
 
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-white">
       <Hero />
-      <HeroParallax />
+      {/* <HeroParallax /> */}
       <Events />
       {/* <EventsShowcaseSection /> */}
       <LatestBlogsSection />

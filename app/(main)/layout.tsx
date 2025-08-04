@@ -16,8 +16,8 @@ export default function WebsiteLayout({
     <CartProvider>
       <Preloader />
       <Navigation /> 
-      {children}
-      {/* <CartIcon /> */}
+      <div className="my-auto"> {children}</div>
+      <CartIcon />
       <Footer />
       <TawkToChat />
       </CartProvider>
