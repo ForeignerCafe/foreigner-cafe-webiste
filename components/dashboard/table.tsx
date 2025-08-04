@@ -1,4 +1,5 @@
 "use client"
+
 import {
   flexRender,
   getCoreRowModel,
@@ -13,6 +14,7 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table"
 import { useState } from "react"
+// Import the modified Table component from shadcn/ui
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -84,8 +86,13 @@ export function DataTable<TData>({
         </div>
       )}
       {/* Table Container */}
-      <div className="w-full overflow-x-auto rounded-md border bg-white dark:bg-black">
-        <Table className="divide-y divide-gray-200 dark:divide-gray-700">
+      {/* The overflow-x-auto is now handled by the shadcn/ui Table component's internal div */}
+      <div className="w-full rounded-md border bg-white dark:bg-black">
+        <Table
+          // No special width classes needed here anymore, as the shadcn/ui Table component
+          // is now correctly configured to handle its own width and overflow.
+          className="divide-y divide-gray-200 dark:divide-gray-700"
+        >
           <TableHeader className="bg-gray-100 dark:bg-[#28282B]">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -100,7 +107,7 @@ export function DataTable<TData>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody className="divide-y divide-gray-200 dark:divide-gray-700">
+          <TableBody className="divide-y divide-gray-200 dark:divide-700">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
@@ -111,7 +118,7 @@ export function DataTable<TData>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="px-3 py-3 whitespace-nowrap text-xs sm:text-sm text-gray-800 dark:text-gray-200"
+                      className="px-3 py-3 whitespace-nowrap text-xs sm:text-sm text-gray-800 dark:text-gray-200 min-w-[120px]"
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>

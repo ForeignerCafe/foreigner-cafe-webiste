@@ -836,7 +836,7 @@ export default function CMSPage() {
         <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your website content sections</p>
       </div>
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 xs:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 p-2 !rounded-lg bg-muted h-auto text-center items-center">
+        <TabsList className="grid w-full grid-cols-3 xs:grid-cols-4 md:grid-cols-5 lg:grid-cols-11 gap-2 p-2 !rounded-lg bg-muted h-auto text-center items-center justify-between">
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="hero-parallax">Parallax</TabsTrigger>
           <TabsTrigger value="whats-on">What's On</TabsTrigger>
@@ -918,7 +918,7 @@ export default function CMSPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Row Configuration */}
-              <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-[#28282B]">
                 <h3 className="text-lg font-semibold mb-4">Row Configuration</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
@@ -1675,7 +1675,7 @@ export default function CMSPage() {
                       </Button>
                     </div>
                     {section.images.map((image) => (
-                      <div key={image.id} className="border rounded p-3 mb-3 bg-gray-50">
+                      <div key={image.id} className="border rounded p-3 mb-3 bg-gray-50 dark:bg-transparent">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm font-medium">Image {image.id}</span>
                           <Button
@@ -1893,7 +1893,7 @@ export default function CMSPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Contact Information */}
-              <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-transparent">
                 <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
@@ -2013,7 +2013,7 @@ export default function CMSPage() {
                         </Button>
                       </div>
                       {section.links.map((link, linkIndex) => (
-                        <div key={linkIndex} className="border rounded p-3 mb-3 bg-gray-50">
+                        <div key={linkIndex} className="border rounded p-3 mb-3 bg-gray-50 dark:bg-transparent">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium">Link {linkIndex + 1}</span>
                             <Button
@@ -2135,7 +2135,7 @@ export default function CMSPage() {
               </div>
 
               {/* Newsletter Section */}
-              <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-transparent">
                 <h3 className="text-lg font-semibold mb-4">Newsletter Section</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
