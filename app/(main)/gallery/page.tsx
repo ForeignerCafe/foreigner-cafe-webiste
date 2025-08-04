@@ -103,7 +103,7 @@ export default function GalleryPage() {
         <div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>
         <div className="relative z-10 px-4 max-w-4xl mx-auto space-y-2">
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight  mt-10 uppercase">
-           Explore Our Gallery
+           Explore Our Cafe Gallery
           </h1>
           <p className="text-base md:text-lg lg:text-xl max-w-2xl mx-auto pb-6"></p>
          Savor the warmth and joy of every shared moment at our cafe.
