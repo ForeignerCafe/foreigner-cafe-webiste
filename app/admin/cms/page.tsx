@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Save, Loader2, Video, ImageIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
-import { LivePreviewTooltip, LivePreviewToggle } from "@/components/cms-live-preview"
+import { LivePreviewPanel, LivePreviewToggle } from "@/components/cms-live-preview"
 import { FormSkeleton } from "@/components/ui/skeleton-components"
 
 interface HeroContent {
@@ -879,12 +879,6 @@ export default function CMSPage() {
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
       <LivePreviewToggle isEnabled={livePreviewEnabled} onToggle={setLivePreviewEnabled} />
 
-      <LivePreviewTooltip
-        isEnabled={livePreviewEnabled && activePreviewSection !== ""}
-        sectionId={activePreviewSection}
-        previewData={previewData}
-      />
-
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Content Management System</h1>
         <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your website content sections</p>
@@ -971,6 +965,7 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Hero Content
               </Button>
+              <LivePreviewPanel isEnabled={livePreviewEnabled} sectionId="hero" previewData={heroContent} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1095,6 +1090,11 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Hero Parallax
               </Button>
+              <LivePreviewPanel
+                isEnabled={livePreviewEnabled}
+                sectionId="hero-parallax" // or respective section id
+                previewData={null}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1188,6 +1188,7 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save What's On Section
               </Button>
+              <LivePreviewPanel isEnabled={livePreviewEnabled} sectionId="whats-on" previewData={whatsOnSection} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1280,6 +1281,11 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Events Section
               </Button>
+              <LivePreviewPanel
+                isEnabled={livePreviewEnabled}
+                sectionId="events" // or respective section id
+                previewData={null}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1400,6 +1406,7 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Cafe Story Section
               </Button>
+              <LivePreviewPanel isEnabled={livePreviewEnabled} sectionId="brand" previewData={brandSection} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1543,6 +1550,11 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Experiences Section
               </Button>
+              <LivePreviewPanel
+                isEnabled={livePreviewEnabled}
+                sectionId="experiences"
+                previewData={experiencesSection}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1613,6 +1625,7 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Dine & Drink Content
               </Button>
+              <LivePreviewPanel isEnabled={livePreviewEnabled} sectionId="dine-drink" previewData={dineDrinkContent} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1695,6 +1708,7 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save FAQs Section
               </Button>
+              <LivePreviewPanel isEnabled={livePreviewEnabled} sectionId="faqs" previewData={faqsSection} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1804,6 +1818,11 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Gallery
               </Button>
+              <LivePreviewPanel
+                isEnabled={livePreviewEnabled}
+                sectionId="gallery" // or respective section id
+                previewData={null}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1958,6 +1977,11 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Header Content
               </Button>
+              <LivePreviewPanel
+                isEnabled={livePreviewEnabled}
+                sectionId="header" // or respective section id
+                previewData={null}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -2260,6 +2284,11 @@ export default function CMSPage() {
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Footer Content
               </Button>
+              <LivePreviewPanel
+                isEnabled={livePreviewEnabled}
+                sectionId="footer" // or respective section id
+                previewData={null}
+              />
             </CardContent>
           </Card>
         </TabsContent>
