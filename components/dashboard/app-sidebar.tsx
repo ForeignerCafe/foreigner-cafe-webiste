@@ -14,7 +14,7 @@ import {
   ShoppingCart,
   Settings,
   Percent,
-} from "lucide-react";
+} from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -48,39 +48,15 @@ const shopItems = [
   { title: "Products", url: "/admin/products", icon: Package },
   { title: "Orders", url: "/admin/orders", icon: ShoppingCart },
   {
-    url: "/admin/coupons",
-    icon: Percent,
-    title: "Coupons",
-  },
-];
+      url: "/admin/coupons",
+      icon: Percent,
+      title: "Coupons",
+   
+    },
+]
 
 const cmsItems = [
   { title: "Content Management", url: "/admin/cms", icon: Settings },
-  {
-    title: "Homepage CMS",
-    url: "/admin/cms",
-    icon: Settings,
-  },
-  {
-    title: "Events Page",
-    url: "/admin/cms/events",
-    icon: Settings,
-  },
-  {
-    title: "Gallery Page",
-    url: "/admin/cms/gallery",
-    icon: Settings,
-  },
-  {
-    title: "Experiences Page",
-    url: "/admin/cms/experiences",
-    icon: Settings,
-  },
-  {
-    title: "FAQs Page",
-    url: "/admin/cms/faqs",
-    icon: Settings,
-  },
   { title: "Subscribers", url: "/admin/subscribers", icon: SubscriptIcon },
   { title: "Newsletter Management", url: "/admin/news-letter", icon: Mail },
   {

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Users, FileText, Mail, Eye, PlusCircle, ArrowRight, MessageSquare, CheckCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import axiosInstance from "@/lib/axios"
 import { DataTable } from "@/components/dashboard/table"
@@ -60,8 +60,6 @@ export default function DashboardPage() {
     deviceData: [],
     monthlyBlogStats: [],
   })
-
-  const { toast } = useToast()
 
   const fetchBlogs = useCallback(async () => {
     setLoading(true)

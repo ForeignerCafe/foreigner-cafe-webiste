@@ -1,58 +1,46 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
-import CMSContent from "@/models/CMSContent"
+import { EventsSection } from "@/models/CMSContent"
 
 export async function GET() {
   try {
     await connectDB()
 
-    const eventsPage = await CMSContent.findOne({
-      section: "events-page",
-    })
+    let eventsSection = await EventsSection.findOne()
 
-    if (!eventsPage) {
-      // Return default data if not found
-      const defaultData = {
-        hero: {
-          title: "Events at Foreigner Cafe",
-          subtitle: "Host your next event with us and create memories that last a lifetime.",
-          backgroundImage: "/images/events.webp",
-        },
-        contentSections: [
+    // Create default content if none exists
+    if (!eventsSection) {
+      eventsSection = await EventsSection.create({
+        title: "Where Stories Come to Life",
+        description:
+          "Join us for unforgettable experiences at our cafe. From intimate coffee tastings and live acoustic sessions to art exhibitions and book clubs, we create moments that bring our community together over exceptional coffee and shared passions.",
+        buttonText: "Explore All Events",
+        buttonLink: "/events",
+        eventImages: [
           {
-            id: "1",
-            category: "A Space To Unwind",
-            title: "Thoughtful Settings for Meaningful Occasions",
-            description:
-              "Foreigner Café offers intimate spaces for storytelling nights, themed brunches, poetry readings, and more.",
-            image: "/images/pink.webp",
-            imagePosition: "right",
+            src: "/images/couple.webp",
+            alt: "Wedding",
+          },
+          {
+            src: "/images/celebration.webp",
+            alt: "Celebration",
+          },
+          {
+            src: "/images/corporate.webp",
+            alt: "Corporate",
+          },
+          {
+            src: "/images/private.webp",
+            alt: "Private Meeting",
           },
         ],
-        eventSpaces: [
-          {
-            id: "1",
-            name: "Main Hall",
-            description: "Our Main Hall offers energy, elegance, and moments, woven into thoughtful clusters.",
-            image: "/images/main-hall.webp",
-            capacity: "Up to 80 guests",
-          },
-        ],
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: defaultData,
       })
     }
 
-    return NextResponse.json({
-      success: true,
-      data: eventsPage.content,
-    })
+    return NextResponse.json({ success: true, data: eventsSection })
   } catch (error) {
-    console.error("Error fetching events page:", error)
-    return NextResponse.json({ success: false, message: "Failed to fetch events page" }, { status: 500 })
+    console.error("Error fetching events section:", error)
+    return NextResponse.json({ success: false, message: "Failed to fetch events section" }, { status: 500 })
   }
 }
 
@@ -61,24 +49,34 @@ export async function PUT(request: NextRequest) {
     await connectDB()
 
     const body = await request.json()
+    const { title, description, buttonText, buttonLink, eventImages } = body
 
-    const eventsPage = await CMSContent.findOneAndUpdate(
-      { section: "events-page" },
-      {
-        section: "events-page",
-        content: body,
-        updatedAt: new Date(),
-      },
-      { upsert: true, new: true },
-    )
+    if (!title || !description || !buttonText || !buttonLink || !eventImages || !Array.isArray(eventImages)) {
+      return NextResponse.json({ success: false, message: "All fields are required" }, { status: 400 })
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: eventsPage.content,
-      message: "Events page updated successfully",
-    })
+    let eventsSection = await EventsSection.findOne()
+
+    if (eventsSection) {
+      eventsSection.title = title
+      eventsSection.description = description
+      eventsSection.buttonText = buttonText
+      eventsSection.buttonLink = buttonLink
+      eventsSection.eventImages = eventImages
+      await eventsSection.save()
+    } else {
+      eventsSection = await EventsSection.create({
+        title,
+        description,
+        buttonText,
+        buttonLink,
+        eventImages,
+      })
+    }
+
+    return NextResponse.json({ success: true, data: eventsSection })
   } catch (error) {
-    console.error("Error updating events page:", error)
-    return NextResponse.json({ success: false, message: "Failed to update events page" }, { status: 500 })
+    console.error("Error updating events section:", error)
+    return NextResponse.json({ success: false, message: "Failed to update events section" }, { status: 500 })
   }
 }
