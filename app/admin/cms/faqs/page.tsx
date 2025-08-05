@@ -1,253 +1,211 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Trash2, Save, Loader2, Eye, EyeOff, Monitor, ChevronDown } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Eye, EyeOff, Save, Plus, Trash2, ChevronDown } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
-import { FormSkeleton } from "@/components/ui/skeleton-components"
-import Image from "next/image"
+import { ImageUpload } from "@/components/dashboard/image-upload"
 
 interface FAQ {
+  id: string
   question: string
   answer: string
 }
 
 interface FAQsPageData {
-  heroSection: {
+  hero: {
     title: string
     subtitle: string
     backgroundImage: string
   }
-  title: string
-  subtitle: string
+  faqSection: {
+    title: string
+    subtitle: string
+  }
   faqs: FAQ[]
 }
 
-function FAQsPagePreview({ data }: { data: FAQsPageData }) {
-  const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+const FAQsPagePreview = ({ data }: { data: FAQsPageData }) => {
+  const [openFAQ, setOpenFAQ] = useState<string | null>(null)
 
   return (
-    <div className="bg-white min-h-[600px] rounded-lg border overflow-hidden">
-      <div className="transform scale-50 origin-top-left w-[200%]">
-        {/* Hero Section */}
-        <section className="relative h-[400px] md:h-[400px] lg:h-[500px] flex items-center justify-center text-center text-white overflow-hidden mb-10">
-          <Image
-            src={data.heroSection.backgroundImage || "/placeholder.svg?height=500&width=1200"}
-            alt="FAQs hero"
-            width={1200}
-            height={500}
-            className="object-cover w-full h-full"
-          />
-          <div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>
-          <div className="relative z-10 px-4 max-w-4xl mx-auto space-y-2">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mt-10 uppercase">
-              {data.heroSection.title}
-            </h1>
-            <p className="text-base md:text-lg lg:text-xl max-w-2xl mx-auto pb-6">{data.heroSection.subtitle}</p>
-          </div>
-        </section>
+    <div
+      className="w-full bg-white rounded-lg overflow-hidden"
+      style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%", height: "200%" }}
+    >
+      {/* Hero Section Preview */}
+      <div
+        className="relative h-96 bg-cover bg-center flex items-center justify-center"
+        style={{ backgroundImage: `url(${data.hero.backgroundImage || "/placeholder.svg?height=400&width=800"})` }}
+      >
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="relative text-center text-white z-10">
+          <h1 className="text-4xl font-bold mb-4">{data.hero.title || "FAQs Title"}</h1>
+          <p className="text-xl">{data.hero.subtitle || "FAQs subtitle"}</p>
+        </div>
+      </div>
 
-        {/* FAQs Section */}
-        <section className="py-12 md:py-20 bg-white">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="text-center mb-14">
-              <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">{data.title}</h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">{data.subtitle}</p>
-            </div>
+      {/* FAQs Section */}
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-4">{data.faqSection.title || "Frequently Asked Questions"}</h2>
+          <p className="text-gray-600">{data.faqSection.subtitle || "Find answers to common questions"}</p>
+        </div>
 
-            <div className="max-w-4xl mx-auto">
-              {data.faqs.map((faq, index) => (
-                <div key={index} className="border-b border-gray-200 mb-4">
-                  <button
-                    className="w-full text-left py-6 flex justify-between items-center hover:text-orange-500 transition-colors"
-                    onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
-                  >
-                    <h3 className="text-lg font-semibold pr-8">{faq.question}</h3>
-                    <ChevronDown className={`w-5 h-5 transition-transform ${openFAQ === index ? "rotate-180" : ""}`} />
-                  </button>
-                  {openFAQ === index && (
-                    <div className="pb-6">
-                      <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
+        <div className="space-y-4">
+          {data.faqs.map((faq) => (
+            <div key={faq.id} className="border rounded-lg">
+              <button
+                className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50"
+                onClick={() => setOpenFAQ(openFAQ === faq.id ? null : faq.id)}
+              >
+                <span className="font-semibold">{faq.question}</span>
+                <ChevronDown className={`w-5 h-5 transition-transform ${openFAQ === faq.id ? "rotate-180" : ""}`} />
+              </button>
+              {openFAQ === faq.id && <div className="px-6 pb-4 text-gray-600">{faq.answer}</div>}
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
-export default function FAQsCMSPage() {
-  const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [previewEnabled, setPreviewEnabled] = useState(false)
-
-  const [faqsPageData, setFaqsPageData] = useState<FAQsPageData>({
-    heroSection: {
+export default function FAQsPageCMS() {
+  const [data, setData] = useState<FAQsPageData>({
+    hero: {
       title: "",
       subtitle: "",
       backgroundImage: "",
     },
-    title: "",
-    subtitle: "",
+    faqSection: {
+      title: "",
+      subtitle: "",
+    },
     faqs: [],
   })
 
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [previewEnabled, setPreviewEnabled] = useState<{ [key: string]: boolean }>({})
+
   useEffect(() => {
-    fetchFAQsPageData()
+    fetchData()
   }, [])
 
-  const fetchFAQsPageData = async () => {
+  const fetchData = async () => {
     try {
-      setInitialLoading(true)
       const response = await axiosInstance.get("/api/cms/faqs")
       if (response.data.success) {
-        const existingData = response.data.data
-        setFaqsPageData({
-          heroSection: {
-            title: "Frequently Asked Questions",
-            subtitle: "Find answers to common questions about our cafe and services.",
-            backgroundImage: "/images/faqs-hero.webp",
-          },
-          title: existingData.title || "FREQUENTLY ASKED QUESTIONS",
-          subtitle: existingData.subtitle || "Everything you need to know about visiting Foreigner Cafe",
-          faqs: existingData.faqs || [],
-        })
+        setData(response.data.data)
       }
     } catch (error) {
-      console.error("Failed to fetch FAQs page data:", error)
-      // Set default data if API fails
-      setFaqsPageData({
-        heroSection: {
-          title: "Frequently Asked Questions",
-          subtitle: "Find answers to common questions about our cafe and services.",
-          backgroundImage: "/images/faqs-hero.webp",
-        },
-        title: "FREQUENTLY ASKED QUESTIONS",
-        subtitle: "Everything you need to know about visiting Foreigner Cafe",
-        faqs: [
-          {
-            question: "Do you take reservations?",
-            answer:
-              "Yes, we accept reservations for parties up to 12 people. Larger groups should contact us directly for special arrangements.",
-          },
-          {
-            question: "What are your opening hours?",
-            answer:
-              "We're open Monday-Friday 7:30am-4:00pm for dine-in and 7:00am-4:00pm for takeaway. Weekend hours are 7:30am-4:00pm for both dine-in and takeaway.",
-          },
-        ],
-      })
+      console.error("Error fetching FAQs data:", error)
+      toast.error("Failed to load FAQs data")
     } finally {
-      setInitialLoading(false)
+      setLoading(false)
     }
   }
 
   const handleSave = async () => {
-    setLoading(true)
+    setSaving(true)
     try {
-      const dataToSave = {
-        title: faqsPageData.title,
-        subtitle: faqsPageData.subtitle,
-        faqs: faqsPageData.faqs,
-      }
-      const response = await axiosInstance.put("/api/cms/faqs", dataToSave)
-
+      const response = await axiosInstance.post("/api/cms/faqs", data)
       if (response.data.success) {
         toast.success("FAQs page updated successfully!")
       } else {
         toast.error("Failed to update FAQs page")
       }
     } catch (error) {
-      toast.error("Failed to update FAQs page")
+      console.error("Error saving FAQs:", error)
+      toast.error("Failed to save changes")
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
   const addFAQ = () => {
-    setFaqsPageData((prev) => ({
+    const newFAQ: FAQ = {
+      id: Date.now().toString(),
+      question: "",
+      answer: "",
+    }
+    setData((prev) => ({
       ...prev,
-      faqs: [
-        ...prev.faqs,
-        {
-          question: "",
-          answer: "",
-        },
-      ],
+      faqs: [...prev.faqs, newFAQ],
     }))
   }
 
-  const removeFAQ = (index: number) => {
-    setFaqsPageData((prev) => ({
+  const removeFAQ = (id: string) => {
+    setData((prev) => ({
       ...prev,
-      faqs: prev.faqs.filter((_, i) => i !== index),
+      faqs: prev.faqs.filter((faq) => faq.id !== id),
     }))
   }
 
-  const updateFAQ = (index: number, field: keyof FAQ, value: string) => {
-    setFaqsPageData((prev) => ({
+  const updateFAQ = (id: string, field: keyof FAQ, value: string) => {
+    setData((prev) => ({
       ...prev,
-      faqs: prev.faqs.map((faq, i) => (i === index ? { ...faq, [field]: value } : faq)),
+      faqs: prev.faqs.map((faq) => (faq.id === id ? { ...faq, [field]: value } : faq)),
     }))
   }
 
-  if (initialLoading) {
+  const togglePreview = (section: string) => {
+    setPreviewEnabled((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
+
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-        <div className="mb-8 text-center">
-          <div className="h-8 bg-gray-200 rounded w-96 mx-auto mb-4 animate-pulse"></div>
-          <div className="h-4 bg-gray-200 rounded w-64 mx-auto animate-pulse"></div>
+      <div className="p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          </div>
         </div>
-        <FormSkeleton />
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">FAQs Page Management</h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your frequently asked questions page</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setPreviewEnabled(!previewEnabled)}
-          className={`${previewEnabled ? "bg-green-50 border-green-200 text-green-700" : ""}`}
-        >
-          {previewEnabled ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-          {previewEnabled ? "Hide Preview" : "Show Preview"}
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">FAQs Page Management</h1>
+        <Button onClick={handleSave} disabled={saving}>
+          <Save className="w-4 h-4 mr-2" />
+          {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
 
       <div className="space-y-8">
         {/* Hero Section */}
-        <Card className="shadow-lg">
-          <CardHeader>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Hero Section</CardTitle>
-            <CardDescription>Manage the main hero section of your FAQs page</CardDescription>
+            <Button variant="outline" size="sm" onClick={() => togglePreview("hero")}>
+              {previewEnabled.hero ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {previewEnabled.hero ? "Hide Preview" : "Show Preview"}
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             <div>
               <Label htmlFor="hero-title">Title</Label>
               <Input
                 id="hero-title"
-                value={faqsPageData.heroSection.title}
+                value={data.hero.title}
                 onChange={(e) =>
-                  setFaqsPageData((prev) => ({
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, title: e.target.value },
+                    hero: { ...prev.hero, title: e.target.value },
                   }))
                 }
                 placeholder="Enter hero title"
@@ -255,83 +213,119 @@ export default function FAQsCMSPage() {
             </div>
             <div>
               <Label htmlFor="hero-subtitle">Subtitle</Label>
-              <Textarea
+              <Input
                 id="hero-subtitle"
-                value={faqsPageData.heroSection.subtitle}
+                value={data.hero.subtitle}
                 onChange={(e) =>
-                  setFaqsPageData((prev) => ({
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, subtitle: e.target.value },
+                    hero: { ...prev.hero, subtitle: e.target.value },
                   }))
                 }
                 placeholder="Enter hero subtitle"
-                rows={3}
               />
             </div>
             <div>
-              <Label htmlFor="hero-bg">Background Image URL</Label>
-              <Input
-                id="hero-bg"
-                value={faqsPageData.heroSection.backgroundImage}
-                onChange={(e) =>
-                  setFaqsPageData((prev) => ({
+              <Label>Background Image</Label>
+              <ImageUpload
+                value={data.hero.backgroundImage}
+                onChange={(url) =>
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, backgroundImage: e.target.value },
+                    hero: { ...prev.hero, backgroundImage: url },
                   }))
                 }
-                placeholder="Enter background image URL"
               />
             </div>
+
+            {previewEnabled.hero && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-sm">Hero Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-hidden" style={{ height: "200px" }}>
+                    <div
+                      className="relative h-96 bg-cover bg-center flex items-center justify-center"
+                      style={{
+                        backgroundImage: `url(${data.hero.backgroundImage || "/placeholder.svg?height=400&width=800"})`,
+                        transform: "scale(0.5)",
+                        transformOrigin: "top left",
+                        width: "200%",
+                        height: "200%",
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-black/50"></div>
+                      <div className="relative text-center text-white z-10">
+                        <h1 className="text-4xl font-bold mb-4">{data.hero.title || "FAQs Title"}</h1>
+                        <p className="text-xl">{data.hero.subtitle || "FAQs subtitle"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
 
-        {/* FAQs Section Settings */}
-        <Card className="shadow-lg">
+        {/* FAQ Section Settings */}
+        <Card>
           <CardHeader>
-            <CardTitle>FAQs Section</CardTitle>
-            <CardDescription>Manage the main FAQs section settings</CardDescription>
+            <CardTitle>FAQ Section Settings</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="faqs-title">Section Title</Label>
+              <Label htmlFor="faq-title">Section Title</Label>
               <Input
-                id="faqs-title"
-                value={faqsPageData.title}
-                onChange={(e) => setFaqsPageData((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter section title"
+                id="faq-title"
+                value={data.faqSection.title}
+                onChange={(e) =>
+                  setData((prev) => ({
+                    ...prev,
+                    faqSection: { ...prev.faqSection, title: e.target.value },
+                  }))
+                }
+                placeholder="e.g., Frequently Asked Questions"
               />
             </div>
             <div>
-              <Label htmlFor="faqs-subtitle">Section Subtitle</Label>
+              <Label htmlFor="faq-subtitle">Section Subtitle</Label>
               <Input
-                id="faqs-subtitle"
-                value={faqsPageData.subtitle}
-                onChange={(e) => setFaqsPageData((prev) => ({ ...prev, subtitle: e.target.value }))}
-                placeholder="Enter section subtitle"
+                id="faq-subtitle"
+                value={data.faqSection.subtitle}
+                onChange={(e) =>
+                  setData((prev) => ({
+                    ...prev,
+                    faqSection: { ...prev.faqSection, subtitle: e.target.value },
+                  }))
+                }
+                placeholder="e.g., Find answers to common questions"
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* FAQs */}
-        <Card className="shadow-lg">
-          <CardHeader>
+        {/* FAQs Management */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>FAQs</CardTitle>
-            <CardDescription>Manage frequently asked questions</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Questions & Answers</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => togglePreview("faqs")}>
+                {previewEnabled.faqs ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {previewEnabled.faqs ? "Hide Preview" : "Show Preview"}
+              </Button>
               <Button onClick={addFAQ} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Add FAQ
               </Button>
             </div>
-            {faqsPageData.faqs.map((faq, index) => (
-              <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-800 dark:text-gray-200">FAQ {index + 1}</h4>
-                  <Button onClick={() => removeFAQ(index)} variant="destructive" size="sm">
+          </CardHeader>
+          <CardContent>
+            {data.faqs.map((faq, index) => (
+              <div key={faq.id} className="border rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-semibold">FAQ {index + 1}</h4>
+                  <Button variant="destructive" size="sm" onClick={() => removeFAQ(faq.id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -340,47 +334,37 @@ export default function FAQsCMSPage() {
                     <Label>Question</Label>
                     <Input
                       value={faq.question}
-                      onChange={(e) => updateFAQ(index, "question", e.target.value)}
-                      placeholder="Enter question"
+                      onChange={(e) => updateFAQ(faq.id, "question", e.target.value)}
+                      placeholder="Enter the question"
                     />
                   </div>
                   <div>
                     <Label>Answer</Label>
                     <Textarea
                       value={faq.answer}
-                      onChange={(e) => updateFAQ(index, "answer", e.target.value)}
-                      placeholder="Enter answer"
-                      rows={3}
+                      onChange={(e) => updateFAQ(faq.id, "answer", e.target.value)}
+                      placeholder="Enter the answer"
+                      rows={4}
                     />
                   </div>
                 </div>
               </div>
             ))}
+
+            {previewEnabled.faqs && data.faqs.length > 0 && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-sm">FAQs Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-hidden" style={{ height: "400px" }}>
+                    <FAQsPagePreview data={data} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={loading} className="w-full md:w-auto">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Save FAQs Page
-          </Button>
-        </div>
-
-        {/* Preview */}
-        {previewEnabled && (
-          <Card className="mt-6 border-blue-200 bg-blue-50/30">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-800 flex items-center gap-2">
-                <Monitor className="h-4 w-4" />
-                Live Preview - FAQs Page
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <FAQsPagePreview data={faqsPageData} />
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   )

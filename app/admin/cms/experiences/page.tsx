@@ -1,35 +1,35 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Trash2, Save, Loader2, Eye, EyeOff, Monitor } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Eye, EyeOff, Save, Plus, Trash2 } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
-import { FormSkeleton } from "@/components/ui/skeleton-components"
-import Image from "next/image"
+import { ImageUpload } from "@/components/dashboard/image-upload"
 
 interface Experience {
-  id: number
+  id: string
   title: string
   description: string
-  imageSrc: string
-  alt?: string
-  linkText: string
-  linkHref: string
+  image: string
+  link: string
+  buttonText: string
 }
 
 interface Testimonial {
-  quote: string
+  id: string
   name: string
+  text: string
   avatar: string
+  rating: number
 }
 
 interface ExperiencesPageData {
-  heroSection: {
+  hero: {
     title: string
     subtitle: string
     backgroundImage: string
@@ -38,104 +38,88 @@ interface ExperiencesPageData {
   testimonials: Testimonial[]
 }
 
-function ExperiencesPagePreview({ data }: { data: ExperiencesPageData }) {
+const ExperiencesPagePreview = ({ data }: { data: ExperiencesPageData }) => {
   return (
-    <div className="bg-white min-h-[600px] rounded-lg border overflow-hidden">
-      <div className="transform scale-50 origin-top-left w-[200%]">
-        {/* Hero Section */}
-        <section className="relative h-[400px] md:h-[400px] lg:h-[500px] flex items-center justify-center text-center text-white overflow-hidden mb-10">
-          <Image
-            src={data.heroSection.backgroundImage || "/placeholder.svg?height=500&width=1200"}
-            alt="Experiences hero"
-            width={1200}
-            height={500}
-            className="object-cover w-full h-full"
-          />
-          <div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>
-          <div className="relative z-10 px-4 max-w-4xl mx-auto space-y-2">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mt-10 uppercase">
-              {data.heroSection.title}
-            </h1>
-            <p className="text-base md:text-lg lg:text-xl max-w-2xl mx-auto pb-6">{data.heroSection.subtitle}</p>
-          </div>
-        </section>
+    <div
+      className="w-full bg-white rounded-lg overflow-hidden"
+      style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%", height: "200%" }}
+    >
+      {/* Hero Section Preview */}
+      <div
+        className="relative h-96 bg-cover bg-center flex items-center justify-center"
+        style={{ backgroundImage: `url(${data.hero.backgroundImage || "/placeholder.svg?height=400&width=800"})` }}
+      >
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="relative text-center text-white z-10">
+          <h1 className="text-4xl font-bold mb-4">{data.hero.title || "Experiences Title"}</h1>
+          <p className="text-xl">{data.hero.subtitle || "Experiences subtitle"}</p>
+        </div>
+      </div>
 
-        {/* Experiences Section */}
-        <section className="py-12 md:py-20 bg-white">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="text-center mb-14">
-              <h2 className="text-3xl md:text-4xl font-bold text-black">OUR EXPERIENCES</h2>
-              <p className="mt-2 text-gray-600 text-lg">
-                Discover unique experiences crafted with care and attention to detail.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {data.experiences.map((experience) => (
-                <div key={experience.id} className="group">
-                  <div className="overflow-hidden rounded-lg mb-4">
-                    <Image
-                      src={experience.imageSrc || "/placeholder.svg?height=300&width=400"}
-                      alt={experience.alt || experience.title}
-                      width={400}
-                      height={300}
-                      className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 text-gray-800">{experience.title}</h3>
-                  <p className="text-gray-600 mb-4 text-sm">{experience.description}</p>
-                  <a
-                    href={experience.linkHref}
-                    className="text-orange-500 font-medium hover:text-orange-600 transition-colors"
-                  >
-                    {experience.linkText}
-                  </a>
+      {/* Experiences Grid */}
+      {data.experiences.length > 0 && (
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {data.experiences.map((experience) => (
+              <div key={experience.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
+                <img
+                  src={experience.image || "/placeholder.svg?height=200&width=300"}
+                  alt={experience.title}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-6">
+                  <h3 className="font-bold text-xl mb-3">{experience.title}</h3>
+                  <p className="text-gray-600 mb-4">{experience.description}</p>
+                  <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                    {experience.buttonText || "Learn More"}
+                  </Button>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        {data.testimonials.length > 0 && (
-          <section className="py-12 md:py-20 bg-gray-50">
-            <div className="container mx-auto px-4 md:px-6">
-              <div className="text-center mb-14">
-                <h2 className="text-3xl md:text-4xl font-bold text-black">WHAT OUR GUESTS SAY</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {data.testimonials.map((testimonial, index) => (
-                  <div key={index} className="bg-white p-6 rounded-lg shadow-md">
-                    <p className="text-gray-600 mb-4 italic">"{testimonial.quote}"</p>
-                    <div className="flex items-center">
-                      <Image
-                        src={testimonial.avatar || "/placeholder.svg?height=60&width=60"}
-                        alt={testimonial.name}
-                        width={60}
-                        height={60}
-                        className="w-12 h-12 rounded-full mr-4"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-800">{testimonial.name}</p>
-                      </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Testimonials */}
+      {data.testimonials.length > 0 && (
+        <div className="p-8 bg-gray-50">
+          <h2 className="text-3xl font-bold text-center mb-8">What Our Guests Say</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {data.testimonials.map((testimonial) => (
+              <div key={testimonial.id} className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex items-center mb-4">
+                  <img
+                    src={testimonial.avatar || "/placeholder.svg?height=50&width=50"}
+                    alt={testimonial.name}
+                    className="w-12 h-12 rounded-full mr-4"
+                  />
+                  <div>
+                    <h4 className="font-semibold">{testimonial.name}</h4>
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className={`text-sm ${i < testimonial.rating ? "text-yellow-400" : "text-gray-300"}`}
+                        >
+                          ★
+                        </span>
+                      ))}
                     </div>
                   </div>
-                ))}
+                </div>
+                <p className="text-gray-600 italic">"{testimonial.text}"</p>
               </div>
-            </div>
-          </section>
-        )}
-      </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-export default function ExperiencesCMSPage() {
-  const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [previewEnabled, setPreviewEnabled] = useState(false)
-
-  const [experiencesPageData, setExperiencesPageData] = useState<ExperiencesPageData>({
-    heroSection: {
+export default function ExperiencesPageCMS() {
+  const [data, setData] = useState<ExperiencesPageData>({
+    hero: {
       title: "",
       subtitle: "",
       backgroundImage: "",
@@ -144,189 +128,153 @@ export default function ExperiencesCMSPage() {
     testimonials: [],
   })
 
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [previewEnabled, setPreviewEnabled] = useState<{ [key: string]: boolean }>({})
+
   useEffect(() => {
-    fetchExperiencesPageData()
+    fetchData()
   }, [])
 
-  const fetchExperiencesPageData = async () => {
+  const fetchData = async () => {
     try {
-      setInitialLoading(true)
       const response = await axiosInstance.get("/api/cms/experiences")
       if (response.data.success) {
-        const existingData = response.data.data
-        setExperiencesPageData({
-          heroSection: {
-            title: "Our Experiences",
-            subtitle: "Discover unique moments and create lasting memories with us.",
-            backgroundImage: "/images/experiences-hero.webp",
-          },
-          experiences: existingData.experiences || [],
-          testimonials: existingData.testimonials || [],
-        })
+        setData(response.data.data)
       }
     } catch (error) {
-      console.error("Failed to fetch experiences page data:", error)
-      // Set default data if API fails
-      setExperiencesPageData({
-        heroSection: {
-          title: "Our Experiences",
-          subtitle: "Discover unique moments and create lasting memories with us.",
-          backgroundImage: "/images/experiences-hero.webp",
-        },
-        experiences: [
-          {
-            id: 1,
-            title: "Coffee Tasting Experience",
-            description: "Discover the nuances of our specialty coffee blends with our expert baristas.",
-            imageSrc: "/placeholder.svg?height=300&width=400",
-            alt: "Coffee tasting session",
-            linkText: "Book Now",
-            linkHref: "/experiences/coffee-tasting",
-          },
-        ],
-        testimonials: [
-          {
-            quote: "The coffee here is absolutely exceptional. Every visit feels like a warm hug.",
-            name: "Sarah Johnson",
-            avatar: "/placeholder.svg?height=60&width=60",
-          },
-        ],
-      })
+      console.error("Error fetching experiences data:", error)
+      toast.error("Failed to load experiences data")
     } finally {
-      setInitialLoading(false)
+      setLoading(false)
     }
   }
 
   const handleSave = async () => {
-    setLoading(true)
+    setSaving(true)
     try {
-      const dataToSave = {
-        experiences: experiencesPageData.experiences,
-        testimonials: experiencesPageData.testimonials,
-      }
-      const response = await axiosInstance.put("/api/cms/experiences", dataToSave)
-
+      const response = await axiosInstance.post("/api/cms/experiences", data)
       if (response.data.success) {
         toast.success("Experiences page updated successfully!")
       } else {
         toast.error("Failed to update experiences page")
       }
     } catch (error) {
-      toast.error("Failed to update experiences page")
+      console.error("Error saving experiences:", error)
+      toast.error("Failed to save changes")
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
   const addExperience = () => {
-    const newId = Math.max(...experiencesPageData.experiences.map((e) => e.id), 0) + 1
-    setExperiencesPageData((prev) => ({
+    const newExperience: Experience = {
+      id: Date.now().toString(),
+      title: "",
+      description: "",
+      image: "",
+      link: "",
+      buttonText: "Learn More",
+    }
+    setData((prev) => ({
       ...prev,
-      experiences: [
-        ...prev.experiences,
-        {
-          id: newId,
-          title: "",
-          description: "",
-          imageSrc: "",
-          alt: "",
-          linkText: "",
-          linkHref: "",
-        },
-      ],
+      experiences: [...prev.experiences, newExperience],
     }))
   }
 
-  const removeExperience = (id: number) => {
-    setExperiencesPageData((prev) => ({
+  const removeExperience = (id: string) => {
+    setData((prev) => ({
       ...prev,
-      experiences: prev.experiences.filter((e) => e.id !== id),
+      experiences: prev.experiences.filter((exp) => exp.id !== id),
     }))
   }
 
-  const updateExperience = (id: number, field: keyof Experience, value: string | number) => {
-    setExperiencesPageData((prev) => ({
+  const updateExperience = (id: string, field: keyof Experience, value: string) => {
+    setData((prev) => ({
       ...prev,
-      experiences: prev.experiences.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
+      experiences: prev.experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp)),
     }))
   }
 
   const addTestimonial = () => {
-    setExperiencesPageData((prev) => ({
+    const newTestimonial: Testimonial = {
+      id: Date.now().toString(),
+      name: "",
+      text: "",
+      avatar: "",
+      rating: 5,
+    }
+    setData((prev) => ({
       ...prev,
-      testimonials: [
-        ...prev.testimonials,
-        {
-          quote: "",
-          name: "",
-          avatar: "",
-        },
-      ],
+      testimonials: [...prev.testimonials, newTestimonial],
     }))
   }
 
-  const removeTestimonial = (index: number) => {
-    setExperiencesPageData((prev) => ({
+  const removeTestimonial = (id: string) => {
+    setData((prev) => ({
       ...prev,
-      testimonials: prev.testimonials.filter((_, i) => i !== index),
+      testimonials: prev.testimonials.filter((test) => test.id !== id),
     }))
   }
 
-  const updateTestimonial = (index: number, field: keyof Testimonial, value: string) => {
-    setExperiencesPageData((prev) => ({
+  const updateTestimonial = (id: string, field: keyof Testimonial, value: string | number) => {
+    setData((prev) => ({
       ...prev,
-      testimonials: prev.testimonials.map((t, i) => (i === index ? { ...t, [field]: value } : t)),
+      testimonials: prev.testimonials.map((test) => (test.id === id ? { ...test, [field]: value } : test)),
     }))
   }
 
-  if (initialLoading) {
+  const togglePreview = (section: string) => {
+    setPreviewEnabled((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
+
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-        <div className="mb-8 text-center">
-          <div className="h-8 bg-gray-200 rounded w-96 mx-auto mb-4 animate-pulse"></div>
-          <div className="h-4 bg-gray-200 rounded w-64 mx-auto animate-pulse"></div>
+      <div className="p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          </div>
         </div>
-        <FormSkeleton />
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Experiences Page Management</h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your experiences page content</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setPreviewEnabled(!previewEnabled)}
-          className={`${previewEnabled ? "bg-green-50 border-green-200 text-green-700" : ""}`}
-        >
-          {previewEnabled ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-          {previewEnabled ? "Hide Preview" : "Show Preview"}
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Experiences Page Management</h1>
+        <Button onClick={handleSave} disabled={saving}>
+          <Save className="w-4 h-4 mr-2" />
+          {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
 
       <div className="space-y-8">
         {/* Hero Section */}
-        <Card className="shadow-lg">
-          <CardHeader>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Hero Section</CardTitle>
-            <CardDescription>Manage the main hero section of your experiences page</CardDescription>
+            <Button variant="outline" size="sm" onClick={() => togglePreview("hero")}>
+              {previewEnabled.hero ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {previewEnabled.hero ? "Hide Preview" : "Show Preview"}
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             <div>
               <Label htmlFor="hero-title">Title</Label>
               <Input
                 id="hero-title"
-                value={experiencesPageData.heroSection.title}
+                value={data.hero.title}
                 onChange={(e) =>
-                  setExperiencesPageData((prev) => ({
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, title: e.target.value },
+                    hero: { ...prev.hero, title: e.target.value },
                   }))
                 }
                 placeholder="Enter hero title"
@@ -334,192 +282,276 @@ export default function ExperiencesCMSPage() {
             </div>
             <div>
               <Label htmlFor="hero-subtitle">Subtitle</Label>
-              <Textarea
+              <Input
                 id="hero-subtitle"
-                value={experiencesPageData.heroSection.subtitle}
+                value={data.hero.subtitle}
                 onChange={(e) =>
-                  setExperiencesPageData((prev) => ({
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, subtitle: e.target.value },
+                    hero: { ...prev.hero, subtitle: e.target.value },
                   }))
                 }
                 placeholder="Enter hero subtitle"
-                rows={3}
               />
             </div>
             <div>
-              <Label htmlFor="hero-bg">Background Image URL</Label>
-              <Input
-                id="hero-bg"
-                value={experiencesPageData.heroSection.backgroundImage}
-                onChange={(e) =>
-                  setExperiencesPageData((prev) => ({
+              <Label>Background Image</Label>
+              <ImageUpload
+                value={data.hero.backgroundImage}
+                onChange={(url) =>
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, backgroundImage: e.target.value },
+                    hero: { ...prev.hero, backgroundImage: url },
                   }))
                 }
-                placeholder="Enter background image URL"
               />
             </div>
+
+            {previewEnabled.hero && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-sm">Hero Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-hidden" style={{ height: "200px" }}>
+                    <div
+                      className="relative h-96 bg-cover bg-center flex items-center justify-center"
+                      style={{
+                        backgroundImage: `url(${data.hero.backgroundImage || "/placeholder.svg?height=400&width=800"})`,
+                        transform: "scale(0.5)",
+                        transformOrigin: "top left",
+                        width: "200%",
+                        height: "200%",
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-black/50"></div>
+                      <div className="relative text-center text-white z-10">
+                        <h1 className="text-4xl font-bold mb-4">{data.hero.title || "Experiences Title"}</h1>
+                        <p className="text-xl">{data.hero.subtitle || "Experiences subtitle"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
 
         {/* Experiences */}
-        <Card className="shadow-lg">
-          <CardHeader>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Experiences</CardTitle>
-            <CardDescription>Manage your experiences offerings</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Experiences</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => togglePreview("experiences")}>
+                {previewEnabled.experiences ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {previewEnabled.experiences ? "Hide Preview" : "Show Preview"}
+              </Button>
               <Button onClick={addExperience} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Experience
               </Button>
             </div>
-            {experiencesPageData.experiences.map((experience) => (
-              <div key={experience.id} className="border rounded-lg p-4 shadow-sm bg-background">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-800 dark:text-gray-200">Experience {experience.id}</h4>
-                  <Button onClick={() => removeExperience(experience.id)} variant="destructive" size="sm">
+          </CardHeader>
+          <CardContent>
+            {data.experiences.map((experience, index) => (
+              <div key={experience.id} className="border rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-semibold">Experience {index + 1}</h4>
+                  <Button variant="destructive" size="sm" onClick={() => removeExperience(experience.id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Experience Title</Label>
+                    <Label>Title</Label>
                     <Input
                       value={experience.title}
                       onChange={(e) => updateExperience(experience.id, "title", e.target.value)}
-                      placeholder="Enter experience title"
+                      placeholder="Experience title"
                     />
                   </div>
                   <div>
-                    <Label>Image URL</Label>
+                    <Label>Button Text</Label>
                     <Input
-                      value={experience.imageSrc}
-                      onChange={(e) => updateExperience(experience.id, "imageSrc", e.target.value)}
-                      placeholder="Enter image URL"
+                      value={experience.buttonText}
+                      onChange={(e) => updateExperience(experience.id, "buttonText", e.target.value)}
+                      placeholder="Button text"
                     />
                   </div>
-                </div>
-                <div className="mb-4">
-                  <Label>Description</Label>
-                  <Textarea
-                    value={experience.description}
-                    onChange={(e) => updateExperience(experience.id, "description", e.target.value)}
-                    placeholder="Enter experience description"
-                    rows={3}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label>Alt Text</Label>
-                    <Input
-                      value={experience.alt || ""}
-                      onChange={(e) => updateExperience(experience.id, "alt", e.target.value)}
-                      placeholder="Enter alt text"
+                  <div className="md:col-span-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={experience.description}
+                      onChange={(e) => updateExperience(experience.id, "description", e.target.value)}
+                      placeholder="Experience description"
+                      rows={3}
                     />
                   </div>
                   <div>
-                    <Label>Link Text</Label>
-                    <Input
-                      value={experience.linkText}
-                      onChange={(e) => updateExperience(experience.id, "linkText", e.target.value)}
-                      placeholder="Enter link text"
+                    <Label>Image</Label>
+                    <ImageUpload
+                      value={experience.image}
+                      onChange={(url) => updateExperience(experience.id, "image", url)}
                     />
                   </div>
                   <div>
                     <Label>Link URL</Label>
                     <Input
-                      value={experience.linkHref}
-                      onChange={(e) => updateExperience(experience.id, "linkHref", e.target.value)}
-                      placeholder="Enter link URL"
+                      value={experience.link}
+                      onChange={(e) => updateExperience(experience.id, "link", e.target.value)}
+                      placeholder="https://..."
                     />
                   </div>
                 </div>
               </div>
             ))}
+
+            {previewEnabled.experiences && data.experiences.length > 0 && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-sm">Experiences Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-hidden" style={{ height: "300px" }}>
+                    <div
+                      className="p-8"
+                      style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%" }}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {data.experiences.map((experience) => (
+                          <div key={experience.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
+                            <img
+                              src={experience.image || "/placeholder.svg?height=200&width=300"}
+                              alt={experience.title}
+                              className="w-full h-48 object-cover"
+                            />
+                            <div className="p-6">
+                              <h3 className="font-bold text-xl mb-3">{experience.title}</h3>
+                              <p className="text-gray-600 mb-4">{experience.description}</p>
+                              <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                                {experience.buttonText || "Learn More"}
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
 
         {/* Testimonials */}
-        <Card className="shadow-lg">
-          <CardHeader>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Testimonials</CardTitle>
-            <CardDescription>Manage customer testimonials</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Testimonials</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => togglePreview("testimonials")}>
+                {previewEnabled.testimonials ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {previewEnabled.testimonials ? "Hide Preview" : "Show Preview"}
+              </Button>
               <Button onClick={addTestimonial} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Testimonial
               </Button>
             </div>
-            {experiencesPageData.testimonials.map((testimonial, index) => (
-              <div key={index} className="border rounded-lg p-4 shadow-sm bg-background">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-800 dark:text-gray-200">Testimonial {index + 1}</h4>
-                  <Button onClick={() => removeTestimonial(index)} variant="destructive" size="sm">
+          </CardHeader>
+          <CardContent>
+            {data.testimonials.map((testimonial, index) => (
+              <div key={testimonial.id} className="border rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-semibold">Testimonial {index + 1}</h4>
+                  <Button variant="destructive" size="sm" onClick={() => removeTestimonial(testimonial.id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="mb-4">
-                  <Label>Quote</Label>
-                  <Textarea
-                    value={testimonial.quote}
-                    onChange={(e) => updateTestimonial(index, "quote", e.target.value)}
-                    placeholder="Enter testimonial quote"
-                    rows={3}
-                  />
-                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Customer Name</Label>
+                    <Label>Name</Label>
                     <Input
                       value={testimonial.name}
-                      onChange={(e) => updateTestimonial(index, "name", e.target.value)}
-                      placeholder="Enter customer name"
+                      onChange={(e) => updateTestimonial(testimonial.id, "name", e.target.value)}
+                      placeholder="Customer name"
                     />
                   </div>
                   <div>
-                    <Label>Avatar URL</Label>
+                    <Label>Rating</Label>
                     <Input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={testimonial.rating}
+                      onChange={(e) => updateTestimonial(testimonial.id, "rating", Number.parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label>Testimonial Text</Label>
+                    <Textarea
+                      value={testimonial.text}
+                      onChange={(e) => updateTestimonial(testimonial.id, "text", e.target.value)}
+                      placeholder="Customer testimonial"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label>Avatar Image</Label>
+                    <ImageUpload
                       value={testimonial.avatar}
-                      onChange={(e) => updateTestimonial(index, "avatar", e.target.value)}
-                      placeholder="Enter avatar URL"
+                      onChange={(url) => updateTestimonial(testimonial.id, "avatar", url)}
                     />
                   </div>
                 </div>
               </div>
             ))}
+
+            {previewEnabled.testimonials && data.testimonials.length > 0 && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-sm">Testimonials Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-hidden" style={{ height: "300px" }}>
+                    <div
+                      className="p-8 bg-gray-50"
+                      style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%" }}
+                    >
+                      <h2 className="text-3xl font-bold text-center mb-8">What Our Guests Say</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {data.testimonials.map((testimonial) => (
+                          <div key={testimonial.id} className="bg-white p-6 rounded-lg shadow-md">
+                            <div className="flex items-center mb-4">
+                              <img
+                                src={testimonial.avatar || "/placeholder.svg?height=50&width=50"}
+                                alt={testimonial.name}
+                                className="w-12 h-12 rounded-full mr-4"
+                              />
+                              <div>
+                                <h4 className="font-semibold">{testimonial.name}</h4>
+                                <div className="flex">
+                                  {[...Array(5)].map((_, i) => (
+                                    <span
+                                      key={i}
+                                      className={`text-sm ${i < testimonial.rating ? "text-yellow-400" : "text-gray-300"}`}
+                                    >
+                                      ★
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-gray-600 italic">"{testimonial.text}"</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={loading} className="w-full md:w-auto">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Save Experiences Page
-          </Button>
-        </div>
-
-        {/* Preview */}
-        {previewEnabled && (
-          <Card className="mt-6 border-blue-200 bg-blue-50/30">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-800 flex items-center gap-2">
-                <Monitor className="h-4 w-4" />
-                Live Preview - Experiences Page
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ExperiencesPagePreview data={experiencesPageData} />
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   )

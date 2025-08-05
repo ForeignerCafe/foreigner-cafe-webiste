@@ -1,34 +1,31 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Save, Loader2, Eye, EyeOff, Monitor } from "lucide-react"
+import { Eye, EyeOff, Save, Plus, Trash2 } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
-import { FormSkeleton } from "@/components/ui/skeleton-components"
-import Image from "next/image"
+import { ImageUpload } from "@/components/dashboard/image-upload"
 
 interface GalleryImage {
-  id: number
-  src: string
+  id: string
+  url: string
   alt: string
   caption?: string
 }
 
 interface GallerySection {
-  id: number
-  name: string
-  description?: string
+  id: string
+  title: string
+  category: string
   images: GalleryImage[]
 }
 
 interface GalleryPageData {
-  heroSection: {
+  hero: {
     title: string
     subtitle: string
     backgroundImage: string
@@ -36,130 +33,73 @@ interface GalleryPageData {
   sections: GallerySection[]
 }
 
-function GalleryPagePreview({ data }: { data: GalleryPageData }) {
-  const [selectedSection, setSelectedSection] = useState<number | null>(
-    data.sections.length > 0 ? data.sections[0].id : null,
-  )
+const GalleryPagePreview = ({ data }: { data: GalleryPageData }) => {
+  const [activeFilter, setActiveFilter] = useState("all")
 
-  const selectedSectionData = data.sections.find((section) => section.id === selectedSection)
+  const categories = ["all", ...Array.from(new Set(data.sections.map((s) => s.category)))]
+  const filteredSections =
+    activeFilter === "all" ? data.sections : data.sections.filter((s) => s.category === activeFilter)
 
   return (
-    <div className="bg-white min-h-[600px] rounded-lg border overflow-hidden">
-      <div className="transform scale-50 origin-top-left w-[200%]">
-        {/* Hero Section */}
-        <section className="relative h-[400px] md:h-[400px] lg:h-[500px] flex items-center justify-center text-center text-white overflow-hidden mb-10">
-          <Image
-            src={data.heroSection.backgroundImage || "/placeholder.svg?height=500&width=1200"}
-            alt="Gallery hero"
-            width={1200}
-            height={500}
-            className="object-cover w-full h-full"
-          />
-          <div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>
-          <div className="relative z-10 px-4 max-w-4xl mx-auto space-y-2">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mt-10 uppercase">
-              {data.heroSection.title}
-            </h1>
-            <p className="text-base md:text-lg lg:text-xl max-w-2xl mx-auto pb-6">{data.heroSection.subtitle}</p>
-          </div>
-        </section>
+    <div
+      className="w-full bg-white rounded-lg overflow-hidden"
+      style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%", height: "200%" }}
+    >
+      {/* Hero Section Preview */}
+      <div
+        className="relative h-96 bg-cover bg-center flex items-center justify-center"
+        style={{ backgroundImage: `url(${data.hero.backgroundImage || "/placeholder.svg?height=400&width=800"})` }}
+      >
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="relative text-center text-white z-10">
+          <h1 className="text-4xl font-bold mb-4">{data.hero.title || "Gallery Title"}</h1>
+          <p className="text-xl">{data.hero.subtitle || "Gallery subtitle"}</p>
+        </div>
+      </div>
 
-        <div className="container mx-auto px-4">
-          {/* Section Filters */}
-          {data.sections.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              {data.sections.map((section) => (
-                <Badge
-                  key={section.id}
-                  variant={selectedSection === section.id ? "default" : "outline"}
-                  className={`cursor-pointer px-6 py-2 text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                    selectedSection === section.id
-                      ? "bg-orange-500 text-white hover:bg-orange-600"
-                      : "text-gray-600 hover:text-orange-500 hover:border-orange-500"
-                  }`}
-                  onClick={() => setSelectedSection(section.id)}
-                >
-                  {section.name}
-                </Badge>
-              ))}
-            </div>
-          )}
+      {/* Filter Buttons */}
+      <div className="p-8">
+        <div className="flex justify-center gap-4 mb-8">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveFilter(category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === category ? "bg-orange-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </button>
+          ))}
+        </div>
 
-          {/* Selected Section Description */}
-          {selectedSectionData?.description && (
-            <div className="text-center mb-8">
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">{selectedSectionData.description}</p>
-            </div>
-          )}
-
-          {/* Bento Grid Gallery */}
-          {selectedSectionData && selectedSectionData.images.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-7xl mx-auto">
-              {selectedSectionData.images.map((image, index) => {
-                // Create varied grid patterns for bento layout
-                let gridClass = "h-48" // default height
-
-                if (index % 7 === 0) {
-                  gridClass = "md:col-span-2 md:row-span-2 h-96" // Large square
-                } else if (index % 5 === 0) {
-                  gridClass = "lg:col-span-2 h-48" // Wide rectangle
-                } else if (index % 3 === 0) {
-                  gridClass = "md:row-span-2 h-80" // Tall rectangle
-                }
-
-                return (
-                  <div
-                    key={image.id}
-                    className={`group overflow-hidden hover:shadow-xl transition-all duration-300 border rounded-lg ${gridClass}`}
-                  >
-                    <div className="relative overflow-hidden h-full">
-                      <img
-                        src={image.src || "/placeholder.svg"}
-                        alt={image.alt}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
-
-                      {/* Caption Overlay */}
-                      {image.caption && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                          <p className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            {image.caption}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Hover overlay with image info */}
-                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                          <span className="text-xs font-medium text-gray-800">
-                            {index + 1} / {selectedSectionData.images.length}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+        {/* Gallery Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredSections.map((section) => (
+            <div key={section.id} className="space-y-4">
+              <h3 className="text-xl font-bold">{section.title}</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {section.images.slice(0, 4).map((image, idx) => (
+                  <div key={image.id} className={`${idx === 0 ? "col-span-2 row-span-2" : ""}`}>
+                    <img
+                      src={image.url || "/placeholder.svg?height=200&width=300"}
+                      alt={image.alt}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
                   </div>
-                )
-              })}
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-20">
-              <p className="text-gray-500 text-lg">No images available in this section.</p>
-            </div>
-          )}
+          ))}
         </div>
       </div>
     </div>
   )
 }
 
-export default function GalleryCMSPage() {
-  const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [previewEnabled, setPreviewEnabled] = useState(false)
-
-  const [galleryPageData, setGalleryPageData] = useState<GalleryPageData>({
-    heroSection: {
+export default function GalleryPageCMS() {
+  const [data, setData] = useState<GalleryPageData>({
+    hero: {
       title: "",
       subtitle: "",
       backgroundImage: "",
@@ -167,190 +107,161 @@ export default function GalleryCMSPage() {
     sections: [],
   })
 
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [previewEnabled, setPreviewEnabled] = useState<{ [key: string]: boolean }>({})
+
   useEffect(() => {
-    fetchGalleryPageData()
+    fetchData()
   }, [])
 
-  const fetchGalleryPageData = async () => {
+  const fetchData = async () => {
     try {
-      setInitialLoading(true)
       const response = await axiosInstance.get("/api/cms/gallery")
       if (response.data.success) {
-        // Transform the existing gallery data to match our page structure
-        const existingData = response.data.data
-        setGalleryPageData({
-          heroSection: {
-            title: "Explore Our Cafe Gallery",
-            subtitle: "Savor the warmth and joy of every shared moment at our cafe.",
-            backgroundImage: "/images/blues.webp",
-          },
-          sections: existingData.sections || [],
-        })
+        setData(response.data.data)
       }
     } catch (error) {
-      console.error("Failed to fetch gallery page data:", error)
-      // Set default data if API fails
-      setGalleryPageData({
-        heroSection: {
-          title: "Explore Our Cafe Gallery",
-          subtitle: "Savor the warmth and joy of every shared moment at our cafe.",
-          backgroundImage: "/images/blues.webp",
-        },
-        sections: [
-          {
-            id: 1,
-            name: "Recent Events",
-            description: "Highlights from our latest events and gatherings",
-            images: [
-              {
-                id: 1,
-                src: "/placeholder.svg?height=400&width=400",
-                alt: "Event photo 1",
-                caption: "Community gathering",
-              },
-            ],
-          },
-        ],
-      })
+      console.error("Error fetching gallery data:", error)
+      toast.error("Failed to load gallery data")
     } finally {
-      setInitialLoading(false)
+      setLoading(false)
     }
   }
 
   const handleSave = async () => {
-    setLoading(true)
+    setSaving(true)
     try {
-      // Save both hero section and gallery sections
-      const galleryData = { sections: galleryPageData.sections }
-      const response = await axiosInstance.put("/api/cms/gallery", galleryData)
-
+      const response = await axiosInstance.post("/api/cms/gallery", data)
       if (response.data.success) {
         toast.success("Gallery page updated successfully!")
       } else {
         toast.error("Failed to update gallery page")
       }
     } catch (error) {
-      toast.error("Failed to update gallery page")
+      console.error("Error saving gallery:", error)
+      toast.error("Failed to save changes")
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
   const addSection = () => {
-    const newId = Math.max(...galleryPageData.sections.map((s) => s.id), 0) + 1
-    setGalleryPageData((prev) => ({
+    const newSection: GallerySection = {
+      id: Date.now().toString(),
+      title: "",
+      category: "",
+      images: [],
+    }
+    setData((prev) => ({
       ...prev,
-      sections: [
-        ...prev.sections,
-        {
-          id: newId,
-          name: "",
-          description: "",
-          images: [],
-        },
-      ],
+      sections: [...prev.sections, newSection],
     }))
   }
 
-  const removeSection = (id: number) => {
-    setGalleryPageData((prev) => ({
+  const removeSection = (id: string) => {
+    setData((prev) => ({
       ...prev,
-      sections: prev.sections.filter((s) => s.id !== id),
+      sections: prev.sections.filter((section) => section.id !== id),
     }))
   }
 
-  const updateSection = (id: number, field: string, value: string) => {
-    setGalleryPageData((prev) => ({
+  const updateSection = (id: string, field: keyof GallerySection, value: any) => {
+    setData((prev) => ({
       ...prev,
-      sections: prev.sections.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
+      sections: prev.sections.map((section) => (section.id === id ? { ...section, [field]: value } : section)),
     }))
   }
 
-  const addImage = (sectionId: number) => {
-    setGalleryPageData((prev) => ({
+  const addImageToSection = (sectionId: string) => {
+    const newImage: GalleryImage = {
+      id: Date.now().toString(),
+      url: "",
+      alt: "",
+      caption: "",
+    }
+    setData((prev) => ({
       ...prev,
-      sections: prev.sections.map((s) =>
-        s.id === sectionId
+      sections: prev.sections.map((section) =>
+        section.id === sectionId ? { ...section, images: [...section.images, newImage] } : section,
+      ),
+    }))
+  }
+
+  const removeImageFromSection = (sectionId: string, imageId: string) => {
+    setData((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) =>
+        section.id === sectionId ? { ...section, images: section.images.filter((img) => img.id !== imageId) } : section,
+      ),
+    }))
+  }
+
+  const updateImage = (sectionId: string, imageId: string, field: keyof GalleryImage, value: string) => {
+    setData((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) =>
+        section.id === sectionId
           ? {
-              ...s,
-              images: [
-                ...s.images,
-                { id: Math.max(...s.images.map((img) => img.id), 0) + 1, src: "", alt: "", caption: "" },
-              ],
+              ...section,
+              images: section.images.map((img) => (img.id === imageId ? { ...img, [field]: value } : img)),
             }
-          : s,
+          : section,
       ),
     }))
   }
 
-  const removeImage = (sectionId: number, imageId: number) => {
-    setGalleryPageData((prev) => ({
+  const togglePreview = (section: string) => {
+    setPreviewEnabled((prev) => ({
       ...prev,
-      sections: prev.sections.map((s) =>
-        s.id === sectionId ? { ...s, images: s.images.filter((img) => img.id !== imageId) } : s,
-      ),
+      [section]: !prev[section],
     }))
   }
 
-  const updateImage = (sectionId: number, imageId: number, field: keyof GalleryImage, value: string | number) => {
-    setGalleryPageData((prev) => ({
-      ...prev,
-      sections: prev.sections.map((s) =>
-        s.id === sectionId
-          ? { ...s, images: s.images.map((img) => (img.id === imageId ? { ...img, [field]: value } : img)) }
-          : s,
-      ),
-    }))
-  }
-
-  if (initialLoading) {
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-        <div className="mb-8 text-center">
-          <div className="h-8 bg-gray-200 rounded w-96 mx-auto mb-4 animate-pulse"></div>
-          <div className="h-4 bg-gray-200 rounded w-64 mx-auto animate-pulse"></div>
+      <div className="p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          </div>
         </div>
-        <FormSkeleton />
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Gallery Page Management</h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your gallery page content and images</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setPreviewEnabled(!previewEnabled)}
-          className={`${previewEnabled ? "bg-green-50 border-green-200 text-green-700" : ""}`}
-        >
-          {previewEnabled ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-          {previewEnabled ? "Hide Preview" : "Show Preview"}
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Gallery Page Management</h1>
+        <Button onClick={handleSave} disabled={saving}>
+          <Save className="w-4 h-4 mr-2" />
+          {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
 
       <div className="space-y-8">
         {/* Hero Section */}
-        <Card className="shadow-lg">
-          <CardHeader>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Hero Section</CardTitle>
-            <CardDescription>Manage the main hero section of your gallery page</CardDescription>
+            <Button variant="outline" size="sm" onClick={() => togglePreview("hero")}>
+              {previewEnabled.hero ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {previewEnabled.hero ? "Hide Preview" : "Show Preview"}
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             <div>
               <Label htmlFor="hero-title">Title</Label>
               <Input
                 id="hero-title"
-                value={galleryPageData.heroSection.title}
+                value={data.hero.title}
                 onChange={(e) =>
-                  setGalleryPageData((prev) => ({
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, title: e.target.value },
+                    hero: { ...prev.hero, title: e.target.value },
                   }))
                 }
                 placeholder="Enter hero title"
@@ -358,122 +269,147 @@ export default function GalleryCMSPage() {
             </div>
             <div>
               <Label htmlFor="hero-subtitle">Subtitle</Label>
-              <Textarea
+              <Input
                 id="hero-subtitle"
-                value={galleryPageData.heroSection.subtitle}
+                value={data.hero.subtitle}
                 onChange={(e) =>
-                  setGalleryPageData((prev) => ({
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, subtitle: e.target.value },
+                    hero: { ...prev.hero, subtitle: e.target.value },
                   }))
                 }
                 placeholder="Enter hero subtitle"
-                rows={3}
               />
             </div>
             <div>
-              <Label htmlFor="hero-bg">Background Image URL</Label>
-              <Input
-                id="hero-bg"
-                value={galleryPageData.heroSection.backgroundImage}
-                onChange={(e) =>
-                  setGalleryPageData((prev) => ({
+              <Label>Background Image</Label>
+              <ImageUpload
+                value={data.hero.backgroundImage}
+                onChange={(url) =>
+                  setData((prev) => ({
                     ...prev,
-                    heroSection: { ...prev.heroSection, backgroundImage: e.target.value },
+                    hero: { ...prev.hero, backgroundImage: url },
                   }))
                 }
-                placeholder="Enter background image URL"
               />
             </div>
+
+            {previewEnabled.hero && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-sm">Hero Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-hidden" style={{ height: "200px" }}>
+                    <div
+                      className="relative h-96 bg-cover bg-center flex items-center justify-center"
+                      style={{
+                        backgroundImage: `url(${data.hero.backgroundImage || "/placeholder.svg?height=400&width=800"})`,
+                        transform: "scale(0.5)",
+                        transformOrigin: "top left",
+                        width: "200%",
+                        height: "200%",
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-black/50"></div>
+                      <div className="relative text-center text-white z-10">
+                        <h1 className="text-4xl font-bold mb-4">{data.hero.title || "Gallery Title"}</h1>
+                        <p className="text-xl">{data.hero.subtitle || "Gallery subtitle"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
 
         {/* Gallery Sections */}
-        <Card className="shadow-lg">
-          <CardHeader>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Gallery Sections</CardTitle>
-            <CardDescription>Manage gallery sections and their images</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Gallery Sections</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => togglePreview("gallery")}>
+                {previewEnabled.gallery ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {previewEnabled.gallery ? "Hide Preview" : "Show Preview"}
+              </Button>
               <Button onClick={addSection} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Section
               </Button>
             </div>
-            {galleryPageData.sections.map((section) => (
-              <div key={section.id} className="border rounded-lg p-4 shadow-sm bg-background">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-800 dark:text-gray-200">
-                    Section: {section.name || `Section ${section.id}`}
-                  </h4>
-                  <Button onClick={() => removeSection(section.id)} variant="destructive" size="sm">
+          </CardHeader>
+          <CardContent>
+            {data.sections.map((section, index) => (
+              <div key={section.id} className="border rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-semibold">Section {index + 1}</h4>
+                  <Button variant="destructive" size="sm" onClick={() => removeSection(section.id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <Label>Section Name</Label>
+                    <Label>Section Title</Label>
                     <Input
-                      value={section.name}
-                      onChange={(e) => updateSection(section.id, "name", e.target.value)}
-                      placeholder="Enter section name"
+                      value={section.title}
+                      onChange={(e) => updateSection(section.id, "title", e.target.value)}
+                      placeholder="Section title"
                     />
                   </div>
                   <div>
-                    <Label>Description (optional)</Label>
+                    <Label>Category</Label>
                     <Input
-                      value={section.description || ""}
-                      onChange={(e) => updateSection(section.id, "description", e.target.value)}
-                      placeholder="Enter section description"
+                      value={section.category}
+                      onChange={(e) => updateSection(section.id, "category", e.target.value)}
+                      placeholder="e.g., interior, food, events"
                     />
                   </div>
                 </div>
 
-                {/* Images for this section */}
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h5 className="font-medium text-gray-700">Images</h5>
-                    <Button onClick={() => addImage(section.id)} size="sm" variant="outline">
+                {/* Images */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label>Images</Label>
+                    <Button variant="outline" size="sm" onClick={() => addImageToSection(section.id)}>
                       <Plus className="w-4 h-4 mr-2" />
                       Add Image
                     </Button>
                   </div>
-                  {section.images.map((image) => (
-                    <div key={image.id} className="border rounded p-3 mb-3 bg-gray-50 dark:bg-transparent">
+                  {section.images.map((image, imgIndex) => (
+                    <div key={image.id} className="border rounded p-3">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium">Image {image.id}</span>
-                        <Button onClick={() => removeImage(section.id, image.id)} variant="destructive" size="sm">
-                          <Trash2 className="w-3 h-3" />
+                        <span className="text-sm font-medium">Image {imgIndex + 1}</span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeImageFromSection(section.id, image.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                          <Label className="text-xs">Image URL</Label>
-                          <Input
-                            value={image.src}
-                            onChange={(e) => updateImage(section.id, image.id, "src", e.target.value)}
-                            placeholder="Enter image URL"
-                            className="text-sm"
+                          <Label>Image</Label>
+                          <ImageUpload
+                            value={image.url}
+                            onChange={(url) => updateImage(section.id, image.id, "url", url)}
                           />
                         </div>
                         <div>
-                          <Label className="text-xs">Alt Text</Label>
+                          <Label>Alt Text</Label>
                           <Input
                             value={image.alt}
                             onChange={(e) => updateImage(section.id, image.id, "alt", e.target.value)}
-                            placeholder="Enter alt text"
-                            className="text-sm"
+                            placeholder="Alt text for accessibility"
                           />
                         </div>
                         <div>
-                          <Label className="text-xs">Caption (optional)</Label>
+                          <Label>Caption (Optional)</Label>
                           <Input
                             value={image.caption || ""}
                             onChange={(e) => updateImage(section.id, image.id, "caption", e.target.value)}
-                            placeholder="Enter caption"
-                            className="text-sm"
+                            placeholder="Image caption"
                           />
                         </div>
                       </div>
@@ -482,31 +418,21 @@ export default function GalleryCMSPage() {
                 </div>
               </div>
             ))}
+
+            {previewEnabled.gallery && data.sections.length > 0 && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-sm">Gallery Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-hidden" style={{ height: "400px" }}>
+                    <GalleryPagePreview data={data} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={loading} className="w-full md:w-auto">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Save Gallery Page
-          </Button>
-        </div>
-
-        {/* Preview */}
-        {previewEnabled && (
-          <Card className="mt-6 border-blue-200 bg-blue-50/30">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-800 flex items-center gap-2">
-                <Monitor className="h-4 w-4" />
-                Live Preview - Gallery Page
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <GalleryPagePreview data={galleryPageData} />
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   )
