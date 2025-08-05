@@ -14,7 +14,6 @@ import axiosInstance from "@/lib/axios"
 import { LivePreviewTooltip, LivePreviewToggle } from "@/components/cms-live-preview"
 import { FormSkeleton } from "@/components/ui/skeleton-components"
 
-// All the interfaces remain the same...
 interface HeroContent {
   title: string
   subtitle: string
@@ -199,8 +198,8 @@ export default function CMSPage() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [livePreviewEnabled, setLivePreviewEnabled] = useState(false)
   const [activePreviewSection, setActivePreviewSection] = useState<string>("")
+  const [previewData, setPreviewData] = useState<any>(null)
 
-  // All state variables remain the same...
   const [heroContent, setHeroContent] = useState<HeroContent>({
     title: "",
     subtitle: "",
@@ -321,100 +320,22 @@ export default function CMSPage() {
     }
   }
 
-  // Generate preview content based on section
-  const generatePreviewContent = (sectionType: string) => {
-    switch (sectionType) {
-      case "hero":
-        return (
-          <div className="bg-gray-900 text-white p-4 rounded">
-            <h1 className="text-2xl font-bold mb-2">{heroContent.title}</h1>
-            <h2 className="text-lg mb-2">{heroContent.subtitle}</h2>
-            <p className="text-sm">{heroContent.description}</p>
-          </div>
-        )
-      case "whats-on":
-        return (
-          <div className="bg-white p-4 rounded">
-            <h2 className="text-xl font-bold mb-4">{whatsOnSection.title}</h2>
-            <div className="space-y-2">
-              {whatsOnSection.events.slice(0, 2).map((event, index) => (
-                <div key={index} className="border p-2 rounded">
-                  <h3 className="font-semibold text-sm">{event.title}</h3>
-                  <p className="text-xs text-gray-600">{event.description.substring(0, 50)}...</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      case "brand":
-        return (
-          <div className="bg-gray-50 p-4 rounded">
-            <h2 className="text-xl font-bold mb-4">OUR CAFE STORY</h2>
-            <div className="space-y-2">
-              {brandSection.storyElements.slice(0, 1).map((element, index) => (
-                <div key={index} className="border p-2 rounded bg-white">
-                  <h3 className="font-semibold text-sm">{element.title}</h3>
-                  <p className="text-xs text-gray-600">{element.text.substring(0, 80)}...</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      case "experiences":
-        return (
-          <div className="bg-gray-50 p-4 rounded">
-            <h2 className="text-xl font-bold mb-4">EXPERIENCES</h2>
-            <div className="space-y-2">
-              {experiencesSection.experiences.slice(0, 1).map((exp, index) => (
-                <div key={index} className="border p-2 rounded bg-white">
-                  <h3 className="font-semibold text-sm">{exp.title}</h3>
-                  <p className="text-xs text-gray-600">{exp.description.substring(0, 60)}...</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      case "dine-drink":
-        return (
-          <div className="bg-white p-4 rounded">
-            <h2 className="text-xl font-bold mb-4">DINE + DRINK</h2>
-            <div className="space-y-2">
-              {dineDrinkContent.venues.slice(0, 1).map((venue, index) => (
-                <div key={index} className="border p-2 rounded">
-                  <h3 className="font-semibold text-sm">{venue.name}</h3>
-                  <p className="text-xs text-gray-600">{venue.description.substring(0, 50)}...</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      case "faqs":
-        return (
-          <div className="bg-white p-4 rounded">
-            <h2 className="text-xl font-bold mb-2">{faqsSection.title}</h2>
-            <p className="text-sm text-gray-600 mb-4">{faqsSection.subtitle}</p>
-            <div className="space-y-1">
-              {faqsSection.faqs.slice(0, 2).map((faq, index) => (
-                <div key={index} className="border p-2 rounded">
-                  <p className="text-xs font-medium">{faq.question}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      default:
-        return <div className="p-4 text-center text-gray-500">Preview not available</div>
+  // Update preview data when content changes
+  const updatePreviewData = (sectionType: string, data: any) => {
+    if (livePreviewEnabled) {
+      setActivePreviewSection(sectionType)
+      setPreviewData(data)
     }
   }
 
-  // All handler functions remain the same but with preview updates...
+  // Hero Section Handlers
   const handleHeroSave = async () => {
     setLoading(true)
-    setActivePreviewSection("hero")
     try {
       const response = await axiosInstance.put("/api/cms/hero", heroContent)
       if (response.data.success) {
         toast.success("Hero content updated successfully!")
+        updatePreviewData("hero", heroContent)
       } else {
         toast.error("Failed to update hero content")
       }
@@ -422,7 +343,6 @@ export default function CMSPage() {
       toast.error("Failed to update hero content")
     } finally {
       setLoading(false)
-      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -479,15 +399,15 @@ export default function CMSPage() {
     }))
   }
   const handleWhatsOnUpdateEvent = (index: number, field: keyof WhatsOnEvent, value: string) => {
-    setWhatsOnSection((prev) => ({
-      ...prev,
-      events: prev.events.map((event, i) => (i === index ? { ...event, [field]: value } : event)),
-    }))
-    setActivePreviewSection("whats-on")
+    const updatedSection = {
+      ...whatsOnSection,
+      events: whatsOnSection.events.map((event, i) => (i === index ? { ...event, [field]: value } : event)),
+    }
+    setWhatsOnSection(updatedSection)
+    updatePreviewData("whats-on", updatedSection)
   }
   const handleWhatsOnSave = async () => {
     setLoading(true)
-    setActivePreviewSection("whats-on")
     try {
       const response = await axiosInstance.put("/api/cms/whats-on", whatsOnSection)
       if (response.data.success) {
@@ -499,7 +419,6 @@ export default function CMSPage() {
       toast.error("Failed to update What's On section")
     } finally {
       setLoading(false)
-      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -565,20 +484,20 @@ export default function CMSPage() {
     }))
   }
   const handleBrandUpdateStoryElement = (id: number, field: string, value: any) => {
-    setBrandSection((prev) => ({
-      storyElements: prev.storyElements.map((el) =>
+    const updatedSection = {
+      storyElements: brandSection.storyElements.map((el) =>
         el.id === id
           ? field.includes("media.")
             ? { ...el, media: { ...el.media, [field.split(".")[1]]: value } }
             : { ...el, [field]: value }
           : el,
       ),
-    }))
-    setActivePreviewSection("brand")
+    }
+    setBrandSection(updatedSection)
+    updatePreviewData("brand", updatedSection)
   }
   const handleBrandSave = async () => {
     setLoading(true)
-    setActivePreviewSection("brand")
     try {
       const response = await axiosInstance.put("/api/cms/brand-section", brandSection)
       if (response.data.success) {
@@ -590,7 +509,6 @@ export default function CMSPage() {
       toast.error("Failed to update brand section")
     } finally {
       setLoading(false)
-      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -620,11 +538,12 @@ export default function CMSPage() {
     }))
   }
   const handleExperiencesUpdateExperience = (id: number, field: keyof Experience, value: string | number) => {
-    setExperiencesSection((prev) => ({
-      ...prev,
-      experiences: prev.experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp)),
-    }))
-    setActivePreviewSection("experiences")
+    const updatedSection = {
+      ...experiencesSection,
+      experiences: experiencesSection.experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp)),
+    }
+    setExperiencesSection(updatedSection)
+    updatePreviewData("experiences", updatedSection)
   }
   const handleExperiencesAddTestimonial = () => {
     setExperiencesSection((prev) => ({
@@ -639,17 +558,17 @@ export default function CMSPage() {
     }))
   }
   const handleExperiencesUpdateTestimonial = (index: number, field: keyof Testimonial, value: string) => {
-    setExperiencesSection((prev) => ({
-      ...prev,
-      testimonials: prev.testimonials.map((testimonial, i) =>
+    const updatedSection = {
+      ...experiencesSection,
+      testimonials: experiencesSection.testimonials.map((testimonial, i) =>
         i === index ? { ...testimonial, [field]: value } : testimonial,
       ),
-    }))
-    setActivePreviewSection("experiences")
+    }
+    setExperiencesSection(updatedSection)
+    updatePreviewData("experiences", updatedSection)
   }
   const handleExperiencesSave = async () => {
     setLoading(true)
-    setActivePreviewSection("experiences")
     try {
       const response = await axiosInstance.put("/api/cms/experiences", experiencesSection)
       if (response.data.success) {
@@ -661,7 +580,6 @@ export default function CMSPage() {
       toast.error("Failed to update experiences section")
     } finally {
       setLoading(false)
-      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -677,14 +595,14 @@ export default function CMSPage() {
     }))
   }
   const handleDineDrinkUpdateVenue = (index: number, field: keyof Venue, value: string) => {
-    setDineDrinkContent((prev) => ({
-      venues: prev.venues.map((venue, i) => (i === index ? { ...venue, [field]: value } : venue)),
-    }))
-    setActivePreviewSection("dine-drink")
+    const updatedContent = {
+      venues: dineDrinkContent.venues.map((venue, i) => (i === index ? { ...venue, [field]: value } : venue)),
+    }
+    setDineDrinkContent(updatedContent)
+    updatePreviewData("dine-drink", updatedContent)
   }
   const handleDineDrinkSave = async () => {
     setLoading(true)
-    setActivePreviewSection("dine-drink")
     try {
       const response = await axiosInstance.put("/api/cms/dine-drink", dineDrinkContent)
       if (response.data.success) {
@@ -696,7 +614,6 @@ export default function CMSPage() {
       toast.error("Failed to update dine & drink content")
     } finally {
       setLoading(false)
-      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -714,15 +631,15 @@ export default function CMSPage() {
     }))
   }
   const handleFAQsUpdateFAQ = (index: number, field: keyof FAQ, value: string) => {
-    setFaqsSection((prev) => ({
-      ...prev,
-      faqs: prev.faqs.map((faq, i) => (i === index ? { ...faq, [field]: value } : faq)),
-    }))
-    setActivePreviewSection("faqs")
+    const updatedSection = {
+      ...faqsSection,
+      faqs: faqsSection.faqs.map((faq, i) => (i === index ? { ...faq, [field]: value } : faq)),
+    }
+    setFaqsSection(updatedSection)
+    updatePreviewData("faqs", updatedSection)
   }
   const handleFAQsSave = async () => {
     setLoading(true)
-    setActivePreviewSection("faqs")
     try {
       const response = await axiosInstance.put("/api/cms/faqs", faqsSection)
       if (response.data.success) {
@@ -734,7 +651,6 @@ export default function CMSPage() {
       toast.error("Failed to update FAQs section")
     } finally {
       setLoading(false)
-      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -966,7 +882,7 @@ export default function CMSPage() {
       <LivePreviewTooltip
         isEnabled={livePreviewEnabled && activePreviewSection !== ""}
         sectionId={activePreviewSection}
-        previewContent={generatePreviewContent(activePreviewSection)}
+        previewData={previewData}
       />
 
       <div className="mb-8 text-center">
@@ -1004,8 +920,9 @@ export default function CMSPage() {
                   id="hero-title"
                   value={heroContent.title}
                   onChange={(e) => {
-                    setHeroContent((prev) => ({ ...prev, title: e.target.value }))
-                    setActivePreviewSection("hero")
+                    const updatedContent = { ...heroContent, title: e.target.value }
+                    setHeroContent(updatedContent)
+                    updatePreviewData("hero", updatedContent)
                   }}
                   placeholder="Enter hero title"
                 />
@@ -1016,8 +933,9 @@ export default function CMSPage() {
                   id="hero-subtitle"
                   value={heroContent.subtitle}
                   onChange={(e) => {
-                    setHeroContent((prev) => ({ ...prev, subtitle: e.target.value }))
-                    setActivePreviewSection("hero")
+                    const updatedContent = { ...heroContent, subtitle: e.target.value }
+                    setHeroContent(updatedContent)
+                    updatePreviewData("hero", updatedContent)
                   }}
                   placeholder="Enter hero subtitle"
                 />
@@ -1028,8 +946,9 @@ export default function CMSPage() {
                   id="hero-description"
                   value={heroContent.description}
                   onChange={(e) => {
-                    setHeroContent((prev) => ({ ...prev, description: e.target.value }))
-                    setActivePreviewSection("hero")
+                    const updatedContent = { ...heroContent, description: e.target.value }
+                    setHeroContent(updatedContent)
+                    updatePreviewData("hero", updatedContent)
                   }}
                   placeholder="Enter hero description"
                   rows={3}
@@ -1194,8 +1113,9 @@ export default function CMSPage() {
                   id="whats-on-title"
                   value={whatsOnSection.title}
                   onChange={(e) => {
-                    setWhatsOnSection((prev) => ({ ...prev, title: e.target.value }))
-                    setActivePreviewSection("whats-on")
+                    const updatedSection = { ...whatsOnSection, title: e.target.value }
+                    setWhatsOnSection(updatedSection)
+                    updatePreviewData("whats-on", updatedSection)
                   }}
                   placeholder="Enter section title (e.g., WHAT'S ON)"
                 />
@@ -1712,8 +1632,9 @@ export default function CMSPage() {
                     id="faqs-title"
                     value={faqsSection.title}
                     onChange={(e) => {
-                      setFaqsSection((prev) => ({ ...prev, title: e.target.value }))
-                      setActivePreviewSection("faqs")
+                      const updatedSection = { ...faqsSection, title: e.target.value }
+                      setFaqsSection(updatedSection)
+                      updatePreviewData("faqs", updatedSection)
                     }}
                     placeholder="Enter section title"
                   />
@@ -1724,8 +1645,9 @@ export default function CMSPage() {
                     id="faqs-subtitle"
                     value={faqsSection.subtitle}
                     onChange={(e) => {
-                      setFaqsSection((prev) => ({ ...prev, subtitle: e.target.value }))
-                      setActivePreviewSection("faqs")
+                      const updatedSection = { ...faqsSection, subtitle: e.target.value }
+                      setFaqsSection(updatedSection)
+                      updatePreviewData("faqs", updatedSection)
                     }}
                     placeholder="Enter section subtitle"
                   />
