@@ -13,6 +13,10 @@ import BrandSection from "@/components/brand-section"
 import ExperiencesSection from "@/components/experiences-section"
 import DineDrinkSection from "@/components/dine-drink-section"
 import FAQsSection from "@/components/faqs-section"
+import EventsShowcaseSection from "@/components/eventsSection"
+import Gallery from "@/components/gallery"
+import Navigation from "@/components/navigation"
+import Footer from "@/components/footer"
 
 interface LivePreviewProps {
   isEnabled: boolean
@@ -24,86 +28,35 @@ interface LivePreviewProps {
 export function LivePreviewTooltip({ isEnabled, sectionId, previewData, position = { x: 0, y: 0 } }: LivePreviewProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
-  const [tooltipPosition, setTooltipPosition] = useState(position)
   const tooltipRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (isEnabled && sectionId && previewData) {
       setIsVisible(true)
-
-      // Find the section element and position tooltip near it
-      const sectionElement = document.getElementById(sectionId)
-      if (sectionElement) {
-        const rect = sectionElement.getBoundingClientRect()
-        setTooltipPosition({
-          x: rect.right + 20,
-          y: rect.top + window.scrollY,
-        })
-      }
     } else {
       setIsVisible(false)
     }
   }, [isEnabled, sectionId, previewData])
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isVisible && sectionId) {
-        const sectionElement = document.getElementById(sectionId)
-        if (sectionElement) {
-          const rect = sectionElement.getBoundingClientRect()
-          setTooltipPosition({
-            x: rect.right + 20,
-            y: rect.top + window.scrollY,
-          })
-        }
-      }
-    }
-
-    if (isVisible && !isExpanded) {
-      window.addEventListener("scroll", handleScroll)
-      return () => window.removeEventListener("scroll", handleScroll)
-    }
-  }, [isVisible, sectionId, isExpanded])
-
   if (!isVisible) return null
-
-  // Don't show preview for sections that don't have proper components
-  const unavailableSections = ["hero-parallax", "events", "gallery", "header", "footer"]
-  if (unavailableSections.includes(sectionId)) {
-    return createPortal(
-      <div
-        className="fixed z-[9999] bg-yellow-50 border border-yellow-200 rounded-lg shadow-lg p-4 max-w-sm"
-        style={{
-          left: `${tooltipPosition.x}px`,
-          top: `${tooltipPosition.y}px`,
-          transform: tooltipPosition.x > window.innerWidth - 350 ? "translateX(-100%)" : "none",
-        }}
-      >
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-yellow-800">Preview Unavailable</span>
-          <Button variant="ghost" size="sm" onClick={() => setIsVisible(false)} className="h-6 w-6 p-0">
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <p className="text-xs text-yellow-700">
-          Live preview is not available for this section type. Please check the actual website to see changes.
-        </p>
-      </div>,
-      document.body,
-    )
-  }
 
   const renderPreviewComponent = () => {
     // Create a mock context provider for the preview components
     const PreviewWrapper = ({ children }: { children: React.ReactNode }) => (
-      <div className="bg-white min-h-screen">{children}</div>
+      <div className="bg-white min-h-screen overflow-hidden">{children}</div>
     )
 
     switch (sectionId) {
       case "hero":
         return (
           <PreviewWrapper>
-            <div style={{ transform: "scale(0.3)", transformOrigin: "top left", width: "333%" }}>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.25)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "400%",
+              }}
+            >
               <Hero />
             </div>
           </PreviewWrapper>
@@ -111,7 +64,13 @@ export function LivePreviewTooltip({ isEnabled, sectionId, previewData, position
       case "whats-on":
         return (
           <PreviewWrapper>
-            <div style={{ transform: "scale(0.4)", transformOrigin: "top left", width: "250%" }}>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.3)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "333%",
+              }}
+            >
               <EventsSection />
             </div>
           </PreviewWrapper>
@@ -119,7 +78,13 @@ export function LivePreviewTooltip({ isEnabled, sectionId, previewData, position
       case "brand":
         return (
           <PreviewWrapper>
-            <div style={{ transform: "scale(0.4)", transformOrigin: "top left", width: "250%" }}>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.3)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "333%",
+              }}
+            >
               <BrandSection />
             </div>
           </PreviewWrapper>
@@ -127,7 +92,13 @@ export function LivePreviewTooltip({ isEnabled, sectionId, previewData, position
       case "experiences":
         return (
           <PreviewWrapper>
-            <div style={{ transform: "scale(0.4)", transformOrigin: "top left", width: "250%" }}>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.3)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "333%",
+              }}
+            >
               <ExperiencesSection />
             </div>
           </PreviewWrapper>
@@ -135,7 +106,13 @@ export function LivePreviewTooltip({ isEnabled, sectionId, previewData, position
       case "dine-drink":
         return (
           <PreviewWrapper>
-            <div style={{ transform: "scale(0.4)", transformOrigin: "top left", width: "250%" }}>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.3)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "333%",
+              }}
+            >
               <DineDrinkSection />
             </div>
           </PreviewWrapper>
@@ -143,8 +120,76 @@ export function LivePreviewTooltip({ isEnabled, sectionId, previewData, position
       case "faqs":
         return (
           <PreviewWrapper>
-            <div style={{ transform: "scale(0.4)", transformOrigin: "top left", width: "250%" }}>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.3)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "333%",
+              }}
+            >
               <FAQsSection />
+            </div>
+          </PreviewWrapper>
+        )
+      case "events":
+        return (
+          <PreviewWrapper>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.3)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "333%",
+              }}
+            >
+              <EventsShowcaseSection />
+            </div>
+          </PreviewWrapper>
+        )
+      case "gallery":
+        return (
+          <PreviewWrapper>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.3)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "333%",
+              }}
+            >
+              <Gallery />
+            </div>
+          </PreviewWrapper>
+        )
+      case "header":
+        return (
+          <PreviewWrapper>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.4)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "250%",
+              }}
+            >
+              <Navigation />
+              <div className="h-32 bg-gray-100 flex items-center justify-center">
+                <p className="text-gray-600">Header Navigation Preview</p>
+              </div>
+            </div>
+          </PreviewWrapper>
+        )
+      case "footer":
+        return (
+          <PreviewWrapper>
+            <div
+              style={{
+                transform: isExpanded ? "scale(0.8)" : "scale(0.3)",
+                transformOrigin: "top left",
+                width: isExpanded ? "125%" : "333%",
+              }}
+            >
+              <div className="h-32 bg-gray-100 flex items-center justify-center mb-4">
+                <p className="text-gray-600">Website Content Above Footer</p>
+              </div>
+              <Footer />
             </div>
           </PreviewWrapper>
         )
@@ -161,20 +206,14 @@ export function LivePreviewTooltip({ isEnabled, sectionId, previewData, position
     <div
       ref={tooltipRef}
       className={`fixed z-[9999] bg-white border border-gray-200 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ${
-        isExpanded ? "inset-4 max-w-none max-h-none" : "max-w-sm w-80 max-h-96"
+        isExpanded ? "inset-4 max-w-none max-h-none" : "w-[500px] h-[400px]"
       }`}
-      style={
-        isExpanded
-          ? { left: "1rem", top: "1rem", right: "1rem", bottom: "1rem" }
-          : {
-              left: `${tooltipPosition.x}px`,
-              top: `${tooltipPosition.y}px`,
-              transform: tooltipPosition.x > window.innerWidth - 350 ? "translateX(-100%)" : "none",
-            }
-      }
+      style={isExpanded ? { left: "1rem", top: "1rem", right: "1rem", bottom: "1rem" } : { left: "20px", top: "80px" }}
     >
       <div className="bg-gray-50 px-4 py-2 border-b flex justify-between items-center">
-        <span className="text-sm font-medium text-gray-700">Live Preview - {sectionId}</span>
+        <span className="text-sm font-medium text-gray-700">
+          Live Preview - {sectionId.replace("-", " ").toUpperCase()}
+        </span>
         <div className="flex gap-2">
           <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="h-6 w-6 p-0">
             {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -184,7 +223,7 @@ export function LivePreviewTooltip({ isEnabled, sectionId, previewData, position
           </Button>
         </div>
       </div>
-      <div className={`overflow-auto ${isExpanded ? "h-full" : "max-h-80"}`}>{renderPreviewComponent()}</div>
+      <div className={`overflow-auto ${isExpanded ? "h-full" : "h-full"}`}>{renderPreviewComponent()}</div>
     </div>,
     document.body,
   )
