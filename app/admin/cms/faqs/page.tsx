@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Save, Plus, Trash2, ChevronDown } from "lucide-react"
-import toast from "react-hot-toast"
+import { useToast } from "@/components/ui/use-toast"
 import axiosInstance from "@/lib/axios"
 
 interface FAQ {
@@ -105,19 +105,29 @@ export default function FAQsPageCMS() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [previewEnabled, setPreviewEnabled] = useState<{ [key: string]: boolean }>({})
+  const { toast } = useToast()
 
   const handleSave = async () => {
     setSaving(true)
     try {
       const response = await axiosInstance.put("/api/cms/faqs", data)
       if (response.data.success) {
-        toast.success("FAQs page updated successfully!")
+        toast({
+          title: "Success",
+          description: "FAQs page updated successfully!",
+        })
       } else {
-        toast.error("Failed to update FAQs page")
+        toast({
+          title: "Error",
+          description: "Failed to update FAQs page",
+        })
       }
     } catch (error) {
       console.error("Error saving FAQs:", error)
-      toast.error("Failed to save changes")
+      toast({
+        title: "Error",
+        description: "Failed to save changes",
+      })
     } finally {
       setSaving(false)
     }
