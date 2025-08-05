@@ -65,6 +65,38 @@ const EventsSectionSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
+// Events Page Content Schema
+const EventsPageContentSchema = new mongoose.Schema(
+  {
+    heroSection: {
+      title: { type: String, required: true },
+      subtitle: { type: String, required: true },
+      backgroundImage: { type: String, required: true },
+    },
+    contentSections: [
+      {
+        id: { type: Number, required: true },
+        category: { type: String, required: true },
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+        imageSrc: { type: String, required: true },
+        imageAlt: { type: String, required: true },
+        imagePosition: { type: String, enum: ["left", "right"], required: true },
+      },
+    ],
+    eventSpaces: [
+      {
+        id: { type: Number, required: true },
+        imageSrc: { type: String, required: true },
+        imageAlt: { type: String, required: true },
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+      },
+    ],
+  },
+  { timestamps: true },
+)
+
 // Brand Section Schema (Cafe Story with story elements)
 const BrandSectionSchema = new mongoose.Schema(
   {
@@ -234,6 +266,8 @@ export const HeroParallaxProducts =
   mongoose.models.HeroParallaxProducts || mongoose.model("HeroParallaxProducts", HeroParallaxProductsSchema)
 export const WhatsOnSection = mongoose.models.WhatsOnSection || mongoose.model("WhatsOnSection", WhatsOnSectionSchema)
 export const EventsSection = mongoose.models.EventsSection || mongoose.model("EventsSection", EventsSectionSchema)
+export const EventsPageContent =
+  mongoose.models.EventsPageContent || mongoose.model("EventsPageContent", EventsPageContentSchema)
 export const BrandSection = mongoose.models.BrandSection || mongoose.model("BrandSection", BrandSectionSchema)
 export const ExperiencesSection =
   mongoose.models.ExperiencesSection || mongoose.model("ExperiencesSection", ExperiencesSectionSchema)
