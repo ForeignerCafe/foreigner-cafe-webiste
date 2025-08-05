@@ -1,57 +1,56 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import axiosInstance from "@/lib/axios";
-import LocationModal from "./location-modal";
+import { useState, useEffect, useRef } from "react"
+import { Button } from "@/components/ui/button"
+import axiosInstance from "@/lib/axios"
+import LocationModal from "./location-modal"
 
 interface HeroContent {
-  title: string;
-  subtitle: string;
-  description: string;
-  videoUrl: string;
+  title: string
+  subtitle: string
+  description: string
+  videoUrl: string
 }
 
 export default function Hero() {
-  const [showLocationModal, setShowLocationModal] = useState(false); // State for the modal
+  const [showLocationModal, setShowLocationModal] = useState(false) // State for the modal
   const [content, setContent] = useState<HeroContent>({
     title: "Welcome to Foreigner Cafe",
     subtitle: "Where Stories Begin",
-    description:
-      "Experience exceptional coffee, delicious food, and warm hospitality in our cozy atmosphere.",
+    description: "Experience exceptional coffee, delicious food, and warm hospitality in our cozy atmosphere.",
     videoUrl: "/videos/hero-video.mp4",
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
-    fetchHeroContent();
-  }, []);
+    fetchHeroContent()
+  }, [])
 
   useEffect(() => {
     // Force video reload when URL changes
     if (videoRef.current && content.videoUrl) {
-      videoRef.current.load();
+      videoRef.current.load()
     }
-  }, [content.videoUrl]);
+  }, [content.videoUrl])
 
   const fetchHeroContent = async () => {
     try {
-      setIsLoading(true);
-      const response = await axiosInstance.get("/api/cms/hero");
+      setIsLoading(true)
+      const response = await axiosInstance.get("/api/cms/hero")
       if (response.data.success) {
-        setContent(response.data.data);
+        setContent(response.data.data)
       }
     } catch (error) {
-      console.error("Failed to fetch hero content:", error);
+      console.error("Failed to fetch hero content:", error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (isLoading) {
     return (
-      <section className="relative h-screen flex items-center justify-center bg-gray-900 ">
+      <section id="hero" className="relative h-screen flex items-center justify-center bg-gray-900 ">
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 text-center text-white">
           <div className="animate-pulse">
@@ -62,11 +61,11 @@ export default function Hero() {
           </div>
         </div>
       </section>
-    );
+    )
   }
 
   return (
-    <section className="relative h-screen overflow-hidden">
+    <section id="hero" className="relative h-screen overflow-hidden">
       {/* Background Video */}
       <video
         ref={videoRef}
@@ -87,13 +86,8 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 h-full flex items-center justify-center">
         <div className="text-center text-white max-w-4xl mx-auto px-4 md:mt-18 mt-12">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in-up">
-            {content.title}
-          </h1>
-          <h2
-            className="text-2xl md:text-3xl font-light mb-8 animate-fade-in-up"
-            style={{ animationDelay: "0.2s" }}
-          >
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in-up">{content.title}</h1>
+          <h2 className="text-2xl md:text-3xl font-light mb-8 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
             {content.subtitle}
           </h2>
           <p
@@ -102,10 +96,7 @@ export default function Hero() {
           >
             {content.description}
           </p>
-          <div
-            className="animate-fade-in-up"
-            style={{ animationDelay: "0.6s" }}
-          >
+          <div className="animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
             <Button
               onClick={() => setShowLocationModal(true)} // Changed onClick to open the modal
               className={` overflow-hidden bg-[#EC4E20] text-white px-12 py-6 text-lg font-bold tracking-wide transition-all  duration-1500 ease-out delay-700 hover:bg-orange-500 `}
@@ -124,10 +115,7 @@ export default function Hero() {
       </div>
 
       {/* Location Modal */}
-      <LocationModal
-        open={showLocationModal}
-        onOpenChange={setShowLocationModal}
-      />
+      <LocationModal open={showLocationModal} onOpenChange={setShowLocationModal} />
     </section>
-  );
+  )
 }

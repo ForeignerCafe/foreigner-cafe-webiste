@@ -14,7 +14,8 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
-import { DeleteConfirmationModal } from "@/components/dashboard/delete-confirmation-modal" // Adjust the import path as needed
+import { DeleteConfirmationModal } from "@/components/dashboard/delete-confirmation-modal"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Category {
   _id: string
@@ -25,6 +26,39 @@ interface Category {
   createdAt: string
   updatedAt: string
 }
+
+const CategoriesPageSkeleton = () => (
+  <div className="p-6 space-y-6">
+    <div className="flex justify-between items-center">
+      <div>
+        <Skeleton className="h-8 w-48 mb-2" />
+      </div>
+      <Skeleton className="h-10 w-32" />
+    </div>
+
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="grid grid-cols-6 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+          {[...Array(5)].map((_, rowIndex) => (
+            <div key={rowIndex} className="grid grid-cols-6 gap-4">
+              {[...Array(6)].map((_, colIndex) => (
+                <Skeleton key={colIndex} className="h-12 w-full" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+)
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
@@ -124,11 +158,7 @@ export default function CategoriesPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
+    return <CategoriesPageSkeleton />
   }
 
   return (

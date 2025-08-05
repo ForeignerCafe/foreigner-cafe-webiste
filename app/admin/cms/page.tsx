@@ -11,7 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Save, Loader2, Video, ImageIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
+import { LivePreviewTooltip, LivePreviewToggle } from "@/components/cms-live-preview"
+import { FormSkeleton } from "@/components/ui/skeleton-components"
 
+// All the interfaces remain the same...
 interface HeroContent {
   title: string
   subtitle: string
@@ -193,6 +196,11 @@ interface FooterContent {
 
 export default function CMSPage() {
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [livePreviewEnabled, setLivePreviewEnabled] = useState(false)
+  const [activePreviewSection, setActivePreviewSection] = useState<string>("")
+
+  // All state variables remain the same...
   const [heroContent, setHeroContent] = useState<HeroContent>({
     title: "",
     subtitle: "",
@@ -268,6 +276,7 @@ export default function CMSPage() {
 
   const fetchAllContent = async () => {
     try {
+      setInitialLoading(true)
       const [
         heroRes,
         heroParallaxRes,
@@ -307,12 +316,101 @@ export default function CMSPage() {
       if (footerRes.data.success) setFooterContent(footerRes.data.data)
     } catch (error) {
       toast.error("Failed to fetch content")
+    } finally {
+      setInitialLoading(false)
     }
   }
 
-  // Hero Section Handlers
+  // Generate preview content based on section
+  const generatePreviewContent = (sectionType: string) => {
+    switch (sectionType) {
+      case "hero":
+        return (
+          <div className="bg-gray-900 text-white p-4 rounded">
+            <h1 className="text-2xl font-bold mb-2">{heroContent.title}</h1>
+            <h2 className="text-lg mb-2">{heroContent.subtitle}</h2>
+            <p className="text-sm">{heroContent.description}</p>
+          </div>
+        )
+      case "whats-on":
+        return (
+          <div className="bg-white p-4 rounded">
+            <h2 className="text-xl font-bold mb-4">{whatsOnSection.title}</h2>
+            <div className="space-y-2">
+              {whatsOnSection.events.slice(0, 2).map((event, index) => (
+                <div key={index} className="border p-2 rounded">
+                  <h3 className="font-semibold text-sm">{event.title}</h3>
+                  <p className="text-xs text-gray-600">{event.description.substring(0, 50)}...</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      case "brand":
+        return (
+          <div className="bg-gray-50 p-4 rounded">
+            <h2 className="text-xl font-bold mb-4">OUR CAFE STORY</h2>
+            <div className="space-y-2">
+              {brandSection.storyElements.slice(0, 1).map((element, index) => (
+                <div key={index} className="border p-2 rounded bg-white">
+                  <h3 className="font-semibold text-sm">{element.title}</h3>
+                  <p className="text-xs text-gray-600">{element.text.substring(0, 80)}...</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      case "experiences":
+        return (
+          <div className="bg-gray-50 p-4 rounded">
+            <h2 className="text-xl font-bold mb-4">EXPERIENCES</h2>
+            <div className="space-y-2">
+              {experiencesSection.experiences.slice(0, 1).map((exp, index) => (
+                <div key={index} className="border p-2 rounded bg-white">
+                  <h3 className="font-semibold text-sm">{exp.title}</h3>
+                  <p className="text-xs text-gray-600">{exp.description.substring(0, 60)}...</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      case "dine-drink":
+        return (
+          <div className="bg-white p-4 rounded">
+            <h2 className="text-xl font-bold mb-4">DINE + DRINK</h2>
+            <div className="space-y-2">
+              {dineDrinkContent.venues.slice(0, 1).map((venue, index) => (
+                <div key={index} className="border p-2 rounded">
+                  <h3 className="font-semibold text-sm">{venue.name}</h3>
+                  <p className="text-xs text-gray-600">{venue.description.substring(0, 50)}...</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      case "faqs":
+        return (
+          <div className="bg-white p-4 rounded">
+            <h2 className="text-xl font-bold mb-2">{faqsSection.title}</h2>
+            <p className="text-sm text-gray-600 mb-4">{faqsSection.subtitle}</p>
+            <div className="space-y-1">
+              {faqsSection.faqs.slice(0, 2).map((faq, index) => (
+                <div key={index} className="border p-2 rounded">
+                  <p className="text-xs font-medium">{faq.question}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      default:
+        return <div className="p-4 text-center text-gray-500">Preview not available</div>
+    }
+  }
+
+  // All handler functions remain the same but with preview updates...
   const handleHeroSave = async () => {
     setLoading(true)
+    setActivePreviewSection("hero")
     try {
       const response = await axiosInstance.put("/api/cms/hero", heroContent)
       if (response.data.success) {
@@ -324,6 +422,7 @@ export default function CMSPage() {
       toast.error("Failed to update hero content")
     } finally {
       setLoading(false)
+      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -384,9 +483,11 @@ export default function CMSPage() {
       ...prev,
       events: prev.events.map((event, i) => (i === index ? { ...event, [field]: value } : event)),
     }))
+    setActivePreviewSection("whats-on")
   }
   const handleWhatsOnSave = async () => {
     setLoading(true)
+    setActivePreviewSection("whats-on")
     try {
       const response = await axiosInstance.put("/api/cms/whats-on", whatsOnSection)
       if (response.data.success) {
@@ -398,6 +499,7 @@ export default function CMSPage() {
       toast.error("Failed to update What's On section")
     } finally {
       setLoading(false)
+      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -472,9 +574,11 @@ export default function CMSPage() {
           : el,
       ),
     }))
+    setActivePreviewSection("brand")
   }
   const handleBrandSave = async () => {
     setLoading(true)
+    setActivePreviewSection("brand")
     try {
       const response = await axiosInstance.put("/api/cms/brand-section", brandSection)
       if (response.data.success) {
@@ -486,6 +590,7 @@ export default function CMSPage() {
       toast.error("Failed to update brand section")
     } finally {
       setLoading(false)
+      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -519,6 +624,7 @@ export default function CMSPage() {
       ...prev,
       experiences: prev.experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp)),
     }))
+    setActivePreviewSection("experiences")
   }
   const handleExperiencesAddTestimonial = () => {
     setExperiencesSection((prev) => ({
@@ -539,9 +645,11 @@ export default function CMSPage() {
         i === index ? { ...testimonial, [field]: value } : testimonial,
       ),
     }))
+    setActivePreviewSection("experiences")
   }
   const handleExperiencesSave = async () => {
     setLoading(true)
+    setActivePreviewSection("experiences")
     try {
       const response = await axiosInstance.put("/api/cms/experiences", experiencesSection)
       if (response.data.success) {
@@ -553,6 +661,7 @@ export default function CMSPage() {
       toast.error("Failed to update experiences section")
     } finally {
       setLoading(false)
+      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -571,9 +680,11 @@ export default function CMSPage() {
     setDineDrinkContent((prev) => ({
       venues: prev.venues.map((venue, i) => (i === index ? { ...venue, [field]: value } : venue)),
     }))
+    setActivePreviewSection("dine-drink")
   }
   const handleDineDrinkSave = async () => {
     setLoading(true)
+    setActivePreviewSection("dine-drink")
     try {
       const response = await axiosInstance.put("/api/cms/dine-drink", dineDrinkContent)
       if (response.data.success) {
@@ -585,6 +696,7 @@ export default function CMSPage() {
       toast.error("Failed to update dine & drink content")
     } finally {
       setLoading(false)
+      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -606,9 +718,11 @@ export default function CMSPage() {
       ...prev,
       faqs: prev.faqs.map((faq, i) => (i === index ? { ...faq, [field]: value } : faq)),
     }))
+    setActivePreviewSection("faqs")
   }
   const handleFAQsSave = async () => {
     setLoading(true)
+    setActivePreviewSection("faqs")
     try {
       const response = await axiosInstance.put("/api/cms/faqs", faqsSection)
       if (response.data.success) {
@@ -620,6 +734,7 @@ export default function CMSPage() {
       toast.error("Failed to update FAQs section")
     } finally {
       setLoading(false)
+      setTimeout(() => setActivePreviewSection(""), 3000)
     }
   }
 
@@ -829,8 +944,31 @@ export default function CMSPage() {
     }
   }
 
+  if (initialLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
+        <div className="mb-8 text-center">
+          <div className="h-8 bg-gray-200 rounded w-96 mx-auto mb-4 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-64 mx-auto animate-pulse"></div>
+        </div>
+        <div className="space-y-6">
+          <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+          <FormSkeleton />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
+      <LivePreviewToggle isEnabled={livePreviewEnabled} onToggle={setLivePreviewEnabled} />
+
+      <LivePreviewTooltip
+        isEnabled={livePreviewEnabled && activePreviewSection !== ""}
+        sectionId={activePreviewSection}
+        previewContent={generatePreviewContent(activePreviewSection)}
+      />
+
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Content Management System</h1>
         <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">Manage your website content sections</p>
@@ -865,7 +1003,10 @@ export default function CMSPage() {
                 <Input
                   id="hero-title"
                   value={heroContent.title}
-                  onChange={(e) => setHeroContent((prev) => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) => {
+                    setHeroContent((prev) => ({ ...prev, title: e.target.value }))
+                    setActivePreviewSection("hero")
+                  }}
                   placeholder="Enter hero title"
                 />
               </div>
@@ -874,7 +1015,10 @@ export default function CMSPage() {
                 <Input
                   id="hero-subtitle"
                   value={heroContent.subtitle}
-                  onChange={(e) => setHeroContent((prev) => ({ ...prev, subtitle: e.target.value }))}
+                  onChange={(e) => {
+                    setHeroContent((prev) => ({ ...prev, subtitle: e.target.value }))
+                    setActivePreviewSection("hero")
+                  }}
                   placeholder="Enter hero subtitle"
                 />
               </div>
@@ -883,7 +1027,10 @@ export default function CMSPage() {
                 <Textarea
                   id="hero-description"
                   value={heroContent.description}
-                  onChange={(e) => setHeroContent((prev) => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) => {
+                    setHeroContent((prev) => ({ ...prev, description: e.target.value }))
+                    setActivePreviewSection("hero")
+                  }}
                   placeholder="Enter hero description"
                   rows={3}
                 />
@@ -1046,7 +1193,10 @@ export default function CMSPage() {
                 <Input
                   id="whats-on-title"
                   value={whatsOnSection.title}
-                  onChange={(e) => setWhatsOnSection((prev) => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) => {
+                    setWhatsOnSection((prev) => ({ ...prev, title: e.target.value }))
+                    setActivePreviewSection("whats-on")
+                  }}
                   placeholder="Enter section title (e.g., WHAT'S ON)"
                 />
               </div>
@@ -1561,7 +1711,10 @@ export default function CMSPage() {
                   <Input
                     id="faqs-title"
                     value={faqsSection.title}
-                    onChange={(e) => setFaqsSection((prev) => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) => {
+                      setFaqsSection((prev) => ({ ...prev, title: e.target.value }))
+                      setActivePreviewSection("faqs")
+                    }}
                     placeholder="Enter section title"
                   />
                 </div>
@@ -1570,7 +1723,10 @@ export default function CMSPage() {
                   <Input
                     id="faqs-subtitle"
                     value={faqsSection.subtitle}
-                    onChange={(e) => setFaqsSection((prev) => ({ ...prev, subtitle: e.target.value }))}
+                    onChange={(e) => {
+                      setFaqsSection((prev) => ({ ...prev, subtitle: e.target.value }))
+                      setActivePreviewSection("faqs")
+                    }}
                     placeholder="Enter section subtitle"
                   />
                 </div>

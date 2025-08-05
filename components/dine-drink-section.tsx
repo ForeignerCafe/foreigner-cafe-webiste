@@ -67,7 +67,7 @@ export default function DineDrinkSection() {
 
   if (isLoading) {
     return (
-      <section className="bg-white py-8 sm:py-12 lg:py-20">
+      <section id="dine-drink" className="bg-white py-8 sm:py-12 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 sm:mb-12">
             <div className="h-8 sm:h-10 md:h-12 lg:h-14 bg-gray-200 rounded w-64 mb-4 md:mb-0 animate-pulse"></div>
@@ -99,7 +99,7 @@ export default function DineDrinkSection() {
   }
 
   return (
-    <section ref={sectionRef} className="bg-white py-8 sm:py-12 lg:py-20">
+    <section id="dine-drink" ref={sectionRef} className="bg-white py-8 sm:py-12 lg:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div

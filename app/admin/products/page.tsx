@@ -16,6 +16,7 @@ import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
 import Image from "next/image"
 import { DeleteConfirmationModal } from "@/components/dashboard/delete-confirmation-modal"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Category {
   _id: string
@@ -35,6 +36,40 @@ interface Product {
   isActive: boolean
   createdAt: string
 }
+
+const ProductsPageSkeleton = () => (
+  <div className="p-6 space-y-6">
+    <div className="flex justify-between items-center">
+      <div>
+        <Skeleton className="h-8 w-48 mb-2" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+      <Skeleton className="h-10 w-32" />
+    </div>
+
+    <Card className="mb-16">
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="grid grid-cols-7 gap-4">
+            {[...Array(7)].map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+          {[...Array(5)].map((_, rowIndex) => (
+            <div key={rowIndex} className="grid grid-cols-7 gap-4">
+              {[...Array(7)].map((_, colIndex) => (
+                <Skeleton key={colIndex} className="h-16 w-full" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+)
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -150,9 +185,8 @@ export default function ProductsPage() {
   // Confirm delete action
   const confirmDelete = async () => {
     if (!productToDelete) return
-   const toastId = toast.loading("Deleting product...")
+    const toastId = toast.loading("Deleting product...")
     try {
-     
       const response = await axiosInstance.delete(`/api/products/${productToDelete._id}`)
       if (response.data.success) {
         toast.success("Product deleted successfully", {
@@ -197,11 +231,7 @@ export default function ProductsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
+    return <ProductsPageSkeleton />
   }
 
   return (
@@ -366,7 +396,7 @@ export default function ProductsPage() {
                     <TableCell>
                       {product.images[0] ? (
                         <Image
-                          src={product.images[0]}
+                          src={product.images[0] || "/placeholder.svg"}
                           alt={product.title}
                           width={50}
                           height={50}
