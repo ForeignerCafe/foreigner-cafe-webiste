@@ -1,14 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import { Eye, EyeOff, Save, Plus, Trash2 } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
-import { ImageUpload } from "@/components/dashboard/image-upload"
+import Image from "next/image"
 
 interface GalleryImage {
   id: string
@@ -61,15 +62,16 @@ const GalleryPagePreview = ({ data }: { data: GalleryPageData }) => {
       <div className="p-8">
         <div className="flex justify-center gap-4 mb-8">
           {categories.map((category) => (
-            <button
+            <Badge
               key={category}
-              onClick={() => setActiveFilter(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeFilter === category ? "bg-orange-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              variant={activeFilter === category ? "default" : "outline"}
+              className={`cursor-pointer px-4 py-2 ${
+                activeFilter === category ? "bg-orange-500 text-white" : "text-gray-700 hover:bg-gray-100"
               }`}
+              onClick={() => setActiveFilter(category)}
             >
               {category.charAt(0).toUpperCase() + category.slice(1)}
-            </button>
+            </Badge>
           ))}
         </div>
 
@@ -81,9 +83,11 @@ const GalleryPagePreview = ({ data }: { data: GalleryPageData }) => {
               <div className="grid grid-cols-2 gap-2">
                 {section.images.slice(0, 4).map((image, idx) => (
                   <div key={image.id} className={`${idx === 0 ? "col-span-2 row-span-2" : ""}`}>
-                    <img
+                    <Image
                       src={image.url || "/placeholder.svg?height=200&width=300"}
                       alt={image.alt}
+                      width={300}
+                      height={200}
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
@@ -100,39 +104,35 @@ const GalleryPagePreview = ({ data }: { data: GalleryPageData }) => {
 export default function GalleryPageCMS() {
   const [data, setData] = useState<GalleryPageData>({
     hero: {
-      title: "",
-      subtitle: "",
-      backgroundImage: "",
+      title: "Explore Our Cafe Gallery",
+      subtitle: "Savor the warmth and joy of every shared moment at our cafe.",
+      backgroundImage: "/images/blues.webp",
     },
-    sections: [],
+    sections: [
+      {
+        id: "1",
+        title: "Recent Events",
+        category: "events",
+        images: [
+          {
+            id: "1",
+            url: "/placeholder.svg?height=400&width=400",
+            alt: "Event photo 1",
+            caption: "Community gathering",
+          },
+        ],
+      },
+    ],
   })
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [previewEnabled, setPreviewEnabled] = useState<{ [key: string]: boolean }>({})
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const response = await axiosInstance.get("/api/cms/gallery")
-      if (response.data.success) {
-        setData(response.data.data)
-      }
-    } catch (error) {
-      console.error("Error fetching gallery data:", error)
-      toast.error("Failed to load gallery data")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      const response = await axiosInstance.post("/api/cms/gallery", data)
+      const response = await axiosInstance.put("/api/cms/gallery", data)
       if (response.data.success) {
         toast.success("Gallery page updated successfully!")
       } else {
@@ -218,20 +218,6 @@ export default function GalleryPageCMS() {
     }))
   }
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-full"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -282,15 +268,17 @@ export default function GalleryPageCMS() {
               />
             </div>
             <div>
-              <Label>Background Image</Label>
-              <ImageUpload
+              <Label htmlFor="hero-bg">Background Image URL</Label>
+              <Input
+                id="hero-bg"
                 value={data.hero.backgroundImage}
-                onChange={(url) =>
+                onChange={(e) =>
                   setData((prev) => ({
                     ...prev,
-                    hero: { ...prev.hero, backgroundImage: url },
+                    hero: { ...prev.hero, backgroundImage: e.target.value },
                   }))
                 }
+                placeholder="Enter background image URL"
               />
             </div>
 
@@ -390,10 +378,11 @@ export default function GalleryPageCMS() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                          <Label>Image</Label>
-                          <ImageUpload
+                          <Label>Image URL</Label>
+                          <Input
                             value={image.url}
-                            onChange={(url) => updateImage(section.id, image.id, "url", url)}
+                            onChange={(e) => updateImage(section.id, image.id, "url", e.target.value)}
+                            placeholder="Enter image URL"
                           />
                         </div>
                         <div>
@@ -425,7 +414,7 @@ export default function GalleryPageCMS() {
                   <CardTitle className="text-sm">Gallery Preview</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-hidden" style={{ height: "400px" }}>
+                  <div className="overflow-hidden border rounded-lg" style={{ height: "400px" }}>
                     <GalleryPagePreview data={data} />
                   </div>
                 </CardContent>

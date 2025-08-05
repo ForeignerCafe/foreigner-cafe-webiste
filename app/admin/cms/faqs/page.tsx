@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Save, Plus, Trash2, ChevronDown } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
-import { ImageUpload } from "@/components/dashboard/image-upload"
 
 interface FAQ {
   id: string
@@ -79,43 +78,38 @@ const FAQsPagePreview = ({ data }: { data: FAQsPageData }) => {
 export default function FAQsPageCMS() {
   const [data, setData] = useState<FAQsPageData>({
     hero: {
-      title: "",
-      subtitle: "",
-      backgroundImage: "",
+      title: "Frequently Asked Questions",
+      subtitle: "Find answers to common questions about our cafe and services.",
+      backgroundImage: "/images/faqs-hero.webp",
     },
     faqSection: {
-      title: "",
-      subtitle: "",
+      title: "FREQUENTLY ASKED QUESTIONS",
+      subtitle: "Everything you need to know about visiting Foreigner Cafe",
     },
-    faqs: [],
+    faqs: [
+      {
+        id: "1",
+        question: "Do you take reservations?",
+        answer:
+          "Yes, we accept reservations for parties up to 12 people. Larger groups should contact us directly for special arrangements.",
+      },
+      {
+        id: "2",
+        question: "What are your opening hours?",
+        answer:
+          "We're open Monday-Friday 7:30am-4:00pm for dine-in and 7:00am-4:00pm for takeaway. Weekend hours are 7:30am-4:00pm for both dine-in and takeaway.",
+      },
+    ],
   })
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [previewEnabled, setPreviewEnabled] = useState<{ [key: string]: boolean }>({})
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const response = await axiosInstance.get("/api/cms/faqs")
-      if (response.data.success) {
-        setData(response.data.data)
-      }
-    } catch (error) {
-      console.error("Error fetching FAQs data:", error)
-      toast.error("Failed to load FAQs data")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      const response = await axiosInstance.post("/api/cms/faqs", data)
+      const response = await axiosInstance.put("/api/cms/faqs", data)
       if (response.data.success) {
         toast.success("FAQs page updated successfully!")
       } else {
@@ -160,20 +154,6 @@ export default function FAQsPageCMS() {
       ...prev,
       [section]: !prev[section],
     }))
-  }
-
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-full"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -226,15 +206,17 @@ export default function FAQsPageCMS() {
               />
             </div>
             <div>
-              <Label>Background Image</Label>
-              <ImageUpload
+              <Label htmlFor="hero-bg">Background Image URL</Label>
+              <Input
+                id="hero-bg"
                 value={data.hero.backgroundImage}
-                onChange={(url) =>
+                onChange={(e) =>
                   setData((prev) => ({
                     ...prev,
-                    hero: { ...prev.hero, backgroundImage: url },
+                    hero: { ...prev.hero, backgroundImage: e.target.value },
                   }))
                 }
+                placeholder="Enter background image URL"
               />
             </div>
 
@@ -357,13 +339,31 @@ export default function FAQsPageCMS() {
                   <CardTitle className="text-sm">FAQs Preview</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-hidden" style={{ height: "400px" }}>
+                  <div className="overflow-hidden border rounded-lg" style={{ height: "400px" }}>
                     <FAQsPagePreview data={data} />
                   </div>
                 </CardContent>
               </Card>
             )}
           </CardContent>
+        </Card>
+
+        {/* Full Page Preview */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Full Page Preview</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => togglePreview("fullPage")}>
+              {previewEnabled.fullPage ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {previewEnabled.fullPage ? "Hide Preview" : "Show Preview"}
+            </Button>
+          </CardHeader>
+          {previewEnabled.fullPage && (
+            <CardContent>
+              <div className="overflow-hidden border rounded-lg" style={{ height: "600px" }}>
+                <FAQsPagePreview data={data} />
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Save, Plus, Trash2 } from "lucide-react"
 import toast from "react-hot-toast"
 import axiosInstance from "@/lib/axios"
-import { ImageUpload } from "@/components/dashboard/image-upload"
+import Image from "next/image"
 
 interface Experience {
   id: string
@@ -62,9 +62,11 @@ const ExperiencesPagePreview = ({ data }: { data: ExperiencesPageData }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {data.experiences.map((experience) => (
               <div key={experience.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
-                <img
+                <Image
                   src={experience.image || "/placeholder.svg?height=200&width=300"}
                   alt={experience.title}
+                  width={300}
+                  height={200}
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-6">
@@ -88,9 +90,11 @@ const ExperiencesPagePreview = ({ data }: { data: ExperiencesPageData }) => {
             {data.testimonials.map((testimonial) => (
               <div key={testimonial.id} className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex items-center mb-4">
-                  <img
+                  <Image
                     src={testimonial.avatar || "/placeholder.svg?height=50&width=50"}
                     alt={testimonial.name}
+                    width={50}
+                    height={50}
                     className="w-12 h-12 rounded-full mr-4"
                   />
                   <div>
@@ -120,40 +124,39 @@ const ExperiencesPagePreview = ({ data }: { data: ExperiencesPageData }) => {
 export default function ExperiencesPageCMS() {
   const [data, setData] = useState<ExperiencesPageData>({
     hero: {
-      title: "",
-      subtitle: "",
-      backgroundImage: "",
+      title: "Our Experiences",
+      subtitle: "Discover unique moments and create lasting memories with us.",
+      backgroundImage: "/images/experiences-hero.webp",
     },
-    experiences: [],
-    testimonials: [],
+    experiences: [
+      {
+        id: "1",
+        title: "Coffee Tasting Experience",
+        description: "Discover the nuances of our specialty coffee blends with our expert baristas.",
+        image: "/placeholder.svg?height=300&width=400",
+        link: "/experiences/coffee-tasting",
+        buttonText: "Book Now",
+      },
+    ],
+    testimonials: [
+      {
+        id: "1",
+        name: "Sarah Johnson",
+        text: "The coffee here is absolutely exceptional. Every visit feels like a warm hug.",
+        avatar: "/placeholder.svg?height=60&width=60",
+        rating: 5,
+      },
+    ],
   })
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [previewEnabled, setPreviewEnabled] = useState<{ [key: string]: boolean }>({})
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const response = await axiosInstance.get("/api/cms/experiences")
-      if (response.data.success) {
-        setData(response.data.data)
-      }
-    } catch (error) {
-      console.error("Error fetching experiences data:", error)
-      toast.error("Failed to load experiences data")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      const response = await axiosInstance.post("/api/cms/experiences", data)
+      const response = await axiosInstance.put("/api/cms/experiences", data)
       if (response.data.success) {
         toast.success("Experiences page updated successfully!")
       } else {
@@ -231,20 +234,6 @@ export default function ExperiencesPageCMS() {
     }))
   }
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-full"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -295,15 +284,17 @@ export default function ExperiencesPageCMS() {
               />
             </div>
             <div>
-              <Label>Background Image</Label>
-              <ImageUpload
+              <Label htmlFor="hero-bg">Background Image URL</Label>
+              <Input
+                id="hero-bg"
                 value={data.hero.backgroundImage}
-                onChange={(url) =>
+                onChange={(e) =>
                   setData((prev) => ({
                     ...prev,
-                    hero: { ...prev.hero, backgroundImage: url },
+                    hero: { ...prev.hero, backgroundImage: e.target.value },
                   }))
                 }
+                placeholder="Enter background image URL"
               />
             </div>
 
@@ -388,10 +379,11 @@ export default function ExperiencesPageCMS() {
                     />
                   </div>
                   <div>
-                    <Label>Image</Label>
-                    <ImageUpload
+                    <Label>Image URL</Label>
+                    <Input
                       value={experience.image}
-                      onChange={(url) => updateExperience(experience.id, "image", url)}
+                      onChange={(e) => updateExperience(experience.id, "image", e.target.value)}
+                      placeholder="Enter image URL"
                     />
                   </div>
                   <div>
@@ -420,9 +412,11 @@ export default function ExperiencesPageCMS() {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {data.experiences.map((experience) => (
                           <div key={experience.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
-                            <img
+                            <Image
                               src={experience.image || "/placeholder.svg?height=200&width=300"}
                               alt={experience.title}
+                              width={300}
+                              height={200}
                               className="w-full h-48 object-cover"
                             />
                             <div className="p-6">
@@ -496,10 +490,11 @@ export default function ExperiencesPageCMS() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label>Avatar Image</Label>
-                    <ImageUpload
+                    <Label>Avatar Image URL</Label>
+                    <Input
                       value={testimonial.avatar}
-                      onChange={(url) => updateTestimonial(testimonial.id, "avatar", url)}
+                      onChange={(e) => updateTestimonial(testimonial.id, "avatar", e.target.value)}
+                      placeholder="Enter avatar URL"
                     />
                   </div>
                 </div>
@@ -522,9 +517,11 @@ export default function ExperiencesPageCMS() {
                         {data.testimonials.map((testimonial) => (
                           <div key={testimonial.id} className="bg-white p-6 rounded-lg shadow-md">
                             <div className="flex items-center mb-4">
-                              <img
+                              <Image
                                 src={testimonial.avatar || "/placeholder.svg?height=50&width=50"}
                                 alt={testimonial.name}
+                                width={50}
+                                height={50}
                                 className="w-12 h-12 rounded-full mr-4"
                               />
                               <div>
@@ -551,6 +548,24 @@ export default function ExperiencesPageCMS() {
               </Card>
             )}
           </CardContent>
+        </Card>
+
+        {/* Full Page Preview */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Full Page Preview</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => togglePreview("fullPage")}>
+              {previewEnabled.fullPage ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {previewEnabled.fullPage ? "Hide Preview" : "Show Preview"}
+            </Button>
+          </CardHeader>
+          {previewEnabled.fullPage && (
+            <CardContent>
+              <div className="overflow-hidden border rounded-lg" style={{ height: "600px" }}>
+                <ExperiencesPagePreview data={data} />
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
     </div>
