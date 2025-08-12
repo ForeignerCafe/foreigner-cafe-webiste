@@ -37,6 +37,10 @@ export default function Header() {
         return "Content Management";
       case "/admin/coupons":
         return "Coupons Detail";
+       case "/admin/events":
+        return "Manage Events";
+         case "/admin/manage-catering":
+        return "Manage Catering";
       default:
         return "Dashboard";
     }

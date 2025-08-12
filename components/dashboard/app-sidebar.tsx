@@ -14,6 +14,7 @@ import {
   ShoppingCart,
   Settings,
   Percent,
+  Utensils, CalendarDays
 } from "lucide-react"
 import {
   Sidebar,
@@ -57,6 +58,17 @@ const shopItems = [
 
 const cmsItems = [
   { title: "Content Management", url: "/admin/cms", icon: Settings },
+   {
+      url: "/admin/manage-catering", // New link
+      icon: Utensils,
+      title: "Manage Catering",
+    },
+    {
+      url: "/admin/events", // New link
+      icon: CalendarDays,
+      title: "Manage Events",
+      
+    },
   { title: "Subscribers", url: "/admin/subscribers", icon: SubscriptIcon },
   { title: "Newsletter Management", url: "/admin/news-letter", icon: Mail },
   {

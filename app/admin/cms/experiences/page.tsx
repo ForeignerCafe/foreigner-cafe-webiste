@@ -1,23 +1,30 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Save, Plus, Trash2 } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Eye, EyeOff, Save, Plus, Trash2, Edit } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import axiosInstance from "@/lib/axios"
 import Image from "next/image"
+import RichTextEditor from "@/components/rich-text-editor"
 
 interface Experience {
   id: string
   title: string
+  slug: string
   description: string
-  image: string
-  link: string
+  content: string
+  imageSrc: string
+  alt: string
   buttonText: string
+  isPublished: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 interface Testimonial {
@@ -29,11 +36,6 @@ interface Testimonial {
 }
 
 interface ExperiencesPageData {
-  hero: {
-    title: string
-    subtitle: string
-    backgroundImage: string
-  }
   experiences: Experience[]
   testimonials: Testimonial[]
 }
@@ -44,40 +46,30 @@ const ExperiencesPagePreview = ({ data }: { data: ExperiencesPageData }) => {
       className="w-full bg-white rounded-lg overflow-hidden"
       style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%", height: "200%" }}
     >
-      {/* Hero Section Preview */}
-      <div
-        className="relative h-96 bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: `url(${data.hero.backgroundImage || "/placeholder.svg?height=400&width=800"})` }}
-      >
-        <div className="absolute inset-0 bg-black/50"></div>
-        <div className="relative text-center text-white z-10">
-          <h1 className="text-4xl font-bold mb-4">{data.hero.title || "Experiences Title"}</h1>
-          <p className="text-xl">{data.hero.subtitle || "Experiences subtitle"}</p>
-        </div>
-      </div>
-
       {/* Experiences Grid */}
       {data.experiences.length > 0 && (
         <div className="p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.experiences.map((experience) => (
-              <div key={experience.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
-                <Image
-                  src={experience.image || "/placeholder.svg?height=200&width=300"}
-                  alt={experience.title}
-                  width={300}
-                  height={200}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6">
-                  <h3 className="font-bold text-xl mb-3">{experience.title}</h3>
-                  <p className="text-gray-600 mb-4">{experience.description}</p>
-                  <Button className="w-full bg-orange-500 hover:bg-orange-600">
-                    {experience.buttonText || "Learn More"}
-                  </Button>
+            {data.experiences
+              .filter((exp) => exp.isPublished)
+              .map((experience) => (
+                <div key={experience.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
+                  <Image
+                    src={experience.imageSrc || "/placeholder.svg?height=200&width=300"}
+                    alt={experience.title}
+                    width={300}
+                    height={200}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-6">
+                    <h3 className="font-bold text-xl mb-3">{experience.title}</h3>
+                    <p className="text-gray-600 mb-4">{experience.description}</p>
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                      {experience.buttonText || "Learn More"}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}
@@ -123,36 +115,44 @@ const ExperiencesPagePreview = ({ data }: { data: ExperiencesPageData }) => {
 
 export default function ExperiencesPageCMS() {
   const [data, setData] = useState<ExperiencesPageData>({
-    hero: {
-      title: "Our Experiences",
-      subtitle: "Discover unique moments and create lasting memories with us.",
-      backgroundImage: "/images/experiences-hero.webp",
-    },
-    experiences: [
-      {
-        id: "1",
-        title: "Coffee Tasting Experience",
-        description: "Discover the nuances of our specialty coffee blends with our expert baristas.",
-        image: "/placeholder.svg?height=300&width=400",
-        link: "/experiences/coffee-tasting",
-        buttonText: "Book Now",
-      },
-    ],
-    testimonials: [
-      {
-        id: "1",
-        name: "Sarah Johnson",
-        text: "The coffee here is absolutely exceptional. Every visit feels like a warm hug.",
-        avatar: "/placeholder.svg?height=60&width=60",
-        rating: 5,
-      },
-    ],
+    experiences: [],
+    testimonials: [],
   })
 
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [previewEnabled, setPreviewEnabled] = useState<{ [key: string]: boolean }>({})
+  const [editingExperience, setEditingExperience] = useState<string | null>(null)
   const { toast } = useToast()
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const response = await axiosInstance.get("/api/cms/experiences")
+      if (response.data.success) {
+        setData(response.data.data)
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch experiences data",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error fetching experiences:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch experiences data",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -163,12 +163,21 @@ export default function ExperiencesPageCMS() {
           title: "Success",
           description: "Experiences page updated successfully!",
         })
+        setData(response.data.data)
       } else {
-        toast.error("Failed to update experiences page")
+        toast({
+          title: "Error",
+          description: "Failed to update experiences page",
+          variant: "destructive",
+        })
       }
     } catch (error) {
       console.error("Error saving experiences:", error)
-      toast.error("Failed to save changes")
+      toast({
+        title: "Error",
+        description: "Failed to save changes",
+        variant: "destructive",
+      })
     } finally {
       setSaving(false)
     }
@@ -178,15 +187,19 @@ export default function ExperiencesPageCMS() {
     const newExperience: Experience = {
       id: Date.now().toString(),
       title: "",
+      slug: "",
       description: "",
-      image: "",
-      link: "",
+      content: "<p>Write your experience content here...</p>",
+      imageSrc: "",
+      alt: "",
       buttonText: "Learn More",
+      isPublished: true,
     }
     setData((prev) => ({
       ...prev,
       experiences: [...prev.experiences, newExperience],
     }))
+    setEditingExperience(newExperience.id)
   }
 
   const removeExperience = (id: string) => {
@@ -194,9 +207,12 @@ export default function ExperiencesPageCMS() {
       ...prev,
       experiences: prev.experiences.filter((exp) => exp.id !== id),
     }))
+    if (editingExperience === id) {
+      setEditingExperience(null)
+    }
   }
 
-  const updateExperience = (id: string, field: keyof Experience, value: string) => {
+  const updateExperience = (id: string, field: keyof Experience, value: string | boolean) => {
     setData((prev) => ({
       ...prev,
       experiences: prev.experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp)),
@@ -238,6 +254,21 @@ export default function ExperiencesPageCMS() {
     }))
   }
 
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-64 mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -249,89 +280,6 @@ export default function ExperiencesPageCMS() {
       </div>
 
       <div className="space-y-8">
-        {/* Hero Section */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Hero Section</CardTitle>
-            <Button variant="outline" size="sm" onClick={() => togglePreview("hero")}>
-              {previewEnabled.hero ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              {previewEnabled.hero ? "Hide Preview" : "Show Preview"}
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="hero-title">Title</Label>
-              <Input
-                id="hero-title"
-                value={data.hero.title}
-                onChange={(e) =>
-                  setData((prev) => ({
-                    ...prev,
-                    hero: { ...prev.hero, title: e.target.value },
-                  }))
-                }
-                placeholder="Enter hero title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="hero-subtitle">Subtitle</Label>
-              <Input
-                id="hero-subtitle"
-                value={data.hero.subtitle}
-                onChange={(e) =>
-                  setData((prev) => ({
-                    ...prev,
-                    hero: { ...prev.hero, subtitle: e.target.value },
-                  }))
-                }
-                placeholder="Enter hero subtitle"
-              />
-            </div>
-            <div>
-              <Label htmlFor="hero-bg">Background Image URL</Label>
-              <Input
-                id="hero-bg"
-                value={data.hero.backgroundImage}
-                onChange={(e) =>
-                  setData((prev) => ({
-                    ...prev,
-                    hero: { ...prev.hero, backgroundImage: e.target.value },
-                  }))
-                }
-                placeholder="Enter background image URL"
-              />
-            </div>
-
-            {previewEnabled.hero && (
-              <Card className="mt-4">
-                <CardHeader>
-                  <CardTitle className="text-sm">Hero Preview</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-hidden" style={{ height: "200px" }}>
-                    <div
-                      className="relative h-96 bg-cover bg-center flex items-center justify-center"
-                      style={{
-                        backgroundImage: `url(${data.hero.backgroundImage || "/placeholder.svg?height=400&width=800"})`,
-                        transform: "scale(0.5)",
-                        transformOrigin: "top left",
-                        width: "200%",
-                        height: "200%",
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-black/50"></div>
-                      <div className="relative text-center text-white z-10">
-                        <h1 className="text-4xl font-bold mb-4">{data.hero.title || "Experiences Title"}</h1>
-                        <p className="text-xl">{data.hero.subtitle || "Experiences subtitle"}</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </CardContent>
-        </Card>
-
         {/* Experiences */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -351,12 +299,34 @@ export default function ExperiencesPageCMS() {
             {data.experiences.map((experience, index) => (
               <div key={experience.id} className="border rounded-lg p-4 mb-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="font-semibold">Experience {index + 1}</h4>
-                  <Button variant="destructive" size="sm" onClick={() => removeExperience(experience.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    <h4 className="font-semibold">Experience {index + 1}</h4>
+                    {experience.slug && (
+                      <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">/{experience.slug}</span>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={experience.isPublished}
+                        onCheckedChange={(checked) => updateExperience(experience.id, "isPublished", checked)}
+                      />
+                      <Label className="text-sm">Published</Label>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingExperience(editingExperience === experience.id ? null : experience.id)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => removeExperience(experience.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <Label>Title</Label>
                     <Input
@@ -373,32 +343,43 @@ export default function ExperiencesPageCMS() {
                       placeholder="Button text"
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      value={experience.description}
-                      onChange={(e) => updateExperience(experience.id, "description", e.target.value)}
-                      placeholder="Experience description"
-                      rows={3}
-                    />
-                  </div>
                   <div>
                     <Label>Image URL</Label>
                     <Input
-                      value={experience.image}
-                      onChange={(e) => updateExperience(experience.id, "image", e.target.value)}
+                      value={experience.imageSrc}
+                      onChange={(e) => updateExperience(experience.id, "imageSrc", e.target.value)}
                       placeholder="Enter image URL"
                     />
                   </div>
                   <div>
-                    <Label>Link URL</Label>
+                    <Label>Alt Text</Label>
                     <Input
-                      value={experience.link}
-                      onChange={(e) => updateExperience(experience.id, "link", e.target.value)}
-                      placeholder="https://..."
+                      value={experience.alt}
+                      onChange={(e) => updateExperience(experience.id, "alt", e.target.value)}
+                      placeholder="Image alt text"
                     />
                   </div>
                 </div>
+
+                <div className="mb-4">
+                  <Label>Description (Short summary)</Label>
+                  <Textarea
+                    value={experience.description}
+                    onChange={(e) => updateExperience(experience.id, "description", e.target.value)}
+                    placeholder="Brief description for cards and previews"
+                    rows={3}
+                  />
+                </div>
+
+                {editingExperience === experience.id && (
+                  <div className="border-t pt-4 mt-4">
+                    <Label className="text-lg font-semibold mb-4 block">Experience Content (Rich Text)</Label>
+                    <RichTextEditor
+                      initialContent={experience.content}
+                      onContentChange={(content) => updateExperience(experience.id, "content", content)}
+                    />
+                  </div>
+                )}
               </div>
             ))}
 
@@ -414,24 +395,26 @@ export default function ExperiencesPageCMS() {
                       style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%" }}
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {data.experiences.map((experience) => (
-                          <div key={experience.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
-                            <Image
-                              src={experience.image || "/placeholder.svg?height=200&width=300"}
-                              alt={experience.title}
-                              width={300}
-                              height={200}
-                              className="w-full h-48 object-cover"
-                            />
-                            <div className="p-6">
-                              <h3 className="font-bold text-xl mb-3">{experience.title}</h3>
-                              <p className="text-gray-600 mb-4">{experience.description}</p>
-                              <Button className="w-full bg-orange-500 hover:bg-orange-600">
-                                {experience.buttonText || "Learn More"}
-                              </Button>
+                        {data.experiences
+                          .filter((exp) => exp.isPublished)
+                          .map((experience) => (
+                            <div key={experience.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
+                              <Image
+                                src={experience.imageSrc || "/placeholder.svg?height=200&width=300"}
+                                alt={experience.title}
+                                width={300}
+                                height={200}
+                                className="w-full h-48 object-cover"
+                              />
+                              <div className="p-6">
+                                <h3 className="font-bold text-xl mb-3">{experience.title}</h3>
+                                <p className="text-gray-600 mb-4">{experience.description}</p>
+                                <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                                  {experience.buttonText || "Learn More"}
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </div>
                   </div>

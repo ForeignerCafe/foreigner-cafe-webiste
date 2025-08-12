@@ -1,3 +1,4 @@
+//@ts-nocheck
 "use client"
 import { useState, useEffect } from "react"
 import { Menu, X, User } from "lucide-react"
@@ -6,6 +7,9 @@ import { useRouter } from "next/navigation"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ReservationModal } from "./reserveModal"
 import axiosInstance from "@/lib/axios"
+import { usePathname } from "next/navigation";
+import Image from "next/image"
+import Link from "next/link"
 
 interface HeaderNavItem {
   label: string
@@ -23,6 +27,7 @@ interface HeaderContent {
 }
 
 export default function Navigation() {
+  const pathname = usePathname();
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -48,6 +53,15 @@ export default function Navigation() {
   useEffect(() => {
     fetchHeaderContent()
   }, [])
+
+  useEffect(() => {
+  if (pathname === "/") {
+    setActiveTab("HOME");
+  } else {
+    const currentItem = headerContent.mainNavItems.find(item => item.href === pathname);
+    if (currentItem) setActiveTab(currentItem.label);
+  }
+}, [pathname, headerContent.mainNavItems]);
 
   const fetchHeaderContent = async () => {
     try {
@@ -246,15 +260,17 @@ export default function Navigation() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <button
-                onClick={() => scrollToSection("home")}
-                className={`text-2xl font-display font-bold transition-all duration-300 hover:scale-110 focus:outline-none ${
-                  isScrolled ? "text-black hover:text-orange" : "text-white hover:text-orange"
-                }`}
-              >
-                {headerContent.logo}
-              </button>
-            </div>
+      <Link href="/" className="focus:outline-none transition-all duration-300 hover:scale-110 block"  onClick={() => setActiveTab("HOME")}>
+        <Image
+          src="https://i.ibb.co/Kxd5rKCy/foreigner-animater.gif"
+          alt="Logo"
+          width={160}
+          height={80}
+          priority
+          className={`${isScrolled ? " pt-2.5" : " pt-2.5"}`}
+        />
+      </Link>
+    </div>
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
               {headerContent.mainNavItems.map((item, index) => (

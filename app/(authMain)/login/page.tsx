@@ -108,7 +108,7 @@ export default function LoginPage() {
     }
   }
   return (
-    <div className="w-full max-w-lg sm:max-w-md mx-auto mt-20 md:mt-0">
+    <div className="w-full max-w-lg sm:max-w-md mx-auto mt-20 md:mt-10">
       <Card className="bg-white/95 dark:bg-black/95 backdrop-blur-md border-white/20 dark:border-white/20 shadow-2xl">
         <CardContent className="p-6 sm:p-8">
           {/* Mobile Logo */}

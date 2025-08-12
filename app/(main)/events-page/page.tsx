@@ -1,8 +1,7 @@
 import axiosInstance from "@/lib/axios"
-
+import EventsPageClient from "@/components/EventsPageClient"
 import { Suspense } from "react"
 import EventsPageSkeleton from "@/components/EventsPageSkeleton"
-import EventsPageClient2 from "@/components/EventPageClient2"
 
 // Define the data types to match the backend
 interface EventSpace {
@@ -153,13 +152,76 @@ export default async function EventsPage() {
     ],
   }
 
-  
+  const defaultEventCarouselData: EventCarouselData = {
+    slides: [
+      {
+        id: "weddings",
+        title: "WEDDINGS",
+        description:
+          "Our wedding spaces are thoughtfully designed to transform into the perfect backdrop for your special day, offering intimate charm and a touch of refined elegance.",
+        leftImage: {
+          src: "/images/wedDown.webp",
+          alt: "Elegant wedding reception hall with chandeliers",
+        },
+        rightImages: [
+          {
+            src: "/images/wedUp.webp",
+            alt: "Bride and groom walking down the aisle",
+            text: "Two souls, one journey. We make sure your special day is nothing short of perfect.",
+          },
+        ],
+        topRightLinkText: "VIEW MORE",
+      },
+      {
+        id: "gathering",
+        title: "GATHERING",
+        description:
+          "Our versatile spaces are thoughtfully designed to host memorable gatherings, from lively celebrations to intimate get-togethers, ensuring every event is unique.",
+        leftImage: {
+          src: "/images/gatDown.webp",
+          alt: "Lively gathering event with many people",
+        },
+        rightImages: [
+          {
+            src: "/images/gatUp.webp",
+            alt: "People at a gathering",
+            text: "Celebrate life's moments with us. Our spaces are perfect for any gathering, big or small.",
+          },
+        ],
+        topRightLinkText: "VIEW MORE",
+      },
+      {
+        id: "corporate",
+        title: "CORPORATE",
+        description:
+          "Our professional setting is ideal for corporate events, offering a sophisticated atmosphere for meetings, conferences, and business gatherings of all sizes.",
+        leftImage: {
+          src: "/images/corDownb.webp",
+          alt: "Corporate event with people networking",
+        },
+        rightImages: [
+          {
+            src: "/images/corUp.webp",
+            alt: "People in a corporate meeting room",
+            text: "Host your next corporate event with us. Our professional setting ensures a productive and memorable experience.",
+          },
+        ],
+        topRightLinkText: "VIEW MORE",
+      },
+    ],
+    bottomSection: {
+      heading: "READY TO HOST AT FOREIGNER CAFE?",
+      text: "Whether it's a wedding, a lively gathering, or a corporate event, our venue is the perfect place to create unforgettable moments. Book your event with us today!",
+      buttonText: "BOOK YOUR EVENT",
+    },
+  }
 
   const dataToRender = eventsPageData || defaultEventsPageData
+  const carouselDataToRender = eventCarouselData || defaultEventCarouselData
 
   return (
     <Suspense fallback={<EventsPageSkeleton />}>
-      <EventsPageClient2 data={dataToRender} />
+      <EventsPageClient data={dataToRender} carouselData={carouselDataToRender} />
     </Suspense>
   )
 }

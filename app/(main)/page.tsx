@@ -15,7 +15,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-white">
       <Hero />
       {/* <HeroParallax /> */}
-      <Events />
+{/*       <Events /> */}
       {/* <EventsShowcaseSection /> */}
       <LatestBlogsSection />
       <DineDrinkSection />

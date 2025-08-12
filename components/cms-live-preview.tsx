@@ -45,11 +45,10 @@ export function LivePreviewPanel({ isEnabled, sectionId, previewData }: LivePrev
 
   const renderPreviewComponent = () => {
     const PreviewWrapper = ({ children }: { children: React.ReactNode }) => (
-      <div className="bg-white min-h-[400px] rounded-lg border overflow-hidden">
+      <div className="bg-white   rounded-lg border overflow-hidden">
         <div className="transform scale-50 origin-top-left w-[200%]">{children}</div>
       </div>
     )
-
     switch (sectionId) {
       case "hero":
         return (
@@ -102,7 +101,7 @@ export function LivePreviewPanel({ isEnabled, sectionId, previewData }: LivePrev
   }
 
   return (
-    <Card className="mt-6 border-blue-200 bg-blue-50/30">
+    <Card className="mt-6 border-blue-200 bg-blue-50/30 dark:bg-black">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium text-blue-800 flex items-center gap-2">
           <Monitor className="h-4 w-4" />
@@ -110,7 +109,7 @@ export function LivePreviewPanel({ isEnabled, sectionId, previewData }: LivePrev
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="bg-white rounded-lg border p-4 overflow-hidden">{renderPreviewComponent()}</div>
+        <div className="bg-white dark:bg-black rounded-lg border p-4 overflow-hidden !h-fit ">{renderPreviewComponent()}</div>
       </CardContent>
     </Card>
   )
@@ -124,25 +123,23 @@ export function LivePreviewToggle({
   onToggle: (enabled: boolean) => void
 }) {
   return (
-    <div className="fixed top-20 right-4 z-50">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onToggle(!isEnabled)}
-        className={`shadow-lg ${isEnabled ? "bg-green-50 border-green-200 text-green-700 hover:bg-green-100" : "bg-white hover:bg-gray-50"}`}
-      >
-        {isEnabled ? (
-          <>
-            <EyeOff className="h-4 w-4 mr-2" />
-            Hide Preview
-          </>
-        ) : (
-          <>
-            <Eye className="h-4 w-4 mr-2" />
-            Show Preview
-          </>
-        )}
-      </Button>
-    </div>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => onToggle(!isEnabled)}
+      className={`shadow-lg ${isEnabled ? "bg-green-50 dark:bg-green-100 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800" : "bg-white hover:bg-gray-50 dark:bg-black border-gray-200 text-gray-500  dark:hover:bg-gray-800 dark:text-gray-400"}`}
+    >
+      {isEnabled ? (
+        <>
+          <EyeOff className="h-4 w-4 mr-2" />
+          Hide Preview
+        </>
+      ) : (
+        <>
+          <Eye className="h-4 w-4 mr-2" />
+          Show Preview
+        </>
+      )}
+    </Button>
   )
 }

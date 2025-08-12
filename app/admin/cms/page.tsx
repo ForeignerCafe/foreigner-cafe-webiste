@@ -877,7 +877,9 @@ export default function CMSPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-      <LivePreviewToggle isEnabled={livePreviewEnabled} onToggle={setLivePreviewEnabled} />
+      <div className="fixed top-15 right-4 z-50">
+        <LivePreviewToggle isEnabled={livePreviewEnabled} onToggle={setLivePreviewEnabled} />
+      </div>
 
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Content Management System</h1>

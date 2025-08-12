@@ -48,7 +48,7 @@ const WhatsOnSectionSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-// Events Section Schema (eventsSection.tsx)
+// Events Section Schema (eventsSection.tsx) - This is for a section on the homepage
 const EventsSectionSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, default: "Where Stories Come to Life" },
@@ -86,18 +86,22 @@ const BrandSectionSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-// Experiences Section Schema
+// Updated Experiences Section Schema with rich content and slug
 const ExperiencesSectionSchema = new mongoose.Schema(
   {
     experiences: [
       {
         id: { type: Number, required: true },
         title: { type: String, required: true },
+        slug: { type: String, required: true, unique: true },
         description: { type: String, required: true },
+        content: { type: String, required: true }, // Rich HTML content
         imageSrc: { type: String, required: true },
         alt: { type: String },
-        linkText: { type: String, required: true },
-        linkHref: { type: String, required: true },
+        buttonText: { type: String, required: true },
+        isPublished: { type: Boolean, default: true },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
       },
     ],
     testimonials: [
@@ -228,6 +232,134 @@ const FooterContentSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
+// New: Catering Page Content Schema
+const CateringPageContentSchema = new mongoose.Schema(
+  {
+    hero: {
+      cakeMenu: {
+        image: { type: String, required: true },
+        title: { type: String, required: true },
+        buttonText: { type: String, required: true },
+        buttonLink: { type: String, required: true },
+      },
+      fullMenu: {
+        image: { type: String, required: true },
+        title: { type: String, required: true },
+        buttonText: { type: String, required: true },
+        buttonLink: { type: String, required: true },
+      },
+    },
+    cateringIntro: {
+      image: { type: String, required: true },
+      title: { type: String, required: true },
+      description: { type: String, required: true },
+      menuLink: { type: String, required: true },
+    },
+    lunchPacks: {
+      title: { type: String, required: true },
+      description: { type: String, required: true },
+      items: [
+        {
+          id: { type: Number, required: true },
+          title: { type: String, required: true },
+          description: { type: String, required: true },
+          price: { type: String, required: true },
+          image: { type: String, required: true },
+        },
+      ],
+    },
+    cakeRange: {
+      title: { type: String, required: true },
+      description: { type: String, required: true },
+      items: [
+        {
+          id: { type: Number, required: true },
+          title: { type: String, required: true },
+          description: { type: String, required: true },
+          price: { type: String, required: true },
+          image: { type: String, required: true },
+        },
+      ],
+    },
+    cateringYourWay: {
+      title: { type: String, required: true },
+      description: { type: String, required: true },
+      items: [
+        {
+          id: { type: Number, required: true },
+          src: { type: String, required: true },
+          alt: { type: String, required: true },
+          title: { type: String, required: true },
+          description: { type: String, required: true },
+        },
+      ],
+    },
+  },
+  { timestamps: true },
+)
+
+// New: Events Page Content Schema (for the main /events page)
+const EventsPageContentSchema = new mongoose.Schema(
+  {
+    hero: {
+      title: { type: String, required: true },
+      subtitle: { type: String, required: true },
+      backgroundImage: { type: String, required: true },
+    },
+    contentSections: [
+      {
+        id: { type: String, required: true }, // Using string for ID as in frontend state
+        category: { type: String, required: true },
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+        image: { type: String, required: true },
+        imagePosition: { type: String, enum: ["left", "right"], required: true },
+      },
+    ],
+    eventSpaces: [
+      {
+        id: { type: String, required: true }, // Using string for ID as in frontend state
+        name: { type: String, required: true },
+        description: { type: String, required: true },
+        image: { type: String, required: true },
+        capacity: { type: String, required: true },
+      },
+    ],
+  },
+  { timestamps: true },
+)
+
+// New: Event Carousel Content Schema
+const EventCarouselContentSchema = new mongoose.Schema(
+  {
+    slides: [
+      {
+        id: { type: String, required: true },
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+        leftImage: {
+          src: { type: String, required: true },
+          alt: { type: String, required: true },
+        },
+        rightImages: [
+          {
+            src: { type: String, required: true },
+            alt: { type: String, required: true },
+            text: { type: String },
+          },
+        ],
+        topRightLinkText: { type: String, required: true },
+      },
+    ],
+    bottomSection: {
+      heading: { type: String, required: true },
+      text: { type: String, required: true },
+      buttonText: { type: String, required: true },
+    },
+  },
+  { timestamps: true },
+)
+
 // Export models
 export const HeroContent = mongoose.models.HeroContent || mongoose.model("HeroContent", HeroContentSchema)
 export const HeroParallaxProducts =
@@ -243,3 +375,11 @@ export const FAQsSection = mongoose.models.FAQsSection || mongoose.model("FAQsSe
 export const Gallery = mongoose.models.Gallery || mongoose.model("Gallery", GallerySchema)
 export const HeaderContent = mongoose.models.HeaderContent || mongoose.model("HeaderContent", HeaderContentSchema)
 export const FooterContent = mongoose.models.FooterContent || mongoose.model("FooterContent", FooterContentSchema)
+
+// New Exports
+export const CateringPageContent =
+  mongoose.models.CateringPageContent || mongoose.model("CateringPageContent", CateringPageContentSchema)
+export const EventsPageContent =
+  mongoose.models.EventsPageContent || mongoose.model("EventsPageContent", EventsPageContentSchema)
+export const EventCarouselContent =
+  mongoose.models.EventCarouselContent || mongoose.model("EventCarouselContent", EventCarouselContentSchema)

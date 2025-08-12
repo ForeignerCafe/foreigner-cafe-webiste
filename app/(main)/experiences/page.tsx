@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -10,11 +11,12 @@ import axiosInstance from "@/lib/axios"
 interface Experience {
   id: number
   title: string
+  slug: string
   description: string
   imageSrc: string
   alt?: string
-  linkText: string
-  linkHref: string
+  buttonText: string
+  isPublished: boolean
 }
 
 interface Testimonial {
@@ -42,7 +44,7 @@ export default function HomePage() {
   const fetchExperiencesContent = async () => {
     try {
       setIsLoading(true)
-      const response = await axiosInstance.get("/api/cms/experiences")
+      const response = await axiosInstance.get("/api/experiences")
       if (response.data.success) {
         setContent(response.data.data)
       }
@@ -80,8 +82,27 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Words From Community Section Loading */}
+        {/* Experiences Section Loading */}
         <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white shadow-lg rounded-lg overflow-hidden animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-gray-200 rounded mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4 w-3/4"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Words From Community Section Loading */}
+        <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gray-50">
           <div className="container mx-auto px-4 sm:px-6 text-center">
             <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse"></div>
             <div className="h-4 bg-gray-200 rounded w-96 mx-auto mb-8 animate-pulse"></div>
@@ -123,61 +144,108 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-black/50" aria-hidden="true"></div>
         <div className="relative z-10 px-4 sm:px-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight sm:mb-10 mt-14 uppercase">
-            Every Gathering Becomes a Memory
+            Unique Experiences Await You
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-xl max-w-2xl mx-auto pb-6 sm:pb-10">
-            Discover immersive, soulful experiences that bring people together—through stories, food, and presence.
+            Discover our carefully crafted experiences designed to create lasting memories.
           </p>
-          <Button
-            onClick={() => scrollToSection("words")}
-            className="hover:scale-110 bg-[#EC4E20] hover:bg-[#f97316] hover:text-black text-white px-6 sm:px-8 py-3 text-base sm:text-lg"
-          >
-            Learn More
-          </Button>
+          {content.experiences.length > 0 && (
+            <Button
+              onClick={() => scrollToSection("experiences")}
+              className="hover:scale-110 bg-[#EC4E20] hover:bg-[#f97316] hover:text-black text-white px-6 sm:px-8 py-3 text-base sm:text-lg"
+            >
+              Explore Experiences
+            </Button>
+          )}
         </div>
       </section>
+
+      {/* Experiences Section */}
+      {content.experiences.length > 0 && (
+        <section id="experiences" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-black mb-4 tracking-wide">
+                OUR EXPERIENCES
+              </h2>
+              <p className="text-gray-600 text-sm sm:text-base md:text-lg lg:text-xl max-w-3xl mx-auto">
+                From coffee tastings to private events, discover unique ways to connect with our community.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+              {content.experiences.map((experience) => (
+                <Card
+                  key={experience.id}
+                  className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src={experience.imageSrc || "/placeholder.svg"}
+                      alt={experience.alt || experience.title}
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-black mb-3">{experience.title}</h3>
+                    <p className="text-gray-600 mb-4 line-clamp-3">{experience.description}</p>
+                    <Link href={`/experiences/${experience.slug}`}>
+                      <Button className="w-full bg-[#EC4E20] hover:bg-[#f97316] text-white">
+                        {experience.buttonText}
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Words From Community Section */}
-      <section id="words" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-black mb-4 mt-6 sm:mt-10 tracking-wide">
-            WORDS FROM COMMUNITY
-          </h2>
-          <p className="text-gray-600 text-sm sm:text-base md:text-lg lg:text-xl max-w-3xl mx-auto mb-8 sm:mb-14">
-            Hear from the people who've made Foreigner part of their everyday a place for reflection, conversation, and
-            good coffee.
-          </p>
+      {content.testimonials.length > 0 && (
+        <section id="words" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gray-50">
+          <div className="container mx-auto px-4 sm:px-6 text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-black mb-4 mt-6 sm:mt-10 tracking-wide">
+              WORDS FROM COMMUNITY
+            </h2>
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg lg:text-xl max-w-3xl mx-auto mb-8 sm:mb-14">
+              Hear from the people who've made Foreigner part of their everyday a place for reflection, conversation,
+              and good coffee.
+            </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mx-4 sm:mx-8 lg:mx-20 mt-6 sm:mt-10">
-            {content.testimonials.map((testimonial, index) => (
-              <Card
-                key={index}
-                className="bg-white shadow-lg p-4 sm:p-6 flex flex-col text-left rounded-[0.5rem] items-center"
-              >
-                <CardContent className="p-0 w-full">
-                  <Quote className="text-[#EC4E20] w-6 h-6 sm:w-8 sm:h-8 mb-3 sm:mb-4 mx-auto" />
-                  <p className="text-gray-700 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6">{testimonial.quote}</p>
-                  <div className="flex items-center space-x-3 sm:space-x-4 justify-start">
-                    <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
-                      <AvatarImage src={testimonial.avatar || "/placeholder.svg"} alt={testimonial.name} />
-                      <AvatarFallback>
-                        {testimonial.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold text-black text-xs sm:text-sm">{testimonial.name}</p>
-                      <p className="text-xs sm:text-sm text-gray-500">San Francisco</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mx-4 sm:mx-8 lg:mx-20 mt-6 sm:mt-10">
+              {content.testimonials.map((testimonial, index) => (
+                <Card
+                  key={index}
+                  className="bg-white shadow-lg p-4 sm:p-6 flex flex-col text-left rounded-[0.5rem] items-center"
+                >
+                  <CardContent className="p-0 w-full">
+                    <Quote className="text-[#EC4E20] w-6 h-6 sm:w-8 sm:h-8 mb-3 sm:mb-4 mx-auto" />
+                    <p className="text-gray-700 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6">{testimonial.quote}</p>
+                    <div className="flex items-center space-x-3 sm:space-x-4 justify-start">
+                      <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
+                        <AvatarImage src={testimonial.avatar || "/placeholder.svg"} alt={testimonial.name} />
+                        <AvatarFallback>
+                          {testimonial.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-black text-xs sm:text-sm">{testimonial.name}</p>
+                        <p className="text-xs sm:text-sm text-gray-500">San Francisco</p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </main>
   )
 }

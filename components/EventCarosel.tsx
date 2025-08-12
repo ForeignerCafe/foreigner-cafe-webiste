@@ -26,64 +26,16 @@ interface EventSlide {
   topRightLinkText: string;
 }
 
-const eventData: EventSlide[] = [
-  {
-    id: "weddings",
-    title: "WEDDINGS",
-    description:
-      "Our wedding spaces are thoughtfully designed to transform into the perfect backdrop for your special day, offering intimate charm and a touch of refined elegance.",
-    leftImage: {
-      src: "/images/wedDown.webp",
-      alt: "Elegant wedding reception hall with chandeliers",
-    },
-    rightImages: [
-      {
-        src: "/images/wedUp.webp",
-        alt: "Bride and groom walking down the aisle",
-        text: "Two souls, one journey. We make sure your special day is nothing short of perfect.",
-      },
-    ],
-    topRightLinkText: "VIEW MORE",
-  },
-  {
-    id: "gathering",
-    title: "GATHERING",
-    description:
-      "Our versatile spaces are thoughtfully designed to host memorable gatherings, from lively celebrations to intimate get-togethers, ensuring every event is unique.",
-    leftImage: {
-      src: "/images/gatDown.webp",
-      alt: "Lively gathering event with many people",
-    },
-    rightImages: [
-      {
-        src: "/images/gatUp.webp",
-        alt: "Bride and groom walking down the aisle",
-        text: "Two souls, one journey. We make sure your special day is nothing short of perfect.",
-      },
-    ],
-    topRightLinkText: "VIEW MORE",
-  },
-  {
-    id: "corporate",
-    title: "CORPORATE",
-    description:
-      "Our professional setting is ideal for corporate events, offering a sophisticated atmosphere for meetings, conferences, and business gatherings of all sizes.",
-    leftImage: {
-      src: "/images/corDownb.webp",
-      alt: "Corporate event with people networking",
-    },
-    rightImages: [
-      {
-        src: "/images/corUp.webp",
-        alt: "People in a corporate meeting room",
-        text: "Host your next corporate event with us. Our professional setting ensures a productive and memorable experience.",
-      },
-    ],
-    topRightLinkText: "VIEW MORE",
-  },
-];
+interface EventCarouselProps {
+  eventData: EventSlide[];
+  bottomSectionContent: {
+    heading: string;
+    text: string;
+    buttonText: string;
+  };
+}
 
-export default function EventsCarousel() {
+export default function EventsCarousel({ eventData, bottomSectionContent }: EventCarouselProps) {
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [api, setApi] = React.useState<any>();
   const [current, setCurrent] = React.useState(0);
@@ -98,12 +50,6 @@ export default function EventsCarousel() {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
-
-  const bottomSectionContent = {
-    heading: "READY TO HOST AT FOREIGNER CAFE?",
-    text: "Whether it's a wedding, a lively gathering, or a corporate event, our venue is the perfect place to create unforgettable moments. Book your event with us today!",
-    buttonText: "BOOK YOUR EVENT",
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white">

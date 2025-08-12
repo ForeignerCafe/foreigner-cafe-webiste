@@ -128,7 +128,7 @@ export default function ProductDetailPage() {
     <div className="min-h-screen bg-white dark:bg-black pt-20">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
-        <div className="mb-8">
+        <div className="my-8">
           <Link href="/shop" className="text-orange-500 hover:text-orange-600 flex items-center">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Shop
