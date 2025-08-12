@@ -58,6 +58,7 @@ const shopItems = [
 
 const cmsItems = [
   { title: "Content Management", url: "/admin/cms", icon: Settings },
+   { title: "Experiences Management", url: "/admin/cms/experiences", icon: Settings },
    {
       url: "/admin/manage-catering", // New link
       icon: Utensils,
