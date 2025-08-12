@@ -1,10 +1,9 @@
 "use client"
+
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import axiosInstance from "@/lib/axios"
 
 interface Experience {
   id: number
@@ -14,110 +13,141 @@ interface Experience {
   imageSrc: string
   alt?: string
   buttonText: string
-  isPublished: boolean
 }
 
-interface ExperiencesData {
+interface Testimonial {
+  quote: string
+  name: string
+  avatar: string
+}
+
+interface ExperiencesSectionData {
   experiences: Experience[]
+  testimonials: Testimonial[]
 }
 
 export default function ExperiencesSection() {
-  const [content, setContent] = useState<ExperiencesData>({
+  const [data, setData] = useState<ExperiencesSectionData>({
     experiences: [],
+    testimonials: [],
   })
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchExperiencesContent()
+    fetchData()
   }, [])
 
-  const fetchExperiencesContent = async () => {
+  const fetchData = async () => {
     try {
-      setIsLoading(true)
-      const response = await axiosInstance.get("/api/experiences")
-      if (response.data.success) {
-        setContent(response.data.data)
+      const response = await fetch("/api/cms/experiences")
+      const result = await response.json()
+
+      if (result.success) {
+        // Filter only published experiences
+        const publishedExperiences = result.data.experiences.filter((exp: any) => exp.isPublished !== false)
+
+        setData({
+          experiences: publishedExperiences,
+          testimonials: result.data.testimonials || [],
+        })
       }
     } catch (error) {
-      console.error("Failed to fetch experiences content:", error)
+      console.error("Error fetching experiences:", error)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse"></div>
-            <div className="h-4 bg-gray-200 rounded w-96 mx-auto animate-pulse"></div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white shadow-lg rounded-lg overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-6">
-                  <div className="h-6 bg-gray-200 rounded mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-4 w-3/4"></div>
-                  <div className="h-10 bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            ))}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-12"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="bg-gray-200 h-96 rounded-lg"></div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
     )
   }
 
-  if (content.experiences.length === 0) {
+  if (data.experiences.length === 0) {
     return null
   }
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-black mb-4 tracking-wide">
-            UNIQUE EXPERIENCES
-          </h2>
-          <p className="text-gray-600 text-sm sm:text-base md:text-lg lg:text-xl max-w-3xl mx-auto">
-            Discover our carefully crafted experiences designed to create lasting memories and connections.
+    <section className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Experiences</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover unique moments and create lasting memories with us
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {content.experiences.slice(0, 3).map((experience) => (
-            <Card
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {data.experiences.slice(0, 6).map((experience) => (
+            <div
               key={experience.id}
-              className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+              className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
             >
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative aspect-video">
                 <Image
-                  src={experience.imageSrc || "/placeholder.svg"}
+                  src={experience.imageSrc || "/placeholder.svg?height=300&width=400"}
                   alt={experience.alt || experience.title}
                   fill
-                  className="object-cover hover:scale-105 transition-transform duration-300"
+                  className="object-cover"
                 />
               </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-black mb-3">{experience.title}</h3>
-                <p className="text-gray-600 mb-4 line-clamp-3">{experience.description}</p>
+              <div className="p-6">
+                <h3 className="font-bold text-xl mb-3">{experience.title}</h3>
+                <p className="text-gray-600 mb-6 line-clamp-3">{experience.description}</p>
                 <Link href={`/experiences/${experience.slug}`}>
-                  <Button className="w-full bg-[#EC4E20] hover:bg-[#f97316] text-white">{experience.buttonText}</Button>
+                  <Button className="w-full bg-orange-500 hover:bg-orange-600">{experience.buttonText}</Button>
                 </Link>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
 
-        {content.experiences.length > 3 && (
+        {/* Testimonials */}
+        {data.testimonials.length > 0 && (
+          <div className="bg-gray-50 rounded-2xl p-8">
+            <h3 className="text-3xl font-bold text-center mb-12">What Our Guests Say</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {data.testimonials.map((testimonial, index) => (
+                <div key={index} className="bg-white p-6 rounded-lg shadow-md">
+                  <div className="flex items-center mb-4">
+                    <Image
+                      src={testimonial.avatar || "/placeholder.svg?height=50&width=50"}
+                      alt={testimonial.name}
+                      width={50}
+                      height={50}
+                      className="w-12 h-12 rounded-full mr-4"
+                    />
+                    <div>
+                      <h4 className="font-semibold">{testimonial.name}</h4>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 italic">"{testimonial.quote}"</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* View All Button */}
+        {data.experiences.length > 6 && (
           <div className="text-center mt-12">
             <Link href="/experiences">
               <Button
+                size="lg"
                 variant="outline"
-                className="border-[#EC4E20] text-[#EC4E20] hover:bg-[#EC4E20] hover:text-white px-8 py-3 bg-transparent"
+                className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white bg-transparent"
               >
                 View All Experiences
               </Button>

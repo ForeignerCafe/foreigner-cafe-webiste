@@ -1,26 +1,26 @@
 import { NextResponse } from "next/server"
-import { connectDB } from "@/lib/db"
 import { ExperiencesSection } from "@/models/CMSContent"
+import { connectDB } from "@/lib/db"
 
 export async function GET() {
   try {
     await connectDB()
 
-    const experiencesSection = await ExperiencesSection.findOne()
+    const experiencesData = await ExperiencesSection.findOne()
 
-    if (!experiencesSection) {
-      return NextResponse.json({ success: false, message: "No experiences found" }, { status: 404 })
+    if (!experiencesData) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+      })
     }
 
-    // Filter only published experiences
-    const publishedExperiences = experiencesSection.experiences.filter((exp: any) => exp.isPublished)
+    // Return only published experiences
+    const publishedExperiences = experiencesData.experiences.filter((exp: any) => exp.isPublished !== false)
 
     return NextResponse.json({
       success: true,
-      data: {
-        experiences: publishedExperiences,
-        testimonials: experiencesSection.testimonials,
-      },
+      data: publishedExperiences,
     })
   } catch (error) {
     console.error("Error fetching experiences:", error)
