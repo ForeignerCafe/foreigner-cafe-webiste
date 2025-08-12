@@ -21,7 +21,7 @@ interface Experience {
 
 async function getExperience(slug: string): Promise<Experience | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"
     const response = await fetch(`${baseUrl}/api/experiences/${slug}`, {
       cache: "no-store",
     })
