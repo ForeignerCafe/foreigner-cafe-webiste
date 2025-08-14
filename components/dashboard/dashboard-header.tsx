@@ -41,6 +41,8 @@ export default function Header() {
         return "Manage Events";
          case "/admin/manage-catering":
         return "Manage Catering";
+        case "/admin/experiences":
+        return "Experiences Management";
       default:
         return "Dashboard";
     }

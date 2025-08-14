@@ -14,8 +14,9 @@ import {
   ShoppingCart,
   Settings,
   Percent,
-  Utensils, CalendarDays
-} from "lucide-react"
+  Utensils,
+  CalendarDays,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -49,27 +50,29 @@ const shopItems = [
   { title: "Products", url: "/admin/products", icon: Package },
   { title: "Orders", url: "/admin/orders", icon: ShoppingCart },
   {
-      url: "/admin/coupons",
-      icon: Percent,
-      title: "Coupons",
-   
-    },
-]
+    url: "/admin/coupons",
+    icon: Percent,
+    title: "Coupons",
+  },
+];
 
 const cmsItems = [
   { title: "Content Management", url: "/admin/cms", icon: Settings },
-   { title: "Experiences Management", url: "/admin/cms/experiences", icon: Settings },
-   {
-      url: "/admin/manage-catering", // New link
-      icon: Utensils,
-      title: "Manage Catering",
-    },
-    {
-      url: "/admin/events", // New link
-      icon: CalendarDays,
-      title: "Manage Events",
-      
-    },
+  {
+    title: "Experiences Management",
+    url: "/admin/experiences",
+    icon: Settings,
+  },
+  {
+    url: "/admin/manage-catering", // New link
+    icon: Utensils,
+    title: "Manage Catering",
+  },
+  {
+    url: "/admin/events", // New link
+    icon: CalendarDays,
+    title: "Manage Events",
+  },
   { title: "Subscribers", url: "/admin/subscribers", icon: SubscriptIcon },
   { title: "Newsletter Management", url: "/admin/news-letter", icon: Mail },
   {

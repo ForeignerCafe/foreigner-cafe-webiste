@@ -1,7 +1,8 @@
 // @ts-nocheck
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react"
+import type React from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
@@ -37,13 +38,7 @@ import {
   Undo,
   Redo,
 } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 
 const lowlight = createLowlight(common)
@@ -178,17 +173,21 @@ const MenuBar = ({ editor }: { editor: ReturnType<typeof useEditor> }) => {
   return (
     <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-gray-700">
       {/* Text Formatting */}
-      {[{ icon: Bold, cmd: "toggleBold", active: "bold" },
+      {[
+        { icon: Bold, cmd: "toggleBold", active: "bold" },
         { icon: Italic, cmd: "toggleItalic", active: "italic" },
         { icon: UnderlineIcon, cmd: "toggleUnderline", active: "underline" },
         { icon: Strikethrough, cmd: "toggleStrike", active: "strike" },
-        { icon: Code, cmd: "toggleCode", active: "code" }
+        { icon: Code, cmd: "toggleCode", active: "code" },
       ].map(({ icon: Icon, cmd, active }, i) => (
         <Button
           key={i}
           onClick={() => editor.chain().focus()[cmd]().run()}
           disabled={!editor.can().chain().focus()[cmd]().run()}
-          className={cn("p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none", editor.isActive(active) && "bg-gray-200 dark:bg-gray-700")}
+          className={cn(
+            "p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
+            editor.isActive(active) && "bg-gray-200 dark:bg-gray-700",
+          )}
           variant="ghost"
           size="sm"
         >
@@ -196,13 +195,35 @@ const MenuBar = ({ editor }: { editor: ReturnType<typeof useEditor> }) => {
         </Button>
       ))}
 
+      {/* Paragraph Button */}
+      <Button
+        onClick={() => editor.chain().focus().setParagraph().run()}
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none font-bold",
+          editor.isActive("paragraph") && "bg-gray-200 dark:bg-gray-700",
+        )}
+      >
+        P
+      </Button>
+
       {/* Headings */}
       {[Heading1, Heading2, Heading3, Heading4, Heading5, Heading6].map((Icon, i) => (
         <Button
           key={i}
-          onClick={() => editor.chain().focus().toggleHeading({ level: i + 1 }).run()}
+          onClick={() =>
+            editor
+              .chain()
+              .focus()
+              .toggleHeading({ level: i + 1 })
+              .run()
+          }
           disabled={!editor.can().toggleHeading({ level: i + 1 })}
-          className={cn("p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none", editor.isActive("heading", { level: i + 1 }) && "bg-gray-200 dark:bg-gray-700")}
+          className={cn(
+            "p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
+            editor.isActive("heading", { level: i + 1 }) && "bg-gray-200 dark:bg-gray-700",
+          )}
           variant="ghost"
           size="sm"
         >
@@ -211,20 +232,107 @@ const MenuBar = ({ editor }: { editor: ReturnType<typeof useEditor> }) => {
       ))}
 
       {/* Lists, Quotes, Codeblock, Divider */}
-      <Button onClick={() => editor.chain().focus().toggleBulletList().run()} variant="ghost" size="sm" className={cn("p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none", editor.isActive("bulletList") && "bg-gray-200 dark:bg-gray-700")}><List className="h-4 w-4" /></Button>
-      <Button onClick={() => editor.chain().focus().toggleOrderedList().run()} variant="ghost" size="sm" className={cn("p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none", editor.isActive("orderedList") && "bg-gray-200 dark:bg-gray-700")}><ListOrdered className="h-4 w-4" /></Button>
-      <Button onClick={() => editor.chain().focus().toggleBlockquote().run()} variant="ghost" size="sm" className={cn("p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none", editor.isActive("blockquote") && "bg-gray-200 dark:bg-gray-700")}><Quote className="h-4 w-4" /></Button>
-      <Button onClick={() => editor.chain().focus().toggleCodeBlock().run()} variant="ghost" size="sm" className={cn("p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none", editor.isActive("codeBlock") && "bg-gray-200 dark:bg-gray-700")}><Code2 className="h-4 w-4" /></Button>
-      <Button onClick={() => editor.chain().focus().setHorizontalRule().run()} variant="ghost" size="sm" className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"><Minus className="h-4 w-4" /></Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
+          editor.isActive("bulletList") && "bg-gray-200 dark:bg-gray-700",
+        )}
+      >
+        <List className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
+          editor.isActive("orderedList") && "bg-gray-200 dark:bg-gray-700",
+        )}
+      >
+        <ListOrdered className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
+          editor.isActive("blockquote") && "bg-gray-200 dark:bg-gray-700",
+        )}
+      >
+        <Quote className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
+          editor.isActive("codeBlock") && "bg-gray-200 dark:bg-gray-700",
+        )}
+      >
+        <Code2 className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        variant="ghost"
+        size="sm"
+        className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+      >
+        <Minus className="h-4 w-4" />
+      </Button>
 
       {/* Link, Image, YouTube */}
-      <Button onClick={setLink} variant="ghost" size="sm" className={cn("p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none", editor.isActive("link") && "bg-gray-200 dark:bg-gray-700")}><LinkIcon className="h-4 w-4" /></Button>
-      <Button onClick={addImage} variant="ghost" size="sm" className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"><ImageIcon className="h-4 w-4" /></Button>
-      <Button onClick={addYoutubeVideo} variant="ghost" size="sm" className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"><Youtube className="h-4 w-4" /></Button>
+      <Button
+        onClick={setLink}
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
+          editor.isActive("link") && "bg-gray-200 dark:bg-gray-700",
+        )}
+      >
+        <LinkIcon className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={addImage}
+        variant="ghost"
+        size="sm"
+        className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+      >
+        <ImageIcon className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={addYoutubeVideo}
+        variant="ghost"
+        size="sm"
+        className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+      >
+        <Youtube className="h-4 w-4" />
+      </Button>
 
       {/* Undo/Redo */}
-      <Button onClick={() => editor.chain().focus().undo().run()} variant="ghost" size="sm" className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none" disabled={!editor.can().undo()}><Undo className="h-4 w-4" /></Button>
-      <Button onClick={() => editor.chain().focus().redo().run()} variant="ghost" size="sm" className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none" disabled={!editor.can().redo()}><Redo className="h-4 w-4" /></Button>
+      <Button
+        onClick={() => editor.chain().focus().undo().run()}
+        variant="ghost"
+        size="sm"
+        className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+        disabled={!editor.can().undo()}
+      >
+        <Undo className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().redo().run()}
+        variant="ghost"
+        size="sm"
+        className="p-2 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+        disabled={!editor.can().redo()}
+      >
+        <Redo className="h-4 w-4" />
+      </Button>
 
       <UrlInputModal
         isOpen={isUrlModalOpen}
@@ -270,8 +378,8 @@ export default function RichTextEditor({ initialContent = "", onContentChange }:
 
   return (
     <div className="border rounded-md shadow-sm bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100">
-      <MenuBar editor={editor} />
-      <EditorContent editor={editor} />
+      {editor && <MenuBar editor={editor} />}
+      {editor && <EditorContent editor={editor} />}
     </div>
   )
 }

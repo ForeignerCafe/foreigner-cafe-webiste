@@ -105,7 +105,7 @@ export default function ExperiencesSection() {
               </div>
               <div className="p-6">
                 <h3 className="font-bold text-xl mb-3">{experience.title}</h3>
-                <p className="text-gray-600 mb-6 line-clamp-3">{experience.description}</p>
+                <p className="text-gray-600 mb-6 line-clamp-3 text-[13px]">{experience.description}</p>
                 <Link href={`/experiences/${experience.slug}`}>
                   <Button className="w-full bg-orange-500 hover:bg-orange-600">{experience.buttonText}</Button>
                 </Link>

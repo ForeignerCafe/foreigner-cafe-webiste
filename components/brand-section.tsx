@@ -69,15 +69,16 @@ export default function BrandSection() {
   }
 
   return (
-    <section id="brand" className="py-20 md:m-10 md:mt-2 md:pt-0 md:pb-0">
+    <section id="brand" className="py-20 md:m-10 md:mt-10 md:pt-0 md:pb-0">
       <div className="container mx-auto px-4  md:px-6">
         {/* Global Heading */}
         <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8 md:mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-black">OUR CAFE STORY</h2>
-          <p className="mt-[1rem] text-gray-600 text-md mx-auto max-w-[80%] md:max-w-none">
-            A place where people, stories, and stillness meet and every detail invites you to stay a little longer
-          </p>
-        </div>
+  <h2 className="text-3xl md:text-4xl font-bold text-black">OUR CAFE STORY</h2>
+  <p className="text-gray-600 text-md mx-auto max-w-[80%] md:max-w-none">
+    A place where people, stories, and stillness meet
+    and every detail invites <br /> you to stay a little longer
+  </p>
+</div>
 
         {content.storyElements.map((element, index) => (
           <div
@@ -125,7 +126,7 @@ export default function BrandSection() {
             {/* Text Block - Preserving dynamic content */}
             <div className="w-full lg:w-1/2 bg-gray-50 p-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200">
               <h3 className="text-3xl font-bold text-black mb-4">{element.title}</h3>
-              <p className="text-lg text-gray-700 leading-relaxed">{element.text}</p>
+              <p className="text-[14px] text-gray-700 leading-relaxed">{element.text}</p>
             </div>
           </div>
         ))}

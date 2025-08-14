@@ -1,16 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
-import { CafeStoryContent } from "@/models/CMSContent"
+import { BrandSection } from "@/models/CMSContent"
 
 export async function GET() {
   try {
     await connectDB()
 
-     let  cafeStoryContent = await CafeStoryContent.findOne()
+     let  cafeStoryContent = await BrandSection.findOne()
 
     // Create default content if none exists
     if (!cafeStoryContent) {
-      cafeStoryContent = await CafeStoryContent.create({
+      cafeStoryContent = await BrandSection.create({
         sections: [
           {
             title: "Our Beginning",
@@ -48,13 +48,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Sections array is required" }, { status: 400 })
     }
 
-    let cafeStoryContent = await CafeStoryContent.findOne()
+    let cafeStoryContent = await BrandSection.findOne()
 
     if (cafeStoryContent) {
       cafeStoryContent.sections = sections
       await cafeStoryContent.save()
     } else {
-      cafeStoryContent = await CafeStoryContent.create({ sections })
+      cafeStoryContent = await BrandSection.create({ sections })
     }
 
     return NextResponse.json({ success: true, data: cafeStoryContent })
