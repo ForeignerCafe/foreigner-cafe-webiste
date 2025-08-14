@@ -20,7 +20,28 @@ export const metadata: Metadata = {
   title: "Foreigner Cafe - Where Community Meets Craft",
   description:
     "More than a coffee shop — we're a space where stories are shared over craft coffee, and culture meets community.",
-  generator: "v0.dev",
+  icons: {
+    icon: [
+      {
+        url: "/favicon.ico/favicon-96x96.png",
+        sizes: "96x96",
+        type: "image/png",
+      },
+      { url: "/favicon.ico/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico/favicon.ico", rel: "shortcut icon" },
+    ],
+    apple: [
+      {
+        url: "/favicon.ico/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+    other: [{ rel: "manifest", url: "/favicon.ico/site.webmanifest" }],
+  },
+  appleWebApp: {
+    title: "Foreigner Cafe",
+  },
 };
 
 export default function RootLayout({
@@ -39,18 +60,15 @@ export default function RootLayout({
         `}</style>
       </head>
       <body className={`${tradeGothic.className}`}>
-       
-         
-            {/* <LenisProvider> */}
-            <AnalyticsTracker />
-            <Preloader />
-            {children}
-            
-            <TawkToChat />
-            {/* </LenisProvider> */}
-          
-          <Toaster />
-        
+        {/* <LenisProvider> */}
+        <AnalyticsTracker />
+        <Preloader />
+        {children}
+
+        <TawkToChat />
+        {/* </LenisProvider> */}
+
+        <Toaster />
       </body>
     </html>
   );
