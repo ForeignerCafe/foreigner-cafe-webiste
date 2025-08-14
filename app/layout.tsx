@@ -22,22 +22,14 @@ export const metadata: Metadata = {
     "More than a coffee shop — we're a space where stories are shared over craft coffee, and culture meets community.",
   icons: {
     icon: [
-      {
-        url: "/favicon.ico/favicon-96x96.png",
-        sizes: "96x96",
-        type: "image/png",
-      },
-      { url: "/favicon.ico/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico/favicon.ico", rel: "shortcut icon" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", rel: "shortcut icon" },
     ],
     apple: [
-      {
-        url: "/favicon.ico/apple-touch-icon.png",
-        sizes: "180x180",
-        type: "image/png",
-      },
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
-    other: [{ rel: "manifest", url: "/favicon.ico/site.webmanifest" }],
+    other: [{ rel: "manifest", url: "/site.webmanifest" }],
   },
   appleWebApp: {
     title: "Foreigner Cafe",
