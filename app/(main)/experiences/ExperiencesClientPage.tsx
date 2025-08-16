@@ -113,11 +113,10 @@ export default function ExperiencesClientPage() {
               <div className="absolute inset-0 bg-black/50" />
               <div className="relative z-10 px-4 sm:px-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight sm:mb-10 mt-14 uppercase">
-                  Unique Experiences Await You
+                  Something special is brewing
                 </h1>
                 <p className="text-base sm:text-lg md:text-xl lg:text-xl max-w-2xl mx-auto pb-6 sm:pb-10">
-                  Discover our carefully crafted experiences designed to create lasting memories.
-                </p>
+                  latte art, coffee cupping, and more await. Stay tuned, expierences coming soon!    </p>
                 {Array.isArray(content.experiences) && content.experiences.length > 0 && (
                   <Button
                     onClick={() => scrollToSection("experiences")}
