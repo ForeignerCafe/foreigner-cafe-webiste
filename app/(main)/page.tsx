@@ -21,7 +21,7 @@ export default function HomePage() {
       <DineDrinkSection />
       <BrandSection />
       {/* <MenuSection /> */}
-      <ExperiencesSection />
+     {/* <ExperiencesSection /> */}
       <InstagramFeed />
       <InteriorSection />
       {/* <StorySection /> */}
