@@ -292,16 +292,17 @@ export default function Navigation() {
             </div>
             {/* Reserve Button (Desktop) */}
             <div className="hidden lg:block">
-              <Button
-                onClick={openReservationModal}
-                className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-110 hover:shadow-lg focus:outline-none ${
-                  isScrolled
-                    ? "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
-                    : "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
-                }`}
-              >
-                {headerContent.reserveButtonText}
-              </Button>
+              <a
+  href="https://ohbz.com/l/88300cb6-e73f-4e18-891b-a58140f9e8e2"
+  className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-110 hover:shadow-lg focus:outline-none ${
+    isScrolled
+      ? "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
+      : "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
+  }`}
+>
+  {headerContent.reserveButtonText}
+</a>
+
             </div>
             {/* Mobile menu button (Sheet Trigger) */}
             <div className="lg:hidden ">
@@ -378,15 +379,13 @@ export default function Navigation() {
                       )
                     })}
 
-                    <Button
-                      onClick={() => {
-                        openReservationModal()
-                        setIsOpen(false)
-                      }}
-                      className="bg-orange text-white text-sm rounded-xl tracking-wide mt-6 hover:bg-black transition-all duration-300 w-[130px]"
-                    >
-                      {headerContent.reserveButtonText}
-                    </Button>
+                    <a
+  href="https://ohbz.com/l/88300cb6-e73f-4e18-891b-a58140f9e8e2"
+  className="bg-orange text-white text-sm rounded-xl tracking-wide mt-6 hover:bg-black transition-all duration-300 w-[130px] flex items-center justify-center"
+>
+  {headerContent.reserveButtonText}
+</a>
+
                   </div>
                 </SheetContent>
               </Sheet>
