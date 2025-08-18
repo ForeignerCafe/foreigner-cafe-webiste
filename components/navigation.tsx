@@ -294,7 +294,7 @@ export default function Navigation() {
             <div className="hidden lg:block">
               <a
   href="https://ohbz.com/l/88300cb6-e73f-4e18-891b-a58140f9e8e2"
-  className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-110 hover:shadow-lg focus:outline-none ${
+  className={`inline-flex items-center justify-center text-sm font-bold tracking-wide transition-all duration-300 px-4 py-3 ${
     isScrolled
       ? "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
       : "bg-[#EC4E20] text-white hover:bg-[#f97316] hover:text-black "
