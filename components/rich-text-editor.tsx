@@ -57,6 +57,12 @@ const ImageGroup = Node.create({
       count: {
         default: 1,
       },
+      containerWidth: {
+        default: "100%",
+      },
+      containerHeight: {
+        default: "auto",
+      },
     }
   },
 
@@ -69,11 +75,13 @@ const ImageGroup = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
+    const { containerWidth, containerHeight, ...attrs } = HTMLAttributes
     return [
       "div",
-      mergeAttributes(HTMLAttributes, {
+      mergeAttributes(attrs, {
         "data-image-group": "",
-        class: "flex justify-center gap-2 my-4 flex-wrap sm:flex-nowrap",
+        class: "flex justify-center items-center gap-2 my-4 mx-auto",
+        style: `width: ${containerWidth}; height: ${containerHeight}; max-width: 100%;`,
       }),
       0,
     ]
@@ -194,6 +202,12 @@ const VideoGroup = Node.create({
       count: {
         default: 1,
       },
+      containerWidth: {
+        default: "100%",
+      },
+      containerHeight: {
+        default: "auto",
+      },
     }
   },
 
@@ -206,11 +220,13 @@ const VideoGroup = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
+    const { containerWidth, containerHeight, ...attrs } = HTMLAttributes
     return [
       "div",
-      mergeAttributes(HTMLAttributes, {
+      mergeAttributes(attrs, {
         "data-video-group": "",
-        class: "flex justify-center gap-2 my-4 flex-wrap lg:flex-nowrap",
+        class: "flex justify-center items-center gap-2 my-4 mx-auto",
+        style: `width: ${containerWidth}; height: ${containerHeight}; max-width: 100%;`,
       }),
       0,
     ]
