@@ -88,16 +88,25 @@ const ImageGroup = Node.create({
           return commands.insertContent({
             type: this.name,
             attrs: { count },
-            content: urls.map((url, index) => ({
-              type: "image",
-              attrs: {
-                src: url,
-                width: widths?.[index] || (count === 1 ? "auto" : count === 2 ? "48%" : "32%"),
-                height: heights?.[index] || "auto",
-                style: `width: ${widths?.[index] || (count === 1 ? "100%" : count === 2 ? "48%" : "32%")}; height: ${heights?.[index] || "auto"}; max-width: 100%; object-fit: cover;`,
-                class: `block ${count === 1 ? "mx-auto" : ""} rounded-lg`,
-              },
-            })),
+            content: urls.map((url, index) => {
+              const customWidth = widths?.[index] && widths[index] !== "auto" ? widths[index] : null
+              const customHeight = heights?.[index] && heights[index] !== "auto" ? heights[index] : null
+
+              // Default responsive widths when no custom width is set
+              const defaultWidth = count === 1 ? "100%" : count === 2 ? "48%" : "32%"
+              const finalWidth = customWidth || defaultWidth
+
+              return {
+                type: "image",
+                attrs: {
+                  src: url,
+                  width: customWidth || undefined,
+                  height: customHeight || undefined,
+                  style: `width: ${finalWidth}; ${customHeight ? `height: ${customHeight};` : "height: auto;"} max-width: 100%; object-fit: cover;`,
+                  class: `block ${count === 1 ? "mx-auto" : ""} rounded-lg`,
+                },
+              }
+            }),
           })
         },
     }
@@ -123,7 +132,7 @@ const DirectVideo = Node.create({
         default: false,
       },
       muted: {
-        default: false,
+        default: true,
       },
       width: {
         default: "100%",
@@ -227,9 +236,14 @@ const VideoGroup = Node.create({
                       class: "rounded-lg",
                     }
                   : {
-                      ...video,
-                      width: count === 1 ? "100%" : count === 2 ? "48%" : "32%",
-                      height: "auto",
+                      src: video.url,
+                      controls: video.controls,
+                      autoplay: video.autoplay,
+                      loop: video.loop,
+                      muted: video.muted,
+                      width: count === 1 ? video.width || "100%" : count === 2 ? "48%" : "32%",
+                      height: video.height || "auto",
+                      class: "rounded-lg",
                     },
             })),
           })
@@ -412,7 +426,7 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
       controls: true,
       autoplay: false,
       loop: false,
-      muted: false,
+      muted: true,
       width: "100%",
       height: "auto",
     },
@@ -428,7 +442,7 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
           controls: true,
           autoplay: false,
           loop: false,
-          muted: false,
+          muted: true,
           width: "100%",
           height: "auto",
         },
@@ -448,7 +462,7 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
             controls: true,
             autoplay: false,
             loop: false,
-            muted: false,
+            muted: true,
             width: "100%",
             height: "auto",
           },
@@ -470,14 +484,18 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
         onConfirm(validVideos[0])
       } else {
         // Multiple videos - use new video group
+        const videosWithSrc = validVideos.map((video) => ({
+          ...video,
+          src: video.url, // Ensure src attribute is set from url
+        }))
         onConfirm({
           type: "group",
-          videos: validVideos,
-          count: videoCount,
+          videos: videosWithSrc,
+          count: validVideos.length,
         })
       }
-      onClose()
     }
+    onClose()
   }
 
   return (
