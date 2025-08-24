@@ -84,20 +84,18 @@ const ImageGroup = Node.create({
       setImageGroup:
         (options) =>
         ({ commands }) => {
-          const { urls, count } = options
+          const { urls, count, widths, heights } = options
           return commands.insertContent({
             type: this.name,
             attrs: { count },
-            content: urls.map((url) => ({
+            content: urls.map((url, index) => ({
               type: "image",
               attrs: {
                 src: url,
-                class:
-                  count === 1
-                    ? "max-w-full w-full sm:w-auto"
-                    : count === 2
-                      ? "max-w-full w-full sm:max-w-[48%] sm:w-[48%]"
-                      : "max-w-full w-full sm:max-w-[32%] sm:w-[32%]",
+                width: widths?.[index] || (count === 1 ? "auto" : count === 2 ? "48%" : "32%"),
+                height: heights?.[index] || "auto",
+                style: `max-width: ${count === 1 ? "100%" : count === 2 ? "48%" : "32%"}; height: auto;`,
+                class: count === 1 ? "mx-auto block" : "block",
               },
             })),
           })
@@ -145,14 +143,15 @@ const DirectVideo = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
+    const { width, height, ...videoAttrs } = HTMLAttributes
     return [
       "div",
       { class: "flex justify-center my-4 w-full" },
       [
         "video",
-        mergeAttributes(HTMLAttributes, {
-          style: `max-width: ${HTMLAttributes.width}; height: ${HTMLAttributes.height}; width: 100%;`,
-          class: "max-w-full h-auto",
+        mergeAttributes(videoAttrs, {
+          style: `width: ${width}; height: ${height}; max-width: 100%;`,
+          class: "block",
         }),
       ],
     ]
@@ -251,17 +250,21 @@ interface UrlInputModalProps {
 interface ImageModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (urls: string[], count: number) => void
+  onConfirm: (urls: string[], count: number, widths?: string[], heights?: string[]) => void
 }
 
 const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, onConfirm }) => {
   const [imageCount, setImageCount] = useState<number>(1)
   const [imageUrls, setImageUrls] = useState<string[]>([""])
+  const [imageWidths, setImageWidths] = useState<string[]>(["auto"])
+  const [imageHeights, setImageHeights] = useState<string[]>(["auto"])
 
   useEffect(() => {
     if (isOpen) {
       setImageCount(1)
       setImageUrls([""])
+      setImageWidths(["auto"])
+      setImageHeights(["auto"])
     }
   }, [isOpen])
 
@@ -270,7 +273,15 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, onConfirm }) =
     const newUrls = Array(count)
       .fill("")
       .map((_, i) => imageUrls[i] || "")
+    const newWidths = Array(count)
+      .fill("")
+      .map((_, i) => imageWidths[i] || "auto")
+    const newHeights = Array(count)
+      .fill("")
+      .map((_, i) => imageHeights[i] || "auto")
     setImageUrls(newUrls)
+    setImageWidths(newWidths)
+    setImageHeights(newHeights)
   }
 
   const handleUrlChange = (index: number, url: string) => {
@@ -279,17 +290,29 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, onConfirm }) =
     setImageUrls(newUrls)
   }
 
+  const handleWidthChange = (index: number, width: string) => {
+    const newWidths = [...imageWidths]
+    newWidths[index] = width
+    setImageWidths(newWidths)
+  }
+
+  const handleHeightChange = (index: number, height: string) => {
+    const newHeights = [...imageHeights]
+    newHeights[index] = height
+    setImageHeights(newHeights)
+  }
+
   const handleConfirm = () => {
     const validUrls = imageUrls.filter((url) => url.trim() !== "")
     if (validUrls.length > 0) {
-      onConfirm(validUrls, imageCount)
+      onConfirm(validUrls, imageCount, imageWidths, imageHeights)
       onClose()
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] font-body">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto font-body">
         <DialogHeader>
           <DialogTitle>Add Images</DialogTitle>
         </DialogHeader>
@@ -309,14 +332,41 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, onConfirm }) =
           </div>
 
           {Array.from({ length: imageCount }, (_, i) => (
-            <div key={i}>
-              <Label>Image {i + 1} URL</Label>
-              <Input
-                value={imageUrls[i] || ""}
-                onChange={(e) => handleUrlChange(i, e.target.value)}
-                placeholder={`https://example.com/image${i + 1}.jpg`}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
-              />
+            <div key={i} className="border rounded-lg p-4 space-y-3">
+              <h4 className="font-medium">Image {i + 1}</h4>
+
+              <div>
+                <Label>Image URL</Label>
+                <Input
+                  value={imageUrls[i] || ""}
+                  onChange={(e) => handleUrlChange(i, e.target.value)}
+                  placeholder={`https://example.com/image${i + 1}.jpg`}
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Width</Label>
+                  <Input
+                    value={imageWidths[i] || "auto"}
+                    onChange={(e) => handleWidthChange(i, e.target.value)}
+                    placeholder="auto, 100%, 300px"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+                <div>
+                  <Label>Height</Label>
+                  <Input
+                    value={imageHeights[i] || "auto"}
+                    onChange={(e) => handleHeightChange(i, e.target.value)}
+                    placeholder="auto, 200px"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-500">Use "auto", percentages (50%), or pixels (300px) for sizing</p>
             </div>
           ))}
         </div>
@@ -526,7 +576,7 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
             onClick={handleConfirm}
             className="bg-orange-500 hover:bg-orange-600 text-white focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
           >
-            Add Videos
+            Confirm
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -572,13 +622,19 @@ const MenuBar = ({ editor }: { editor: ReturnType<typeof useEditor> }) => {
   }, [])
 
   const handleImageConfirm = useCallback(
-    (urls: string[], count: number) => {
+    (urls: string[], count: number, widths?: string[], heights?: string[]) => {
       if (urls.length === 1) {
-        // Single image - use original method
-        editor.chain().focus().setImage({ src: urls[0] }).run()
+        editor
+          .chain()
+          .focus()
+          .setImage({
+            src: urls[0],
+            style: `width: ${widths?.[0] || "auto"}; height: ${heights?.[0] || "auto"}; max-width: 100%; display: block; margin: 0 auto;`,
+          })
+          .run()
       } else {
-        // Multiple images - use new image group
-        editor.chain().focus().setImageGroup({ urls, count }).run()
+        // Multiple images - use image group
+        editor.chain().focus().setImageGroup({ urls, count, widths, heights }).run()
       }
     },
     [editor],
@@ -883,7 +939,13 @@ export default function RichTextEditor({ initialContent = "", onContentChange }:
     extensions: [
       StarterKit.configure({ codeBlock: false }),
       Link.configure({ openOnClick: false, autolink: true }),
-      Image.configure({ inline: true, allowBase64: true }),
+      Image.configure({
+        inline: false,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: "block mx-auto max-w-full h-auto",
+        },
+      }),
       YouTube.configure({ controls: true, nocookie: true, modestBranding: true }),
       Underline,
       Strike,
