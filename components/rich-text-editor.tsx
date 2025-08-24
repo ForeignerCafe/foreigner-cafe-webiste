@@ -322,7 +322,7 @@ const Gallery = Node.create({
               src: item.url,
               alt: item.alt || "",
               class: "w-full h-full object-cover transition-transform duration-300 hover:scale-105",
-              style: "min-height: 200px;",
+              style: "aspect-ratio: 1; object-fit: cover;",
             },
           ],
         ]
@@ -330,7 +330,7 @@ const Gallery = Node.create({
         return [
           "div",
           {
-            class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800`,
+            class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 relative`,
           },
           [
             "video",
@@ -339,7 +339,7 @@ const Gallery = Node.create({
               controls: item.controls !== false,
               muted: item.muted !== false,
               class: "w-full h-full object-cover",
-              style: "min-height: 200px;",
+              style: "aspect-ratio: 16/9; object-fit: cover;",
               ...(item.autoplay && { autoplay: true }),
               ...(item.loop && { loop: true }),
             },
@@ -351,7 +351,8 @@ const Gallery = Node.create({
           return [
             "div",
             {
-              class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800`,
+              class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 relative`,
+              style: "aspect-ratio: 16/9;",
             },
             [
               "iframe",
@@ -360,8 +361,7 @@ const Gallery = Node.create({
                 frameborder: "0",
                 allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
                 allowfullscreen: true,
-                class: "w-full h-full",
-                style: "min-height: 200px;",
+                class: "absolute inset-0 w-full h-full",
               },
             ],
           ]
@@ -375,20 +375,20 @@ const Gallery = Node.create({
       "div",
       mergeAttributes(HTMLAttributes, {
         "data-gallery": "",
-        class: "my-6 mx-auto max-w-6xl",
+        class: "my-4 mx-auto max-w-2xl sm:max-w-3xl lg:max-w-4xl",
       }),
       [
         "div",
         {
-          class: `grid gap-3 ${
+          class: `grid gap-2 ${
             items.length === 1
-              ? "grid-cols-1"
+              ? "grid-cols-1 max-w-md mx-auto"
               : items.length === 2
-              ? "grid-cols-2"
+              ? "grid-cols-2 max-w-lg mx-auto"
               : items.length === 3
-              ? "grid-cols-3"
-              : "grid-cols-3 grid-rows-3"
-          } auto-rows-[200px] sm:auto-rows-[250px] md:auto-rows-[300px]`,
+              ? "grid-cols-3 max-w-xl mx-auto"
+              : "grid-cols-3"
+          } auto-rows-[120px] sm:auto-rows-[150px] md:auto-rows-[180px]`,
         },
         ...gridItems,
       ],
