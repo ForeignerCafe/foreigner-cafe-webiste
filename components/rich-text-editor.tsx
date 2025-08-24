@@ -300,7 +300,7 @@ const Gallery = Node.create({
       return ["div", { class: "my-4 p-4 text-center text-gray-500" }, "Empty Gallery"]
     }
 
-    // Generate bento grid layout with original aspect ratios
+    // Generate bento grid layout with consistent aspect ratios
     const gridItems = items.map((item, index) => {
       const isLarge = index === 0 && items.length > 1
       const gridClass = isLarge 
@@ -315,16 +315,16 @@ const Gallery = Node.create({
         return [
           "div",
           {
-            class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800`,
-            style: "margin: 0; padding: 0;",
+            class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center`,
+            style: "margin: 0;",
           },
           [
             "img",
             {
               src: item.url,
               alt: item.alt || "",
-              class: "w-full h-full object-contain",
-              style: "max-width: 100%; max-height: 100%;",
+              class: "w-full h-full object-cover",
+              style: "aspect-ratio: 1/1;",
             },
           ],
         ]
@@ -332,8 +332,8 @@ const Gallery = Node.create({
         return [
           "div",
           {
-            class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 relative`,
-            style: "margin: 0; padding: 0;",
+            class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center`,
+            style: "margin: 0;",
           },
           [
             "video",
@@ -341,8 +341,8 @@ const Gallery = Node.create({
               src: item.url,
               controls: item.controls !== false,
               muted: item.muted !== false,
-              class: "w-full h-full object-contain",
-              style: "max-width: 100%; max-height: 100%;",
+              class: "w-full h-full object-cover",
+              style: "aspect-ratio: 1/1;",
               ...(item.autoplay && { autoplay: true }),
               ...(item.loop && { loop: true }),
             },
@@ -354,8 +354,8 @@ const Gallery = Node.create({
           return [
             "div",
             {
-              class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 relative`,
-              style: "margin: 0; padding: 0; aspect-ratio: 16/9;",
+              class: `${gridClass} overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center`,
+              style: "margin: 0; aspect-ratio: 16/9;",
             },
             [
               "iframe",
@@ -364,7 +364,7 @@ const Gallery = Node.create({
                 frameborder: "0",
                 allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
                 allowfullscreen: true,
-                class: "absolute inset-0 w-full h-full",
+                class: "w-full h-full",
               },
             ],
           ]
@@ -379,7 +379,6 @@ const Gallery = Node.create({
       mergeAttributes(HTMLAttributes, {
         "data-gallery": "",
         class: "my-4 mx-auto max-w-2xl sm:max-w-3xl lg:max-w-4xl",
-        style: "margin: 0; padding: 0;",
       }),
       [
         "div",
@@ -393,7 +392,7 @@ const Gallery = Node.create({
               ? "grid-cols-3 max-w-xl mx-auto"
               : "grid-cols-3"
           }`,
-          style: "margin: 0; padding: 0;",
+          style: "margin: 0;",
         },
         ...gridItems,
       ],
