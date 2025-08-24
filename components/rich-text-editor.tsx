@@ -94,8 +94,8 @@ const ImageGroup = Node.create({
                 src: url,
                 width: widths?.[index] || (count === 1 ? "auto" : count === 2 ? "48%" : "32%"),
                 height: heights?.[index] || "auto",
-                style: `max-width: ${count === 1 ? "100%" : count === 2 ? "48%" : "32%"}; height: auto;`,
-                class: count === 1 ? "mx-auto block" : "block",
+                style: `width: ${widths?.[index] || (count === 1 ? "100%" : count === 2 ? "48%" : "32%")}; height: ${heights?.[index] || "auto"}; max-width: 100%; object-fit: cover;`,
+                class: `block ${count === 1 ? "mx-auto" : ""} rounded-lg`,
               },
             })),
           })
@@ -151,7 +151,11 @@ const DirectVideo = Node.create({
         "video",
         mergeAttributes(videoAttrs, {
           style: `width: ${width}; height: ${height}; max-width: 100%;`,
-          class: "block",
+          class: "block rounded-lg",
+          ...(videoAttrs.muted && { muted: true }),
+          ...(videoAttrs.autoplay && { autoplay: true }),
+          ...(videoAttrs.loop && { loop: true }),
+          ...(videoAttrs.controls !== false && { controls: true }),
         }),
       ],
     ]
@@ -197,7 +201,7 @@ const VideoGroup = Node.create({
       "div",
       mergeAttributes(HTMLAttributes, {
         "data-video-group": "",
-        class: "flex justify-center gap-2 my-4 flex-wrap",
+        class: "flex justify-center gap-2 my-4 flex-wrap lg:flex-nowrap",
       }),
       0,
     ]
@@ -220,10 +224,12 @@ const VideoGroup = Node.create({
                       src: video.url,
                       width: count === 1 ? 640 : count === 2 ? 320 : 213,
                       height: count === 1 ? 480 : count === 2 ? 240 : 160,
+                      class: "rounded-lg",
                     }
                   : {
                       ...video,
                       width: count === 1 ? "100%" : count === 2 ? "48%" : "32%",
+                      height: "auto",
                     },
             })),
           })
@@ -407,6 +413,8 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
       autoplay: false,
       loop: false,
       muted: false,
+      width: "100%",
+      height: "auto",
     },
   ])
 
@@ -421,6 +429,8 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
           autoplay: false,
           loop: false,
           muted: false,
+          width: "100%",
+          height: "auto",
         },
       ])
     }
@@ -439,6 +449,8 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
             autoplay: false,
             loop: false,
             muted: false,
+            width: "100%",
+            height: "auto",
           },
       )
     setVideos(newVideos)
@@ -523,6 +535,27 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
 
               {videos[i]?.type === "direct" && (
                 <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Width</Label>
+                      <Input
+                        value={videos[i]?.width || "100%"}
+                        onChange={(e) => handleVideoChange(i, "width", e.target.value)}
+                        placeholder="100%, 500px, auto"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <Label>Height</Label>
+                      <Input
+                        value={videos[i]?.height || "auto"}
+                        onChange={(e) => handleVideoChange(i, "height", e.target.value)}
+                        placeholder="auto, 300px"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  </div>
+
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={`controls-${i}`}
@@ -558,6 +591,8 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
                     />
                     <Label htmlFor={`muted-${i}`}>Muted</Label>
                   </div>
+
+                  <p className="text-sm text-gray-500">Use "auto", percentages (50%), or pixels (300px) for sizing</p>
                 </div>
               )}
             </div>
@@ -629,7 +664,8 @@ const MenuBar = ({ editor }: { editor: ReturnType<typeof useEditor> }) => {
           .focus()
           .setImage({
             src: urls[0],
-            style: `width: ${widths?.[0] || "auto"}; height: ${heights?.[0] || "auto"}; max-width: 100%; display: block; margin: 0 auto;`,
+            style: `width: ${widths?.[0] || "100%"}; height: ${heights?.[0] || "auto"}; max-width: 100%; object-fit: cover; display: block; margin: 0 auto;`,
+            class: "rounded-lg",
           })
           .run()
       } else {
@@ -660,6 +696,8 @@ const MenuBar = ({ editor }: { editor: ReturnType<typeof useEditor> }) => {
             autoplay: videoData.autoplay,
             loop: videoData.loop,
             muted: videoData.muted,
+            width: videoData.width || "100%",
+            height: videoData.height || "auto",
           })
           .run()
       }
@@ -943,10 +981,18 @@ export default function RichTextEditor({ initialContent = "", onContentChange }:
         inline: false,
         allowBase64: true,
         HTMLAttributes: {
-          class: "block mx-auto max-w-full h-auto",
+          class: "block mx-auto max-w-full h-auto rounded-lg",
+          style: "object-fit: cover;",
         },
       }),
-      YouTube.configure({ controls: true, nocookie: true, modestBranding: true }),
+      YouTube.configure({
+        controls: true,
+        nocookie: true,
+        modestBranding: true,
+        HTMLAttributes: {
+          class: "rounded-lg",
+        },
+      }),
       Underline,
       Strike,
       HorizontalRule,
