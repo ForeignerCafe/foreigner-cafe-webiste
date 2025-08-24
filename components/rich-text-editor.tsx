@@ -485,120 +485,140 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, onConfirm 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto font-body">
         <DialogHeader>
-          <DialogTitle>Add Videos</DialogTitle>
+          <DialogTitle>Create Media Gallery</DialogTitle>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Add images and videos to create a responsive bento grid gallery
+          </p>
         </DialogHeader>
+        
         <div className="py-4 space-y-4">
-          <div>
-            <Label>Number of videos</Label>
-            <Select value={videoCount.toString()} onValueChange={(value) => handleCountChange(Number.parseInt(value))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 Video (Centered)</SelectItem>
-                <SelectItem value="2">2 Videos (Side by side)</SelectItem>
-                <SelectItem value="3">3 Videos (Side by side)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {Array.from({ length: videoCount }, (_, i) => (
-            <div key={i} className="border rounded-lg p-4 space-y-3">
-              <h4 className="font-medium">Video {i + 1}</h4>
-
-              <div>
-                <Label>Video Type</Label>
-                <Select
-                  value={videos[i]?.type || "youtube"}
-                  onValueChange={(value) => handleVideoChange(i, "type", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="youtube">YouTube Video</SelectItem>
-                    <SelectItem value="direct">Direct Video Link</SelectItem>
-                  </SelectContent>
-                </Select>
+          {items.map((item, index) => (
+            <div key={index} className="border rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Media Item {index + 1}</h4>
+                {items.length > 1 && (
+                  <Button
+                    onClick={() => removeItem(index)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
 
-              <div>
-                <Label>Video URL</Label>
-                <Input
-                  value={videos[i]?.url || ""}
-                  onChange={(e) => handleVideoChange(i, "url", e.target.value)}
-                  placeholder={
-                    videos[i]?.type === "youtube" ? "https://youtube.com/watch?v=..." : "https://example.com/video.mp4"
-                  }
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Media Type</Label>
+                  <Select
+                    value={item.type}
+                    onValueChange={(value: "image" | "video" | "youtube") => 
+                      updateItem(index, { type: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="image">Image</SelectItem>
+                      <SelectItem value="video">Direct Video</SelectItem>
+                      <SelectItem value="youtube">YouTube Video</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>URL</Label>
+                  <Input
+                    value={item.url}
+                    onChange={(e) => updateItem(index, { url: e.target.value })}
+                    placeholder={
+                      item.type === "image" 
+                        ? "https://example.com/image.jpg"
+                        : item.type === "youtube"
+                        ? "https://youtube.com/watch?v=..."
+                        : "https://example.com/video.mp4"
+                    }
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                  />
+                </div>
               </div>
 
-              {videos[i]?.type === "direct" && (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Width</Label>
-                      <Input
-                        value={videos[i]?.width || "100%"}
-                        onChange={(e) => handleVideoChange(i, "width", e.target.value)}
-                        placeholder="100%, 500px, auto"
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
-                      />
-                    </div>
-                    <div>
-                      <Label>Height</Label>
-                      <Input
-                        value={videos[i]?.height || "auto"}
-                        onChange={(e) => handleVideoChange(i, "height", e.target.value)}
-                        placeholder="auto, 300px"
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
-                      />
-                    </div>
+              {item.type === "image" && (
+                <div>
+                  <Label>Alt Text (Optional)</Label>
+                  <Input
+                    value={item.alt || ""}
+                    onChange={(e) => updateItem(index, { alt: e.target.value })}
+                    placeholder="Describe the image"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              )}
+
+              {item.type === "video" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`controls-${index}`}
+                      checked={item.controls !== false}
+                      onCheckedChange={(checked) => updateItem(index, { controls: checked as boolean })}
+                    />
+                    <Label htmlFor={`controls-${index}`}>Show controls</Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`controls-${i}`}
-                      checked={videos[i]?.controls || false}
-                      onCheckedChange={(checked) => handleVideoChange(i, "controls", checked)}
+                      id={`autoplay-${index}`}
+                      checked={item.autoplay || false}
+                      onCheckedChange={(checked) => updateItem(index, { autoplay: checked as boolean })}
                     />
-                    <Label htmlFor={`controls-${i}`}>Show controls</Label>
+                    <Label htmlFor={`autoplay-${index}`}>Autoplay</Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`autoplay-${i}`}
-                      checked={videos[i]?.autoplay || false}
-                      onCheckedChange={(checked) => handleVideoChange(i, "autoplay", checked)}
+                      id={`loop-${index}`}
+                      checked={item.loop || false}
+                      onCheckedChange={(checked) => updateItem(index, { loop: checked as boolean })}
                     />
-                    <Label htmlFor={`autoplay-${i}`}>Autoplay</Label>
+                    <Label htmlFor={`loop-${index}`}>Loop</Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`loop-${i}`}
-                      checked={videos[i]?.loop || false}
-                      onCheckedChange={(checked) => handleVideoChange(i, "loop", checked)}
+                      id={`muted-${index}`}
+                      checked={item.muted !== false}
+                      onCheckedChange={(checked) => updateItem(index, { muted: checked as boolean })}
                     />
-                    <Label htmlFor={`loop-${i}`}>Loop</Label>
+                    <Label htmlFor={`muted-${index}`}>Muted</Label>
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`muted-${i}`}
-                      checked={videos[i]?.muted || false}
-                      onCheckedChange={(checked) => handleVideoChange(i, "muted", checked)}
-                    />
-                    <Label htmlFor={`muted-${i}`}>Muted</Label>
-                  </div>
-
-                  <p className="text-sm text-gray-500">Use "auto", percentages (50%), or pixels (300px) for sizing</p>
                 </div>
               )}
             </div>
           ))}
+
+          <Button
+            onClick={addItem}
+            variant="outline"
+            className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:border-orange-500"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Another Media Item
+          </Button>
+
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+            <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Gallery Layout Tips:</h5>
+            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+              <li>• First item will be larger if you have multiple items</li>
+              <li>• Works best with 2-6 media items</li>
+              <li>• Layout automatically adapts to different screen sizes</li>
+              <li>• Mix images and videos for dynamic galleries</li>
+            </ul>
+          </div>
         </div>
+
         <DialogFooter>
           <Button
             type="button"
@@ -610,9 +630,10 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, onConfirm 
           <Button
             type="button"
             onClick={handleConfirm}
-            className="bg-orange-500 hover:bg-orange-600 text-white focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+            disabled={items.every(item => item.url.trim() === "")}
+            className="bg-orange-500 hover:bg-orange-600 text-white focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none disabled:opacity-50"
           >
-            Confirm
+            Create Gallery
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -996,216 +1017,6 @@ const MenuBar = ({ editor }: { editor: ReturnType<typeof useEditor> }) => {
   )
 }
 
-export default function RichTextEditor({ initialContent = "", onContentChange }: RichTextEditorProps) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ codeBlock: false }),
-      Link.configure({ openOnClick: false, autolink: true }),
-      Image.configure({
-        inline: false,
-        allowBase64: true,
-        HTMLAttributes: {
-          class: "block mx-auto max-w-full h-auto rounded-lg",
-          style: "object-fit: cover;",
-        },
-      }),
-      YouTube.configure({
-        controls: true,
-        nocookie: true,
-        modestBranding: true,
-        HTMLAttributes: {
-          class: "rounded-lg",
-        },
-      }),
-      Underline,
-      Strike,
-      HorizontalRule,
-      CodeBlockLowlight.configure({ lowlight }),
-      ImageGroup,
-      DirectVideo,
-      VideoGroup,
-      Gallery,
-    ],
-    content: initialContent,
-    onUpdate: ({ editor }) => onContentChange?.(editor.getHTML()),
-    editorProps: {
-      attributes: {
-        class: "prose dark:prose-invert max-w-none focus:outline-none p-2 sm:p-4 min-h-[300px] overflow-y-auto",
-      },
-    },
-    immediatelyRender: false,
-    autofocus: true,
-  })
-
-  useEffect(() => {
-    if (editor && initialContent !== editor.getHTML()) {
-      editor.commands.setContent(initialContent, { emitUpdate: false })
-    }
-  }, [editor, initialContent])
-
-  return (
-    <div className="border rounded-md shadow-sm bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100">
-      {editor && <MenuBar editor={editor} />}
-      {editor && <EditorContent editor={editor} />}
-    </div>
-  )
-}
-          <DialogTitle>Create Media Gallery</DialogTitle>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Add images and videos to create a responsive bento grid gallery
-          </p>
-        </DialogHeader>
-        
-        <div className="py-4 space-y-4">
-          {items.map((item, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Media Item {index + 1}</h4>
-                {items.length > 1 && (
-                  <Button
-                    onClick={() => removeItem(index)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Media Type</Label>
-                  <Select
-                    value={item.type}
-                    onValueChange={(value: "image" | "video" | "youtube") => 
-                      updateItem(index, { type: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="image">Image</SelectItem>
-                      <SelectItem value="video">Direct Video</SelectItem>
-                      <SelectItem value="youtube">YouTube Video</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>URL</Label>
-                  <Input
-                    value={item.url}
-                    onChange={(e) => updateItem(index, { url: e.target.value })}
-                    placeholder={
-                      item.type === "image" 
-                        ? "https://example.com/image.jpg"
-                        : item.type === "youtube"
-                        ? "https://youtube.com/watch?v=..."
-                        : "https://example.com/video.mp4"
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-              </div>
-
-              {item.type === "image" && (
-                <div>
-                  <Label>Alt Text (Optional)</Label>
-                  <Input
-                    value={item.alt || ""}
-                    onChange={(e) => updateItem(index, { alt: e.target.value })}
-                    placeholder="Describe the image"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-              )}
-
-              {item.type === "video" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`controls-${index}`}
-                      checked={item.controls !== false}
-                      onCheckedChange={(checked) => updateItem(index, { controls: checked as boolean })}
-                    />
-                    <Label htmlFor={`controls-${index}`}>Show controls</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`autoplay-${index}`}
-                      checked={item.autoplay || false}
-                      onCheckedChange={(checked) => updateItem(index, { autoplay: checked as boolean })}
-                    />
-                    <Label htmlFor={`autoplay-${index}`}>Autoplay</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`loop-${index}`}
-                      checked={item.loop || false}
-                      onCheckedChange={(checked) => updateItem(index, { loop: checked as boolean })}
-                    />
-                    <Label htmlFor={`loop-${index}`}>Loop</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`muted-${index}`}
-                      checked={item.muted !== false}
-                      onCheckedChange={(checked) => updateItem(index, { muted: checked as boolean })}
-                    />
-                    <Label htmlFor={`muted-${index}`}>Muted</Label>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-
-          <Button
-            onClick={addItem}
-            variant="outline"
-            className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:border-orange-500"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Another Media Item
-          </Button>
-
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-            <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Gallery Layout Tips:</h5>
-            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-              <li>• First item will be larger if you have multiple items</li>
-              <li>• Works best with 2-6 media items</li>
-              <li>• Layout automatically adapts to different screen sizes</li>
-              <li>• Mix images and videos for dynamic galleries</li>
-            </ul>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button
-            type="button"
-            onClick={onClose}
-            className="bg-transparent border border-orange-500 text-orange-500 hover:bg-orange-50 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleConfirm}
-            disabled={items.every(item => item.url.trim() === "")}
-            className="bg-orange-500 hover:bg-orange-600 text-white focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none disabled:opacity-50"
-          >
-            Create Gallery
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, onConfirm }) => {
   const [imageCount, setImageCount] = useState<number>(1)
   const [imageUrls, setImageUrls] = useState<string[]>([""])
@@ -1435,3 +1246,192 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onConfirm }) =
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto font-body">
         <DialogHeader>
+          <DialogTitle>Add Videos</DialogTitle>
+        </DialogHeader>
+        <div className="py-4 space-y-4">
+          <div>
+            <Label>Number of videos</Label>
+            <Select value={videoCount.toString()} onValueChange={(value) => handleCountChange(Number.parseInt(value))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 Video (Centered)</SelectItem>
+                <SelectItem value="2">2 Videos (Side by side)</SelectItem>
+                <SelectItem value="3">3 Videos (Side by side)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {Array.from({ length: videoCount }, (_, i) => (
+            <div key={i} className="border rounded-lg p-4 space-y-3">
+              <h4 className="font-medium">Video {i + 1}</h4>
+
+              <div>
+                <Label>Video Type</Label>
+                <Select
+                  value={videos[i]?.type || "youtube"}
+                  onValueChange={(value) => handleVideoChange(i, "type", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="youtube">YouTube Video</SelectItem>
+                    <SelectItem value="direct">Direct Video Link</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Video URL</Label>
+                <Input
+                  value={videos[i]?.url || ""}
+                  onChange={(e) => handleVideoChange(i, "url", e.target.value)}
+                  placeholder={
+                    videos[i]?.type === "youtube" ? "https://youtube.com/watch?v=..." : "https://example.com/video.mp4"
+                  }
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              {videos[i]?.type === "direct" && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Width</Label>
+                      <Input
+                        value={videos[i]?.width || "100%"}
+                        onChange={(e) => handleVideoChange(i, "width", e.target.value)}
+                        placeholder="100%, 500px, auto"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <Label>Height</Label>
+                      <Input
+                        value={videos[i]?.height || "auto"}
+                        onChange={(e) => handleVideoChange(i, "height", e.target.value)}
+                        placeholder="auto, 300px"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`controls-${i}`}
+                      checked={videos[i]?.controls || false}
+                      onCheckedChange={(checked) => handleVideoChange(i, "controls", checked)}
+                    />
+                    <Label htmlFor={`controls-${i}`}>Show controls</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`autoplay-${i}`}
+                      checked={videos[i]?.autoplay || false}
+                      onCheckedChange={(checked) => handleVideoChange(i, "autoplay", checked)}
+                    />
+                    <Label htmlFor={`autoplay-${i}`}>Autoplay</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`loop-${i}`}
+                      checked={videos[i]?.loop || false}
+                      onCheckedChange={(checked) => handleVideoChange(i, "loop", checked)}
+                    />
+                    <Label htmlFor={`loop-${i}`}>Loop</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`muted-${i}`}
+                      checked={videos[i]?.muted || false}
+                      onCheckedChange={(checked) => handleVideoChange(i, "muted", checked)}
+                    />
+                    <Label htmlFor={`muted-${i}`}>Muted</Label>
+                  </div>
+
+                  <p className="text-sm text-gray-500">Use "auto", percentages (50%), or pixels (300px) for sizing</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button
+            type="button"
+            onClick={onClose}
+            className="bg-transparent border border-orange-500 text-orange-500 hover:bg-orange-50 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleConfirm}
+            className="bg-orange-500 hover:bg-orange-600 text-white focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+          >
+            Confirm
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export default function RichTextEditor({ initialContent = "", onContentChange }: RichTextEditorProps) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({ codeBlock: false }),
+      Link.configure({ openOnClick: false, autolink: true }),
+      Image.configure({
+        inline: false,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: "block mx-auto max-w-full h-auto rounded-lg",
+          style: "object-fit: cover;",
+        },
+      }),
+      YouTube.configure({
+        controls: true,
+        nocookie: true,
+        modestBranding: true,
+        HTMLAttributes: {
+          class: "rounded-lg",
+        },
+      }),
+      Underline,
+      Strike,
+      HorizontalRule,
+      CodeBlockLowlight.configure({ lowlight }),
+      ImageGroup,
+      DirectVideo,
+      VideoGroup,
+      Gallery,
+    ],
+    content: initialContent,
+    onUpdate: ({ editor }) => onContentChange?.(editor.getHTML()),
+    editorProps: {
+      attributes: {
+        class: "prose dark:prose-invert max-w-none focus:outline-none p-2 sm:p-4 min-h-[300px] overflow-y-auto",
+      },
+    },
+    immediatelyRender: false,
+    autofocus: true,
+  })
+
+  useEffect(() => {
+    if (editor && initialContent !== editor.getHTML()) {
+      editor.commands.setContent(initialContent, { emitUpdate: false })
+    }
+  }, [editor, initialContent])
+
+  return (
+    <div className="border rounded-md shadow-sm bg-white dark:bg-[#28282B] text-gray-900 dark:text-gray-100">
+      {editor && <MenuBar editor={editor} />}
+      {editor && <EditorContent editor={editor} />}
+    </div>
+  )
+}
