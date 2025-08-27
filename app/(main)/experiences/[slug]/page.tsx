@@ -7,6 +7,7 @@ import Link from "next/link"
 import { ArrowLeft, Calendar, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollToDetailButton } from "@/components/scroll-to-detail-button"
+import ExperienceContent from "@/components/HtmlContent"
 
 interface Experience {
   id: string
@@ -170,24 +171,8 @@ export default async function ExperiencePage({
         </div>
 
         {/* Content */}
-        <article className="prose prose-lg max-w-none">
-          <div
-            dangerouslySetInnerHTML={{ __html: experience.content }}
-            className="prose prose-lg max-w-none
-              prose-headings:text-gray-900 prose-headings:font-bold prose-headings:tracking-tight
-              prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-h4:text-lg prose-h5:text-base prose-h6:text-base
-              prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-p:text-lg
-              prose-a:text-orange-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium
-              prose-strong:text-gray-900 prose-strong:font-semibold
-              prose-ul:text-gray-700 prose-ol:text-gray-700 prose-ul:space-y-1 prose-ol:space-y-1
-              prose-li:text-gray-700 prose-li:leading-relaxed prose-li:text-lg
-              prose-blockquote:border-l-4 prose-blockquote:border-orange-500 prose-blockquote:bg-orange-50 
-              prose-blockquote:p-4 prose-blockquote:my-6 prose-blockquote:italic prose-blockquote:text-lg
-              prose-img:rounded-lg prose-img:shadow-md prose-img:my-6
-              prose-hr:border-gray-200 prose-hr:my-6
-              prose-code:bg-gray-100 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm"
-          />
-        </article>
+       <ExperienceContent content={experience.content} />
+
 
         {/* Call to Action */}
         <div className="mt-10 p-8 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200">
