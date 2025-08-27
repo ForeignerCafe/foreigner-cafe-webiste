@@ -1,14 +1,14 @@
 "use client";
-import { useEffect } from "react";
-import Alpine from "alpinejs";
 
-export default function AlpineInit() {
+import { useEffect } from "react";
+
+export default function AlpineProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (!window.Alpine) {
-      window.Alpine = Alpine;
-      Alpine.start();
-    }
+    import("alpinejs").then((Alpine) => {
+      window.Alpine = Alpine.default;
+      Alpine.default.start();
+    });
   }, []);
 
-  return null; // nothing to render
+  return <>{children}</>;
 }
