@@ -264,8 +264,8 @@ export default function Navigation() {
         <Image
           src="/logo.gif"
           alt="Logo"
-          width={160}
-          height={80}
+          width={200}
+          height={100}
           priority
           className={`${isScrolled ? " pt-2.5" : " pt-2.5"}`}
         />
