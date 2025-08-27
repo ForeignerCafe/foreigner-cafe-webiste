@@ -1,26 +1,31 @@
-"use client"
+"use client";
 import { useEffect, useRef } from "react";
 
-export default function ExperienceContent({ content }) {
-  const containerRef = useRef(null);
+export default function HtmlContent({ content }) {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Find and execute all <script> tags inside the HTML
-    container.querySelectorAll("script").forEach((oldScript) => {
+    const scripts = container.querySelectorAll("script");
+
+    scripts.forEach((oldScript) => {
       const newScript = document.createElement("script");
 
-      if (oldScript.src) {
-        newScript.src = oldScript.src; // external scripts
-        newScript.async = true;
-      } else {
-        newScript.textContent = oldScript.innerHTML; // inline scripts
+      // Copy over all attributes (src, type, async, etc.)
+      for (let i = 0; i < oldScript.attributes.length; i++) {
+        const attr = oldScript.attributes[i];
+        newScript.setAttribute(attr.name, attr.value);
       }
 
-      document.body.appendChild(newScript);
-      oldScript.remove(); // optional cleanup
+      // Inline script handling
+      if (oldScript.textContent) {
+        newScript.textContent = oldScript.textContent;
+      }
+
+      // Replace old <script> with new one (triggers execution)
+      oldScript.parentNode?.replaceChild(newScript, oldScript);
     });
   }, [content]);
 
