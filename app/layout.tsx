@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 // import { CustomToaster } from "@/components/custom-toaster";
-
+import AlpineInit from "@/components/AlpineInit"
 import LenisProvider from "@/components/LenisProvider";
 import Preloader from "@/components/preloader";
 import TawkToChat from "@/components/TawkToChat";
@@ -54,6 +54,7 @@ export default function RootLayout({
       <body className={`${tradeGothic.className}`}>
         {/* <LenisProvider> */}
         <AnalyticsTracker />
+        <AlpineInit />
         <Preloader />
         {children}
 
