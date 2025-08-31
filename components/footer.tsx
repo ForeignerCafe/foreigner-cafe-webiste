@@ -286,12 +286,12 @@ export default function Footer() {
               </button>
             </div>
             <div className="flex flex-wrap justify-center md:justify-end space-x-8 text-xs text-gray-400 mb-6 md:mb-0">
-              <button
+{/*               <button
                 onClick={() => openReservationModal()}
                 className="hover:text-orange transition-colors duration-200 tracking-wide"
               >
                 RESERVE
-              </button>
+              </button> */}
               <button
                 onClick={() => router.push("/privacy")}
                 className="hover:text-orange transition-colors duration-200 tracking-wide"
