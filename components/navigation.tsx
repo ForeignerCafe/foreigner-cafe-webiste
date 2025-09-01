@@ -262,7 +262,7 @@ export default function Navigation() {
             <div className="flex-shrink-0">
       <Link href="/" className="focus:outline-none transition-all duration-300 hover:scale-110 block"  onClick={() => setActiveTab("HOME")}>
         <Image
-          src="/logo.gif"
+          src="https://i.postimg.cc/fLmrGzLp/logo.gif"
           alt="Logo"
           width={200}
           height={100}
